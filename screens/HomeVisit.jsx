@@ -60,7 +60,7 @@ const HomeVisit = () => {
   };
   
   const handleTeamMemberChange = (index, value) => {
-   
+    if(formData.teamMembers.includes(value)) return;
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
@@ -78,15 +78,16 @@ const HomeVisit = () => {
         if (formData["visit_type"] === "TeamVisit") return "Team Members";
         return false;
       }
-      if(key === 'mobileNumber'){
+      if(key === 'customerContact'){
         if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
-        return false
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
       }
       return !formData[key];
     });
 
     if (emptyField) {
+      if(emptyField === 'customerContact') return Alert.alert('Validation Error' , 'Please enter a valid mobile number' , [{text: 'OK'}]);
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -128,6 +129,17 @@ const HomeVisit = () => {
        
       if(res.data.error) return Alert.alert('Error' , res.data.error , [{text: 'OK'}]);
       Alert.alert("Success", res.data.success , [{ text: "OK" }]);
+      setFormData({
+        name: user.user.first_name,
+        customerName: "",
+        customerContact: "",
+        remark: "",
+        location: "",
+        date: new Date(),
+        image: null,
+        teamMembers: [],
+        visit_type: "",
+      })
       navigate('Dashboard');
     } catch (err) {
       Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);

@@ -27,7 +27,6 @@ const Login = ({user}) => {
     const res = await axios.post('http://10.22.130.15:8000/api/Login', {username , password})
     if(res?.data?.access){
         dispatch(login(res.data));
-        setUserLoggedIn(true);
     }
     else{
         Alert.alert('Invalid Credentials');
@@ -41,7 +40,7 @@ const Login = ({user}) => {
   };
 
  const handleForgotPasswordPress = () => {
-    Alert.alert('isse kuch nhi hota');
+    // Alert.alert('isse kuch nhi hota');
  }
  const image = {uri: 'https://img.freepik.com/free-vector/gradient-gray-futuristic-digital-bokeh-background_53876-116445.jpg?t=st=1723283687~exp=1723287287~hmac=ac01ce3d08970b64de07e7f8c13830f95cd5cf30da2bd556e8cfef411de33e25&w=740'};
 
@@ -55,14 +54,14 @@ const Login = ({user}) => {
       <View style={{
         alignItems: 'center',
         paddingHorizontal:40,
-        // paddingTop:20,
+        paddingTop:80,
         width: '100%',
         marginTop:-100,
       }}>
       <Image source={require('../assets/logo.png')} style={{
-        width: 250,
-        height: 250,
-        resizeMode: 'contain',
+        width: 140,
+        height: 140,
+        resizeMode: 'center',
         marginBottom: 20,
       }}/>
       <Text style={{
@@ -102,7 +101,7 @@ const Login = ({user}) => {
 
 const styles = StyleSheet.create({
   container:{
-    flex:1,
+        flex:1,
         justifyContent:'center',
         flexDirection:"row",
     },

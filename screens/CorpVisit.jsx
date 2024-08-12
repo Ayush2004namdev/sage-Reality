@@ -68,6 +68,7 @@ const CorpVisit = () => {
   };
 
   const handleTeamMemberChange = (index, value) => {
+    if(formData.teamMembers.includes(value)) return;
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
@@ -84,8 +85,8 @@ const CorpVisit = () => {
       }
       if(key === 'mobileNumber'){
         if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
-        return false
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
       }
      
       return !formData[key];
@@ -135,6 +136,23 @@ const CorpVisit = () => {
       );
       if(res.data.error) return Alert.alert('Error', res.data.error , [{text:'OK'}]);
       Alert.alert("Success", "Form Filled SuccessFully.", [{ text: "OK" }]);
+      setFormData({
+        name: user.user.first_name,
+        location: "",
+        keyPerson: "",
+        mobileNumber: "",
+        corporateType: "select",
+        corporate: "select",
+        firstGroupValue: null,
+        secondGroupValue: null,
+        date: new Date(),
+        plannedDate: new Date(),
+        image: null,
+        reason: "",
+        noOfPeopleMet: "",
+        DataCollected: "",
+        teamMembers: [],
+      })
       navigate('Dashboard');
     } catch (err) {
       console.log(err);

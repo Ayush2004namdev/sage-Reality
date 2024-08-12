@@ -61,14 +61,15 @@ const SageMitraFollowUp = () => {
     const emptyField = Object.keys(formData).find(key => {
       if(key === 'mobileNumber'){
         if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
-        return false
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
       }
 
       return !formData[key]
     });
 
     if (emptyField) {
+      if(emptyField === 'mobileNumber') return Alert.alert('Validation Error', 'Please enter a valid mobile number' , [{text:'OK'}]);
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -94,6 +95,14 @@ const SageMitraFollowUp = () => {
       })
       if(res.data.error) return Alert.alert('Error', res.data.error , [{text:'OK'}]);
       Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
+      setFormData({
+        name: user.user.first_name,
+        date: new Date(),
+        mobileNumber: "",
+        noOfLeads: "",
+        leadDetails: "",
+        sageMitra:'',
+      })
       navigate('Dashboard');
     }catch(err){
       console.log(err);
@@ -117,6 +126,7 @@ const SageMitraFollowUp = () => {
               value={formData.name}
               onChangeText={value => handleInputChange('name', value)}
               placeholder="Enter Your Name"
+              editable={false}
               style={styles.inputText}
             />
           </View>
@@ -126,20 +136,20 @@ const SageMitraFollowUp = () => {
             <Text style={styles.label}>Select Sage Mitra</Text>
               <TextInput placeholder="Enter SAGE Mitra" style={styles.inputText} value={searchVal} onChangeText={(val) => handleInputChange('search' , val)} />
               {searchVal && (
-                <>
+                
                 <ScrollView style={{
                   width: '100%',
                   height: 'auto',
                 }}>
-                  {showenList && showenList.length > 0 && showenList.map((item) => (
-                    <TouchableOpacity onPress={() => handleInputChange('sageMitra', item)} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
+                  {showenList && showenList.length > 0 && showenList.map((item, index) => (
+                    <TouchableOpacity key={index} onPress={() => handleInputChange('sageMitra', item)} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
                       <Text>{item[0]}</Text>
                     </TouchableOpacity>
                   ))}
                 
                 </ScrollView>
                 
-              </>
+              
               )}
           </View>
 
@@ -186,6 +196,7 @@ const SageMitraFollowUp = () => {
               onChangeText={value => useChangeData('noOfLeads', value , true , setFormData)}
               placeholder="No of leads shared in this follow up"
               style={styles.inputText}
+              keyboardType="numeric"
             />
           </View>
 

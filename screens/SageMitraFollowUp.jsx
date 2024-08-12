@@ -8,6 +8,7 @@ import { blue } from "../constants";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import useChangeData from "../hooks/useChangeData";
 
 const SageMitraFollowUp = () => {
   
@@ -54,12 +55,18 @@ const SageMitraFollowUp = () => {
     sageMitra:'',
   });
 
-  
-
 
 
   const handleSubmit =async () => {
-    const emptyField = Object.keys(formData).find(key => !formData[key]);
+    const emptyField = Object.keys(formData).find(key => {
+      if(key === 'mobileNumber'){
+        if(formData[key].length !== 10) return 'Mobile Number';
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
+        return false
+      }
+
+      return !formData[key]
+    });
 
     if (emptyField) {
       Alert.alert(
@@ -124,8 +131,8 @@ const SageMitraFollowUp = () => {
                   width: '100%',
                   height: 'auto',
                 }}>
-                  {showenList && showenList.length > 0 && showenList.map((item ,i) => (
-                    <TouchableOpacity key={i} onPress={() => handleInputChange('sageMitra', item)} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
+                  {showenList && showenList.length > 0 && showenList.map((item) => (
+                    <TouchableOpacity onPress={() => handleInputChange('sageMitra', item)} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
                       <Text>{item[0]}</Text>
                     </TouchableOpacity>
                   ))}
@@ -140,7 +147,7 @@ const SageMitraFollowUp = () => {
             <Text style={styles.label}>Mobile Number</Text>
             <TextInput
               value={formData.mobileNumber}
-              onChangeText={value => handleInputChange('mobileNumber', value)}
+              onChangeText={value => useChangeData('mobileNumber', value , true , setFormData)}
               placeholder="Enter Mobile Number"
               style={styles.inputText}
               keyboardType="numeric"
@@ -176,7 +183,7 @@ const SageMitraFollowUp = () => {
             <Text style={styles.label}>No Of leads</Text>
             <TextInput
               value={formData.noOfLeads}
-              onChangeText={value => handleInputChange('noOfLeads', value)}
+              onChangeText={value => useChangeData('noOfLeads', value , true , setFormData)}
               placeholder="No of leads shared in this follow up"
               style={styles.inputText}
             />
@@ -186,7 +193,7 @@ const SageMitraFollowUp = () => {
             <Text style={styles.label}>Lead Details</Text>
             <TextInput
               value={formData.leadDetails}
-              onChangeText={value => handleInputChange('leadDetails', value)}
+              onChangeText={value => useChangeData('leadDetails', value , false , setFormData)}
               placeholder="Enter Lead Details/Description"
               style={styles.inputText}
             />

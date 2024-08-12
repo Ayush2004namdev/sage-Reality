@@ -8,10 +8,10 @@ import { blue } from "../constants";
 import { useSelector } from "react-redux";
 import { formatDate } from "../lib/features";
 import axios from "axios";
+import useChangeData from "../hooks/useChangeData";
 const Event = () => {
   const {user} = useSelector((state) => state.user);
   const {event_type_list} = useSelector((state) => state.misc);
-  console.log(event_type_list);
     const [formData, setFormData] = useState({
         name:user.user.first_name ,
         eventType:'select',
@@ -36,14 +36,7 @@ const Event = () => {
         setShowDatePicker(Platform.OS === 'ios');
         setFormData({ ...formData, endDate: currentDate });
       };
-    
-      const handleInputChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-      };
-    
-    
-    
-    
+ 
       const handleSubmit = async () => {
         const emptyField = Object.keys(formData).find(key => !formData[key]);
     
@@ -109,7 +102,7 @@ const Event = () => {
                 <TextInput
                   value={formData.name}
                   editable={false}
-                  onChangeText={value => handleInputChange('name', value)}
+                  onChangeText={value => useChangeData('name', value , false , setFormData)}
                   placeholder="Enter Your Name"
                   style={styles.inputText}
                 />
@@ -121,16 +114,13 @@ const Event = () => {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.eventType}
-                onValueChange={(itemValue) => handleInputChange('eventType', itemValue)}
+                onValueChange={(itemValue) => useChangeData('eventType', itemValue , false , setFormData)}
                 style={styles.picker}
               >
                 <Picker.Item label="Select" value="select" />
                 {event_type_list && event_type_list.map((item,i) => (
                   <Picker.Item key={i} label={item} value={item} />
                 ))}
-                {/* <Picker.Item label="Select" value="select" />
-                <Picker.Item label="Type 1" value="type1" />
-                <Picker.Item label="Type 2" value="type2" /> */}
               </Picker>
             </View>
           </View>
@@ -139,7 +129,7 @@ const Event = () => {
                 <Text style={styles.label}>Event Name</Text>
                 <TextInput
                   value={formData.eventName}
-                  onChangeText={value => handleInputChange('eventName', value)}
+                  onChangeText={value => useChangeData('eventName', value , false , setFormData)}
                   placeholder="Enter Event Name"
                   style={styles.inputText}
                 />
@@ -198,7 +188,7 @@ const Event = () => {
                 <Text style={styles.label}>Event Details</Text>
                 <TextInput
                   value={formData.eventDetails}
-                  onChangeText={value => handleInputChange('eventDetails', value)}
+                  onChangeText={value => useChangeData('eventDetails', value , false , setFormData)}
                   placeholder="Enter Event Details"
                   style={styles.inputText}
                 />
@@ -208,7 +198,7 @@ const Event = () => {
                 <Text style={styles.label}>Number Of Attendees</Text>
                 <TextInput
                   value={formData.numberOfAttendiees}
-                  onChangeText={value => handleInputChange('numberOfAttendiees', value)}
+                  onChangeText={value => useChangeData('numberOfAttendiees', value , true , setFormData)}
                   placeholder="Enter Number of Attendees"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -219,7 +209,7 @@ const Event = () => {
                 <Text style={styles.label}>Number of Leads</Text>
                 <TextInput
                   value={formData.numberOfLeads}
-                  onChangeText={value => handleInputChange('numberOfLeads', value)}
+                  onChangeText={value => useChangeData('numberOfLeads', value , true , setFormData)}
                   placeholder="Enter Number of Leads"
                   style={styles.inputText}
                     keyboardType="numeric"

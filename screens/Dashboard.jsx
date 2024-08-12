@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { blue, yellow } from '../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { setAllDropdownData } from '../redux/slices/misc';
+// import Test from '../components/TestTemplate';
 
 
 
@@ -263,6 +264,7 @@ const Dashboard = ({setUserLoggedIn}) => {
            </View>
           ))}
           </View>
+          {/* <Test/> */}
           <View style={styles.dummy}></View>
         </ScrollView>
       </View>
@@ -277,7 +279,7 @@ const styles = StyleSheet.create({
     flex: 1,
     // backgroundColor: 'white',
     backgroundColor: '#F6F5F5',
-    paddingTop: 20,
+    // paddingTop: 20,
     paddingHorizontal: 10,
     paddingBottom: 20,
   },
@@ -326,6 +328,7 @@ const styles = StyleSheet.create({
   scroller: {
     flex: 1,
     // backgroundColor: 'white',
+    paddingTop: 20,
     backgroundColor: '#F6F5F5',
     paddingBottom: 20,
   },

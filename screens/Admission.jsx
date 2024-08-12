@@ -17,6 +17,7 @@ import { blue } from "../constants";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { formatDate } from "../lib/features";
+import useChangeData from "../hooks/useChangeData";
 const Admission = () => {
   const { user } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({
@@ -34,10 +35,6 @@ const Admission = () => {
     const currentDate = selectedDate || formData.date;
     setShowDatePicker(Platform.OS === "ios");
     setFormData({ ...formData, date: currentDate });
-  };
-
-  const handleInputChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async () => {
@@ -97,7 +94,7 @@ const Admission = () => {
             <TextInput
               value={formData.name}
               editable={false}
-              onChangeText={(value) => handleInputChange("name", value)}
+              onChangeText={(value) => useChangeData("name", value , false , setFormData)}
               placeholder="Enter Your Name"
               style={styles.inputText}
             />
@@ -145,7 +142,7 @@ const Admission = () => {
             <Text style={styles.label}>Name</Text>
             <TextInput
               value={formData.fatherName}
-              onChangeText={(value) => handleInputChange("fatherName", value)}
+              onChangeText={(value) => useChangeData("fatherName", value , false , setFormData)}
               placeholder="Enter Father's Name"
               style={styles.inputText}
             />
@@ -155,18 +152,8 @@ const Admission = () => {
             <Text style={styles.label}>Student's Name</Text>
             <TextInput
               value={formData.studentName}
-              onChangeText={(value) => handleInputChange("studentName", value)}
+              onChangeText={(value) => useChangeData("studentName", value , false , setFormData)}
               placeholder="Enter Student's Name"
-              style={styles.inputText}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Branch/Class</Text>
-            <TextInput
-              value={formData.branch}
-              onChangeText={(value) => handleInputChange("branch", value)}
-              placeholder="Enter Branch/Class "
               style={styles.inputText}
             />
           </View>
@@ -177,7 +164,7 @@ const Admission = () => {
               <Picker
                 selectedValue={formData.Vertical}
                 onValueChange={(itemValue) =>
-                  handleInputChange("Vertical", itemValue)
+                  useChangeData("Vertical", itemValue , false , setFormData)
                 }
                 style={styles.picker}
               >
@@ -189,6 +176,16 @@ const Admission = () => {
                 <Picker.Item label="SIS-AN" value="SIS-AN" />
               </Picker>
             </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Branch/Class</Text>
+            <TextInput
+              value={formData.branch}
+              onChangeText={(value) => useChangeData("branch", value , false , setFormData)}
+              placeholder="Enter Branch/Class "
+              style={styles.inputText}
+            />
           </View>
 
           <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>

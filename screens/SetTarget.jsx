@@ -1,15 +1,16 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
-import axios from "axios";
-import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
+import axios from "axios";
+import React, { useCallback, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { blue } from "../constants";
+import { toggleUpdate } from "../redux/slices/misc";
+import useChangeData from "../hooks/useChangeData";
 const SetTarget = () => {
     const {user} = useSelector((state) => state.user);
+    const dispatch = useDispatch();
     const [changed , setChanged] = useState(false);
     const dataTemplate = {
       bookingTarget:'',
@@ -38,7 +39,8 @@ const SetTarget = () => {
       
       
     
-      const handleInputChange = (name, value) => {
+      const handleInputChange = (name, value , type) => {
+        if(type === 'numeric' && isNaN(value)) return;
         setFormData({ ...formData, [name]: value });
       };
     
@@ -58,9 +60,51 @@ const SetTarget = () => {
             { cancelable: false }
           );
         } else {
+
+          const getMonth = ()=> {
+            switch(formData.month){
+              case 0:
+                return 'January';
+                break;
+              case 1:
+                return 'February';
+                break;
+              case 2:
+                return 'March';
+                break;
+              case 3:
+                return 'April';
+                break;
+              case 4:
+                return 'May';
+                break;
+              case 5:
+                return 'June';
+                break;
+              case 6:
+                return 'July';
+                break;
+              case 7:
+                return 'August';
+                break;
+              case 8:
+                return 'September';
+                break;
+              case 9:
+                return 'October';
+                break;
+              case 10:
+                return 'November';
+                break;
+              case 11:
+                return 'December';
+                break;
+            }
+          }
+
           try{
             const res = await axios.post(`http://10.22.130.15:8000/api/Set-Target/${user.user.first_name}`,{
-              month:formData.month,
+              month:getMonth(formData.month),
               year:formData.year,
               booking:formData.bookingTarget,
               followup:formData.followUpTarget,
@@ -76,13 +120,14 @@ const SetTarget = () => {
                 Authorization: `Bearer ${user.access}`
               }
             })
-            console.log(res.data);
+            if(res?.data?.error) return Alert.alert("Error", res.data.error, [{ text: "OK" }]);
+          Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
           }catch(err){
             console.log({err});
+            Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
           }
-            
-          Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
         }
+        dispatch(toggleUpdate());
         setChanged(!changed);
       };
 
@@ -96,7 +141,7 @@ const SetTarget = () => {
                     'Authorization': `Bearer ${user.access}`
                   }
                 })
-                console.log(res.data);
+                if(!res?.data) return;
                 res?.data?.forEach((target) => {
                   switch(target.id){
                     case 1 :
@@ -131,7 +176,7 @@ const SetTarget = () => {
                setFormData(prev => ({ name: user.user.first_name,
                 month:new Date().getMonth(),
                 year:new Date().getFullYear(),...dataTemplate}));
-                
+
             }
             catch(err){
               console.log({err})
@@ -154,7 +199,7 @@ const SetTarget = () => {
                 <TextInput
                   editable={false}
                   value={formData.name}
-                  onChangeText={value => handleInputChange('name', value)}
+                  onChangeText={value => useChangeData('name', value , true , setFormData)}
                   placeholder="Enter Your Name"
                   style={styles.inputText}
                 />
@@ -165,7 +210,7 @@ const SetTarget = () => {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.month}
-                onValueChange={(itemValue) => handleInputChange('month', itemValue)}
+                onValueChange={(itemValue) => useChangeData('month', itemValue , true , setFormData)}
                 style={styles.picker}
               >
                 <Picker.Item label='January' value={0} />
@@ -190,7 +235,7 @@ const SetTarget = () => {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.year}
-                onValueChange={(itemValue) => handleInputChange('year', itemValue)}
+                onValueChange={(itemValue) => useChangeData('year', itemValue , true , setFormData)}
                 style={styles.picker}
               >
                 <Picker.Item label={formData.year} value={formData.year} />
@@ -200,11 +245,11 @@ const SetTarget = () => {
     
     
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Booking Target {formData.bookingTarget}</Text>
+                <Text style={styles.label}>Booking Target</Text>
                 
                 <TextInput
                   value={formData.bookingTarget.toString()}
-                  onChangeText={value => handleInputChange('bookingTarget', value)}
+                  onChangeText={value => useChangeData('bookingTarget', value , true , setFormData)}
                   placeholder="Enter Booking Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -215,7 +260,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Corporate Target</Text>
                 <TextInput
                   value={formData.corporateTarget.toString()}
-                  onChangeText={value => handleInputChange('corporateTarget', value)}
+                  onChangeText={value => useChangeData('corporateTarget', value , true , setFormData)}
                   placeholder="Enter Coporate Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -226,7 +271,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Follow Up Target</Text>
                 <TextInput
                   value={formData.followUpTarget.toString()}
-                  onChangeText={value => handleInputChange('followUpTarget', value)}
+                  onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
                   placeholder="Enter Follow Up Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -237,7 +282,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Home Visit Target</Text>
                 <TextInput
                   value={formData.homeVisitTarget.toString()}
-                  onChangeText={value => handleInputChange('homeVisitTarget', value)}
+                  onChangeText={value => useChangeData('homeVisitTarget', value , true , setFormData)}
                   placeholder="Enter Home Visit Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -248,7 +293,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Sage Mitra F/W Target</Text>
                 <TextInput
                   value={formData.SMFollowUpTarget.toString()}
-                  onChangeText={value => handleInputChange('SMFollowUpTarget', value)}
+                  onChangeText={value => useChangeData('SMFollowUpTarget', value , true , setFormData)}
                   placeholder="Enter Sage Mitra F/W Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -259,7 +304,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Site Visit Target</Text>
                 <TextInput
                   value={formData.siteVisitTarget.toString()}
-                  onChangeText={value => handleInputChange('siteVisitTarget', value)}
+                  onChangeText={value => useChangeData('siteVisitTarget', value ,true , setFormData)}
                   placeholder="Enter Site Visit Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -270,7 +315,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>Admission Target</Text>
                 <TextInput
                   value={formData.admissionTarget.toString()}
-                  onChangeText={value => handleInputChange('admissionTarget', value)}
+                  onChangeText={value => useChangeData('admissionTarget', value , true , setFormData)}
                   placeholder="Enter Admission Target"
                   style={styles.inputText}
                   keyboardType="numeric"
@@ -281,7 +326,7 @@ const SetTarget = () => {
                 <Text style={styles.label}>IP Patient Target</Text>
                 <TextInput
                   value={formData.ipPatientTarget.toString()}
-                  onChangeText={value => handleInputChange('ipPatientTarget', value)}
+                  onChangeText={value => useChangeData('ipPatientTarget', value , true , setFormData)}
                   placeholder="Enter IP Patient Target"
                   style={styles.inputText}
                   keyboardType="numeric"

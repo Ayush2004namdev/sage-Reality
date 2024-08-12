@@ -21,8 +21,11 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { formatDate } from "../lib/features";
 import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
+import useChangeData from "../hooks/useChangeData";
 
 const HomeVisit = () => {
+  const { navigate } = useNavigation();
   const { user } = useSelector((state) => state.user);
   const {members} = useSelector((state) => state.misc);
   const [formData, setFormData] = useState({
@@ -34,7 +37,6 @@ const HomeVisit = () => {
     date: new Date(),
     image: null,
     teamMembers: [],
-    cofellows:{},
     visit_type: "",
   });
 
@@ -47,30 +49,42 @@ const HomeVisit = () => {
     setFormData({ ...formData, date: currentDate });
   };
 
-  const handleInputChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
-  };
 
   const addTeamMember = () => {
     setFormData({ ...formData, teamMembers: [...formData.teamMembers, ""] });
   };
-
+  
   const removeTeamMember = (index) => {
-    handleAddFellow(index+1,'select');
-    const updatedMembers = formData.teamMembers.filter((_, i) => i !== index);
-    setFormData({ ...formData, teamMembers: updatedMembers });
+    formData.teamMembers.splice(index, 1);
+    setFormData({ ...formData, teamMembers:formData.teamMembers});
   };
-
+  
   const handleTeamMemberChange = (index, value) => {
+   
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
     setFormData({ ...formData, teamMembers: updatedMembers });
   };
 
+
   const handleSubmit = async () => {
-    setIsLoading(true);
-    const emptyField = Object.keys(formData).find((key) => !formData[key]);
+    
+    const emptyField = Object.keys(formData).find((key) => {
+      if (
+        key === "teamMembers" &&
+        (formData[key].length <= 0 || formData[key][0] === "")
+      ) {
+        if (formData["visit_type"] === "TeamVisit") return "Team Members";
+        return false;
+      }
+      if(key === 'mobileNumber'){
+        if(formData[key].length !== 10) return 'Mobile Number';
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
+        return false
+      }
+      return !formData[key];
+    });
 
     if (emptyField) {
       Alert.alert(
@@ -84,19 +98,13 @@ const HomeVisit = () => {
         ],
         { cancelable: false }
       );
+      setIsLoading(false);
       return;
     }
     try {
-      const newFormData = new FormData();
-      newFormData.append("username", formData.name);
-      newFormData.append("customer_name", formData.customerName);
-      newFormData.append("customer_contact", formData.customerContact);
-      newFormData.append("visit_details", formData.remark);
-      newFormData.append("site_visit_name", formData.location);
-      newFormData.append("date", formatDate(formData.date));
-      newFormData.append("image", formData.image);
-      newFormData.append("teamMembers", JSON.stringify(formData.teamMembers));
-      newFormData.append("visit_type", formData.visit_type);
+    setIsLoading(true);
+      const teamMembers = formData.teamMembers.filter((member) => member !== "")
+      setFormData({...formData , teamMembers});
       const res = await axios.post(
         "http://10.22.130.15:8000/api/Home-Visit",
         {
@@ -117,8 +125,10 @@ const HomeVisit = () => {
           },
         }
       );
+       
       if(res.data.error) return Alert.alert('Error' , res.data.error , [{text: 'OK'}]);
       Alert.alert("Success", res.data.success , [{ text: "OK" }]);
+      navigate('Dashboard');
     } catch (err) {
       Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
       console.log({ err });
@@ -147,13 +157,7 @@ const HomeVisit = () => {
     }
   };
 
-  const handleAddFellow = ( index,fellow) => {
-    if(fellow === 'select') return delete formData.cofellows[index];
-    const cf = formData.cofellows;
-    cf[index] = fellow;
-    
-    setFormData({ ...formData, });
-  }
+ 
 
   return (
     <SafeAreaView>
@@ -168,7 +172,7 @@ const HomeVisit = () => {
             <TextInput
               editable={false}
               value={formData.name}
-              onChangeText={(value) => handleInputChange("name", value)}
+              onChangeText={(value) => useChangeData("name", value , false , setFormData)}
               placeholder="Enter Your Name"
               style={styles.inputText}
             />
@@ -178,7 +182,7 @@ const HomeVisit = () => {
             <Text style={styles.label}> Customer Name</Text>
             <TextInput
               value={formData.customerName}
-              onChangeText={(value) => handleInputChange("customerName", value)}
+              onChangeText={(value) => useChangeData("customerName", value , false , setFormData)}
               placeholder="Enter customer Name"
               style={styles.inputText}
             />
@@ -190,8 +194,9 @@ const HomeVisit = () => {
             keyboardType="numeric"
               value={formData.customerContact}
               onChangeText={(value) =>
-                handleInputChange("customerContact", value)
+                useChangeData("customerContact", value , true , setFormData)
               }
+              
               placeholder="Enter Customer Contact Number"
               style={styles.inputText}
             />
@@ -239,7 +244,7 @@ const HomeVisit = () => {
             <Text style={styles.label}>Remark</Text>
             <TextInput
               value={formData.remark}
-              onChangeText={(value) => handleInputChange("remark", value)}
+              onChangeText={(value) => useChangeData("remark", value , false , setFormData)}
               placeholder="Remark"
               style={styles.inputText}
             />
@@ -249,7 +254,7 @@ const HomeVisit = () => {
             <Text style={styles.label}>Location</Text>
             <TextInput
               value={formData.location}
-              onChangeText={(value) => handleInputChange("location", value)}
+              onChangeText={(value) => useChangeData("location", value , false , setFormData)}
               placeholder="Enter Location"
               style={styles.inputText}
             />
@@ -287,15 +292,18 @@ const HomeVisit = () => {
             <View style={styles.radioGroup}>
               <RadioButton.Group
                 onValueChange={(value) => {
-                  handleInputChange("visit_type", value);
+                  useChangeData("visit_type", value , false , setFormData);
                   if (value === "team") {
                     setShowTeamSelect(true);
                   } else {
+                    // setFormData({ ...formData, teamMembers: [] });
                     setShowTeamSelect(false);
+                    setFormData({ ...formData, teamMembers: []  , visit_type: value});
                   }
                 }}
                 value={formData.visit_type}
               >
+                
                 <View style={styles.radioButton}>
                   <RadioButton value="SoloVisit" />
                   <Text style={styles.radioLabel}>Solo Visit</Text>
@@ -316,17 +324,14 @@ const HomeVisit = () => {
                   <View style={styles.pickerContainer}>
 
                   <Picker
-                selectedValue={formData.cofellows[index+1]}
-                onValueChange={(itemValue) => handleAddFellow(index+1,itemValue)}
+                selectedValue={formData.teamMembers[index]}
+                onValueChange={(itemValue) => handleTeamMemberChange(index,itemValue)}
                 style={styles.picker}
                 >
                 <Picker.Item label="Select" value="select" />
                 {members.map((item) => (
                     <Picker.Item key={item} label={item} value={item} />
                 ))}
-                
-                <Picker.Item label='k' value='k' />
-                <Picker.Item label='d' value='d' />
               </Picker>
               </View>
                   <TouchableOpacity
@@ -359,7 +364,7 @@ const HomeVisit = () => {
             </View>
           )}
 
-          <TouchableOpacity disabled={loading} onPress={handleSubmit} style={styles.submitButton}>
+          <TouchableOpacity disabled={loading} onPress={handleSubmit} style={[styles.submitButton]}>
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>

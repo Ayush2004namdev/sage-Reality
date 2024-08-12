@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { formatDate } from "../lib/features";
+import useChangeData from "../hooks/useChangeData";
 const IPDone = () => {
     const {navigate} = useNavigation();
     const {user} = useSelector((state) => state.user);
@@ -28,14 +29,7 @@ const IPDone = () => {
         setShowDatePicker(Platform.OS === 'ios');
         setFormData({ ...formData, date: currentDate });
       };
-    
-      const handleInputChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-      };
-    
-    
-    
-    
+ 
       const handleSubmit = async() => {
         const emptyField = Object.keys(formData).find(key => !formData[key]);
     
@@ -99,7 +93,7 @@ const IPDone = () => {
                 <TextInput
                   editable={false}
                   value={formData.name}
-                  onChangeText={value => handleInputChange('name', value)}
+                  onChangeText={value => useChangeData('name', value , false , setFormData)}
                   placeholder="Enter Your Name"
                   style={styles.inputText}
                 />
@@ -135,7 +129,7 @@ const IPDone = () => {
                 <Text style={styles.label}>Patient Name</Text>
                 <TextInput
                   value={formData.patientName}
-                  onChangeText={value => handleInputChange('patientName', value)}
+                  onChangeText={value => useChangeData('patientName', value , false , setFormData)}
                   placeholder="Enter Patient Name"
                   style={styles.inputText}
                 />
@@ -147,7 +141,7 @@ const IPDone = () => {
                 <Text style={styles.label}>Key Person Name</Text>
                 <TextInput
                   value={formData.keyPersonName}
-                  onChangeText={value => handleInputChange('keyPersonName', value)}
+                  onChangeText={value => useChangeData('keyPersonName', value , false , setFormData)}
                   placeholder="Enter Key Person Name"
                   style={styles.inputText}
                 />

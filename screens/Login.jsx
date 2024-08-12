@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
+  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { blue, yellow } from '../constants';
@@ -13,11 +15,11 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../redux/slices/user';
 
-const Login = ({setUserLoggedIn,user,dispatch}) => {
+const Login = ({user}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -41,15 +43,34 @@ const Login = ({setUserLoggedIn,user,dispatch}) => {
  const handleForgotPasswordPress = () => {
     Alert.alert('isse kuch nhi hota');
  }
+ const image = {uri: 'https://img.freepik.com/free-vector/gradient-gray-futuristic-digital-bokeh-background_53876-116445.jpg?t=st=1723283687~exp=1723287287~hmac=ac01ce3d08970b64de07e7f8c13830f95cd5cf30da2bd556e8cfef411de33e25&w=740'};
 
   return (
-    <LinearGradient
-      
-      colors={[yellow, blue]}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <ImageBackground source={image} style={{
+        flex: 1,
+        justifyContent: 'center',
+      }} resizeMode='cover'>
+
+      <View style={{
+        alignItems: 'center',
+        paddingHorizontal:40,
+        // paddingTop:20,
+        width: '100%',
+        marginTop:-100,
+      }}>
+      <Image source={require('../assets/logo.png')} style={{
+        width: 250,
+        height: 250,
+        resizeMode: 'contain',
+        marginBottom: 20,
+      }}/>
+      <Text style={{
+        fontSize: 30,
+        fontWeight: 'bold',
+        color: blue,
+      }}>Sage Anandam!</Text>
       <View style={styles.loginBox}>
-        <Text style={styles.title}>Sage Anandam!</Text>
 
         <TextInput
           style={styles.input}
@@ -57,7 +78,7 @@ const Login = ({setUserLoggedIn,user,dispatch}) => {
           placeholderTextColor='#aaa'
           value={username}
           onChangeText={setUsername}
-        />
+          />
 
         <TextInput
           style={styles.input}
@@ -66,72 +87,56 @@ const Login = ({setUserLoggedIn,user,dispatch}) => {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
-        />
+          />
 
         <TouchableOpacity onPress={handleLogin} disabled={loading} style={styles.button}>
-          <Text style={loading ? {color:'gray'} : styles.buttonText}>{loading ? 'Loading...' : 'Login'}</Text>
+          <Text style={[loading && {color:'gray'},  styles.buttonText]}>{loading ? 'Loading...' : 'Login'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPasswordPress} style={{ width:'100%'}}><Text style={{textAlign:'right'}}>Forgot Password</Text></TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
+    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginBox: {
-    width: '80%',
-    padding: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    color: '#002f6c',
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  button: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#ffc107',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  buttonText: {
-    color: '#002f6c',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  container:{
+    flex:1,
+        justifyContent:'center',
+        flexDirection:"row",
+    },
+    loginBox:{
+        width:'100%',
+        alignItems:'center',
+        // backgroundColor:'red',
+       paddingHorizontal:0,
+       paddingVertical:20,
+        borderRadius:10,
+        // elevation:10,
+    },
+    input:{
+        width:'100%',
+        backgroundColor:'#fff',
+        padding:10,
+        borderRadius:5,
+        marginVertical:10,
+        borderWidth:1,
+        borderColor:'black',
+    },
+    button:{
+      marginVertical:10,
+      width:'70%',
+      textAlign:'center',
+      backgroundColor:blue,
+      borderRadius:30
+    },
+    buttonText:{
+      color:'white',
+      paddingVertical:15,
+      padding:10,
+      textAlign:'center',
+    }
 });
 
 export default Login;

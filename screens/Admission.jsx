@@ -14,11 +14,17 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { formatDate } from "../lib/features";
 import useChangeData from "../hooks/useChangeData";
+import DialogComponent from "../components/DialogComponent";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { useNavigation } from "@react-navigation/native";
+import Loading from "../components/Loading";
 const Admission = () => {
+  const {navigate} = useNavigation();
+  const [loading, setLoading] = useState(false);
   const { user } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({
     name: user.user.first_name,
@@ -28,7 +34,8 @@ const Admission = () => {
     branch: "",
     Vertical: "select",
   });
-
+  const {showPopupDialog} = useSelector((state) => state.misc);
+  const dispatch = useDispatch();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const onDateChange = (event, selectedDate) => {
@@ -56,6 +63,7 @@ const Admission = () => {
       return;
     }
     try {
+      setLoading(true);
       const res = await axios.post(
         `http://10.22.130.15:8000/api/Admission-Form`,
         {
@@ -73,17 +81,32 @@ const Admission = () => {
           },
         }
       );
+      setLoading(false);
       if(res.error || res.data.error) return new Error(res.error || res.data.error);
       console.log(res.data);
-      Alert.alert("Success", "From filled Successfully.", [{ text: "OK" }]);
+      dispatch(setShowPopupDialog({title: "Success", message: "Form filled Successfully.", workDone: true , to: 'Dashboard'}));
+      // Alert.alert("Success", "From filled Successfully.", [{ text: "OK" }]);
     } catch (err) {
+      setLoading(false);
+      dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));
       console.log(err);
-      Alert.alert("Error", "Something went wrong.", [{ text: "OK" }]);
+      // Alert.alert("Error", "Something went wrong.", [{ text: "OK" }]);
     }
   };
 
   return (
     <SafeAreaView>
+      {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
       <ScrollView>
         <View style={styles.container}>
           <Text style={styles.title}>Admission</Text>

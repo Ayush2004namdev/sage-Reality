@@ -17,17 +17,21 @@ import { RadioButton } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { formatDate } from "../lib/features";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import useChangeData from "../hooks/useChangeData";
+import DialogComponent from "../components/DialogComponent";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import Loading from "../components/Loading";
 
 const HomeVisit = () => {
   const { navigate } = useNavigation();
   const { user } = useSelector((state) => state.user);
-  const {members} = useSelector((state) => state.misc);
+  const {members , showPopupDialog} = useSelector((state) => state.misc);
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: user.user.first_name,
     customerName: "",
@@ -60,7 +64,8 @@ const HomeVisit = () => {
   };
   
   const handleTeamMemberChange = (index, value) => {
-   
+    if(value === 'select') return;
+    if(formData.teamMembers.includes(value)) return;
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
@@ -125,16 +130,28 @@ const HomeVisit = () => {
           },
         }
       );
-       
-      if(res.data.error) return Alert.alert('Error' , res.data.error , [{text: 'OK'}]);
-      Alert.alert("Success", res.data.success , [{ text: "OK" }]);
-      navigate('Dashboard');
-    } catch (err) {
-      Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
-      console.log({ err });
-    }
-    finally{
       setIsLoading(false);
+      if(res.data.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
+      // Alert.alert("Success", res.data.success , [{ text: "OK" }]);
+      setIsLoading(false);
+      dispatch(setShowPopupDialog({title: "Success", message: res.data.success , workDone: true , to: 'Dashboard'}));
+      setFormData({
+        name: user.user.first_name,
+        customerName: "",
+        customerContact: "",
+        remark: "",
+        location: "",
+        date: new Date(),
+        image: null,
+        teamMembers: [],
+        visit_type: "",
+      })
+      // navigate('Dashboard');
+    } catch (err) {
+      // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
+      setIsLoading(false);
+      dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
+      console.log({ err });
     }
   };
 
@@ -161,6 +178,17 @@ const HomeVisit = () => {
 
   return (
     <SafeAreaView>
+      {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
       <ScrollView>
         <View style={styles.container}>
           <Text style={styles.title}>Home Visit Form</Text>

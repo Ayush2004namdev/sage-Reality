@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
-import { setIsMenuOpen, toggleAdd } from '../redux/slices/misc';
+import { setIsMenuOpen, setLogoutPopup, setShowPopupDialog, toggleAdd } from '../redux/slices/misc';
 import { logout } from '../redux/slices/user';
 
 const BottomDrawer = ({ isVisible, onClose }) => {
@@ -24,10 +24,12 @@ const BottomDrawer = ({ isVisible, onClose }) => {
   }));
 
   const handleLogOut = () => {
+    dispatch(setLogoutPopup(true));
     dispatch(setIsMenuOpen(false));
-    dispatch(toggleAdd(false));
-    dispatch(logout());
     navigation.navigate('Dashboard');
+    // dispatch(setIsMenuOpen(false));
+    // dispatch(toggleAdd(false));
+    // dispatch(logout());
   }
 
   const menuItems = [

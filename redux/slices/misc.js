@@ -10,7 +10,9 @@ const miscSlice = createSlice({
     corporate_type: [],
     event_type_list: [],
     members: [],
-    sage_mitra_list: []
+    sage_mitra_list: [],
+    showPopupDialog: false,
+    logoutPopUp: false,
   },
   reducers: {
     toggleAdd: (state, action) => {
@@ -29,7 +31,14 @@ const miscSlice = createSlice({
         state.members = action.payload.members;
         state.sage_mitra_list = action.payload.sage_mitra_list;
     },
+    setShowPopupDialog: (state, action) => {
+      state.showPopupDialog = action.payload;
+    },
+    setLogoutPopup : (state, action) => {
+      state.logoutPopUp = action.payload;
+    }
   },
+
 });
 
 export const {
@@ -37,5 +46,7 @@ export const {
   setIsMenuOpen,
   toggleUpdate,
   setAllDropdownData,
+  setShowPopupDialog,
+  setLogoutPopup,
 } = miscSlice.actions;
 export default miscSlice.reducer;

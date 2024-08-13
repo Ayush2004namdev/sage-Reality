@@ -5,13 +5,20 @@ import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpac
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { formatDate } from "../lib/features";
 import axios from "axios";
 import useChangeData from "../hooks/useChangeData";
+import DialogComponent from "../components/DialogComponent";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { useNavigation } from "@react-navigation/native";
+import Loading from "../components/Loading";
 const Event = () => {
+  const {navigate} = useNavigation();
   const {user} = useSelector((state) => state.user);
-  const {event_type_list} = useSelector((state) => state.misc);
+  const {event_type_list , showPopupDialog} = useSelector((state) => state.misc);
+  const [loading , setLoading] = useState(false);
+  const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         name:user.user.first_name ,
         eventType:'select',
@@ -52,6 +59,7 @@ const Event = () => {
           return;
         }
           try{
+            setLoading(true);
             const res = await axios.post(`http://10.22.130.15:8000/api/Event-Form` , {
               username: formData.name,
               Event_name: formData.eventName,
@@ -66,8 +74,10 @@ const Event = () => {
               headers: {
                 Authorization: `Bearer ${user.access}`
               }})
+              setLoading(false);
               if(res?.data?.error) return new Error(res.data.error);
-              Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
+              dispatch(setShowPopupDialog({title: 'Success' , message: 'Form Submitted Successfully' , workDone: true , to: 'Dashboard'}));
+              // Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
               setFormData({
                 name:user.user.first_name ,
                 eventType:'select',
@@ -82,7 +92,9 @@ const Event = () => {
               return;
           }
           catch(err){
-            Alert.alert('Error' , 'Something Went Wrong' , [{text: 'OK'}]);
+            setLoading(false);
+            dispatch(setShowPopupDialog({title: 'Error' , message: 'Something Went Wrong' , workDone: false, to: 'Event'}));
+            // Alert.alert('Error' , 'Something Went Wrong' , [{text: 'OK'}]);
             console.log(err);
           }
       };
@@ -91,6 +103,17 @@ const Event = () => {
     
       return (
         <SafeAreaView>
+          {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
           <ScrollView>
             <View style={styles.container}>
               <Text style={styles.title}>Event Form</Text>

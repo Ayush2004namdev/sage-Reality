@@ -6,23 +6,27 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import useChangeData from "../hooks/useChangeData";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import DialogComponent from "../components/DialogComponent";
+import Loading from "../components/Loading";
 
 const SageMitraFollowUp = () => {
-  
   const {navigate} = useNavigation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showenList , setShowenList] = useState(false);
   const [searchVal  , setSearchVal] = useState('');
-  const {sage_mitra_list} = useSelector((state) => state.misc)
+  const {sage_mitra_list , showPopupDialog} = useSelector((state) => state.misc)
   const {user} = useSelector((state) => state.user)
+  const [loading , setLoading] = useState(false);
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.date;
     setShowDatePicker(Platform.OS === 'ios');
     setFormData({ ...formData, date: currentDate });
   };
+  const dispatch = useDispatch();
 
   const handleInputChange = (name, value) => {
     if(name === 'search'){
@@ -58,16 +62,17 @@ const SageMitraFollowUp = () => {
 
 
   const handleSubmit =async () => {
+    // console.log('working');
     const emptyField = Object.keys(formData).find(key => {
       if(key === 'mobileNumber'){
         if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
-        return false
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true
       }
 
       return !formData[key]
     });
-
+    // console.log('working 2')
     if (emptyField) {
       Alert.alert(
         "Validation Error",
@@ -77,9 +82,11 @@ const SageMitraFollowUp = () => {
         ],
         { cancelable: false }
       );
+     
       return;
     } 
     try{
+      setLoading(true);
       const res = await axios.post('http://10.22.130.15:8000/api/Sage-Mitra-Form', {
         name: formData.name,
         date: formData.date,
@@ -92,12 +99,26 @@ const SageMitraFollowUp = () => {
           Authorization: `Bearer ${user.access}`
         }
       })
-      if(res.data.error) return Alert.alert('Error', res.data.error , [{text:'OK'}]);
-      Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
-      navigate('Dashboard');
+      setLoading(false);
+      if(res.data.error) return dispatch(setShowPopupDialog({title:'Error' , message: res.data.error , workDone: false , to: 'SageMitraFollowUp'}));
+      console.log(res.data);
+      setFormData({
+        name: user.user.first_name,
+        date: new Date(),
+        mobileNumber: "",
+        noOfLeads: "",
+        leadDetails: "",
+        sageMitra:'',
+      })
+      dispatch(setShowPopupDialog({title:'Success' , message: 'Sage Mitra Followup Added Successfully' , workDone: true , to: 'Dashboard'}));
+      // console.log('working 3')
+      // Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
+      // navigate('Dashboard');
     }catch(err){
-      console.log(err);
-      Alert.alert('Error', 'Something went wrong' , [{text:'OK'}]);
+      setLoading(false);
+      dispatch(setShowPopupDialog({title:'Error' , message: 'Something went wrong' , workDone: false , to: 'SageMitraFollowUp'}));
+      // console.log(err);
+      // Alert.alert('Error', 'Something went wrong' , [{text:'OK'}]);
     }
   };
 
@@ -105,7 +126,19 @@ const SageMitraFollowUp = () => {
 
   return (
     <SafeAreaView>
+      {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
       <ScrollView>
+
         <View style={styles.container}>
           <Text style={styles.title}>Sage Mitra Follow Up</Text>
           <View style={styles.separator}></View>
@@ -118,6 +151,7 @@ const SageMitraFollowUp = () => {
               onChangeText={value => handleInputChange('name', value)}
               placeholder="Enter Your Name"
               style={styles.inputText}
+              editable={false}
             />
           </View>
 
@@ -132,7 +166,7 @@ const SageMitraFollowUp = () => {
                   height: 'auto',
                 }}>
                   {showenList && showenList.length > 0 && showenList.map((item) => (
-                    <TouchableOpacity onPress={() => handleInputChange('sageMitra', item)} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
+                    <TouchableOpacity onPress={() => handleInputChange('sageMitra', item)} key={item} style={{padding:10 , borderWidth:1 ,borderTopWidth:0 , borderBottomColor:'black'}}>
                       <Text>{item[0]}</Text>
                     </TouchableOpacity>
                   ))}
@@ -186,6 +220,7 @@ const SageMitraFollowUp = () => {
               onChangeText={value => useChangeData('noOfLeads', value , true , setFormData)}
               placeholder="No of leads shared in this follow up"
               style={styles.inputText}
+              keyboardType="numeric"
             />
           </View>
 

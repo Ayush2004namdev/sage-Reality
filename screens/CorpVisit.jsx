@@ -18,11 +18,14 @@ import { SafeAreaView } from "react-navigation";
 import * as ImagePicker from "expo-image-picker";
 import { blue, yellow } from "../constants";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { formatDate } from "../lib/features";
 import { useNavigation } from "@react-navigation/native";
 import useChangeData from "../hooks/useChangeData";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import Loading from "../components/Loading";
+import DialogComponent from "../components/DialogComponent";
 
 const CorpVisit = () => {
   const {navigate} = useNavigation();
@@ -30,10 +33,10 @@ const CorpVisit = () => {
   const [showPlannedDatePicker, setShowPlannedDatePicker] = useState(false);
   const [showReasonTextInput, setShowReasonTextInput] = useState(false);
   const [showTeamSelect, setShowTeamSelect] = useState(false);
-  const { corporate_list, corporate_type, members } = useSelector((state) => state.misc);
+  const { corporate_list, corporate_type, members , showPopupDialog} = useSelector((state) => state.misc);
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((state) => state.user);
-
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: user.user.first_name,
     location: "",
@@ -133,14 +136,17 @@ const CorpVisit = () => {
           },
         }
       );
-      if(res.data.error) return Alert.alert('Error', res.data.error , [{text:'OK'}]);
-      Alert.alert("Success", "Form Filled SuccessFully.", [{ text: "OK" }]);
-      navigate('Dashboard');
+      setLoading(false);
+      if(res.data.error) dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
+      // Alert.alert("Success", "Form Filled SuccessFully.", [{ text: "OK" }]);
+      dispatch(setShowPopupDialog({title: "Success", message: "Form Filled SuccessFully." , workDone: true , to: 'Dashboard'}));
+      // navigate('Dashboard');
     } catch (err) {
       console.log(err);
-      Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
-    }finally{
       setLoading(false);
+      dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
+      // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
+    }finally{
     }
   };
 
@@ -166,6 +172,17 @@ const CorpVisit = () => {
 
   return (
     <SafeAreaView>
+      {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
       <ScrollView>
         <View style={styles.container}>
           <Text style={styles.title}>Corporate Visit</Text>

@@ -1,16 +1,21 @@
 import { Picker } from "@react-native-picker/picker";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { blue } from "../constants";
-import { toggleUpdate } from "../redux/slices/misc";
+import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
 import useChangeData from "../hooks/useChangeData";
+import DialogComponent from "../components/DialogComponent";
+import Loading from "../components/Loading";
 const SetTarget = () => {
     const {user} = useSelector((state) => state.user);
+    const {showPopupDialog} = useSelector((state) => state.misc);
     const dispatch = useDispatch();
+    const [loading , setLoading] = useState(false);
+    const navigate = useNavigation();
     const [changed , setChanged] = useState(false);
     const dataTemplate = {
       bookingTarget:'',
@@ -103,6 +108,7 @@ const SetTarget = () => {
           }
           if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
+            setLoading(true);
             const res = await axios.post(`http://10.22.130.15:8000/api/Set-Target/${user.user.first_name}`,{
               month:getMonth(formData.month),
               year:formData.year,
@@ -120,11 +126,15 @@ const SetTarget = () => {
                 Authorization: `Bearer ${user.access}`
               }
             })
-            if(res?.data?.error) return Alert.alert("Error", res.data.error, [{ text: "OK" }]);
-          Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
+            setLoading(false);
+            if(res?.data?.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error, workDone: false}));
+            dispatch(setShowPopupDialog({title: "Success", message: "Saved Successfully", workDone: true , to: 'Dashboard'}));
+          // Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
           }catch(err){
+            setLoading(false);
             console.log({err});
-            Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
+            dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong", workDone: false}));
+            // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
           }
         }
         dispatch(toggleUpdate());
@@ -188,6 +198,17 @@ const SetTarget = () => {
     
       return (
         <SafeAreaView>
+          {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
           <ScrollView>
             <View style={styles.container}>
               <Text style={styles.title}>Set Monthly Target</Text>

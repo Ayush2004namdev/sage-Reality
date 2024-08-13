@@ -5,15 +5,20 @@ import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpac
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { formatDate } from "../lib/features";
 import useChangeData from "../hooks/useChangeData";
+import DialogComponent from "../components/DialogComponent";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import Loading from "../components/Loading";
 const IPDone = () => {
     const {navigate} = useNavigation();
     const {user} = useSelector((state) => state.user);
-
+    const [loading , setLoading] = useState(false);
+    const {showPopupDialog} = useSelector((state) => state.misc);
+    const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         name: user.user.first_name,
         date: new Date(),
@@ -23,7 +28,6 @@ const IPDone = () => {
       });
     
       const [showDatePicker, setShowDatePicker] = useState(false);
-    
       const onDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || formData.date;
         setShowDatePicker(Platform.OS === 'ios');
@@ -45,10 +49,9 @@ const IPDone = () => {
           if(!formatDate(formData.date)) return Alert.alert("Validation Error", "Please Enter Valid Date", [{ text: "OK" }]);
           return;
         } 
-        console.log(formData);
-
 
         try{
+          setLoading(true);
           const res = await axios.post(`http://10.22.130.15:8000/api/Ip-Form`, {
               username: formData.name,
               date: formatDate(formData.date),
@@ -61,21 +64,24 @@ const IPDone = () => {
             }
           });
           console.log({data:res.data});
+          setLoading(false);
           if(res.data.error){
             throw new Error(res.data.error);
             return;
           }
-          Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
+          // Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
           setFormData({
             name: user.user.first_name,
             date: new Date(),
             patientName: "",
             keyPersonName: "",
           })
-          navigate('Dashboard');
+          dispatch(setShowPopupDialog({workDone: true , to: 'Dashboard' , title: 'Success' , message: 'Form Submitted Successfully'}));
+          // navigate('Dashboard');
         }catch(err){
-          console.log(err);
-          Alert.alert('Alert' , 'Something went wrong' , [{text: 'OK'}]);
+          setLoading(false);
+          dispatch(setShowPopupDialog({ workDone: false , to: 'IpDone' , title: 'Error' , message: 'Something went wrong'}));
+          // Alert.alert('Alert' , 'Something went wrong' , [{text: 'OK'}]);
         }
       };
     
@@ -83,6 +89,17 @@ const IPDone = () => {
     
       return (
         <SafeAreaView>
+          {showPopupDialog && (
+            <DialogComponent
+              title={showPopupDialog.title}
+              message={showPopupDialog.message}
+              workDone={showPopupDialog.workDone}
+              cancel={false}
+              navigate={navigate}
+              to={showPopupDialog.to}
+            />
+          )}
+          {loading && <Loading/>}
           <ScrollView>
             <View style={styles.container}>
               <Text style={styles.title}>Ip Patient</Text>

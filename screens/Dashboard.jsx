@@ -1,19 +1,22 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView,Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { blue, yellow } from '../constants';
 import { Ionicons } from '@expo/vector-icons';
-import { setAllDropdownData } from '../redux/slices/misc';
+import { setAllDropdownData, setIsFormSubmitted, setShowPopupDialog } from '../redux/slices/misc';
+import DialogComponent from '../components/DialogComponent';
+import LogoutPopUp from '../components/LogoutPopUp';
 // import Test from '../components/TestTemplate';
 
 
 
 const Dashboard = ({setUserLoggedIn}) => {
   
-  const {update} = useSelector((state) => state.misc);
+  const {update , showPopupDialog , logoutPopUp} = useSelector((state) => state.misc);
   const {user} = useSelector((state) => state.user);
+  const {navigate} = useNavigation();
   const cardTemplate = [
     // { id: 0, text_id: 'total_panding_FW', text: "Today's Pending Follow Up", number: 0, backgroundColor: '#FFD166', icon: 'people-outline' },
     { id: null, text_id: 'total_event', text: 'Events Done', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png') },
@@ -26,7 +29,7 @@ const Dashboard = ({setUserLoggedIn}) => {
     { id: 7, text_id: 'total_admission', text: 'Admission', number: 10, targetNo: 10, backgroundColor: '#E76F51' , icon:require('../assets/Admission.png')},
     { id: 8, text_id: 'total_ip', text: 'IP', number: 10, targetNo: 10, backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png')},
   ];
-  
+
 
   const [cardData, setCardData] = useState([]);
 
@@ -78,6 +81,12 @@ const Dashboard = ({setUserLoggedIn}) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
+        {showPopupDialog && <DialogComponent
+          title="Form Submitted"
+          message="Your form has been submitted successfully."
+          navigation={navigate}
+        />}
+        {logoutPopUp && <LogoutPopUp navigate={navigate}/>}
         <ScrollView style={styles.scroller}>
           <View style={styles.devider}>
           {/* {cardData && cardData.map((card) => (

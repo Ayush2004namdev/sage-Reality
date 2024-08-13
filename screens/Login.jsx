@@ -14,6 +14,7 @@ import { blue, yellow } from '../constants';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../redux/slices/user';
+import { StatusBar } from 'expo-status-bar';
 
 const Login = ({user}) => {
   const [username, setUsername] = useState('');
@@ -27,25 +28,28 @@ const Login = ({user}) => {
     const res = await axios.post('http://10.22.130.15:8000/api/Login', {username , password})
     if(res?.data?.access){
         dispatch(login(res.data));
-        setUserLoggedIn(true);
     }
     else{
         Alert.alert('Invalid Credentials');
     }
     console.log(res.data);
 }catch(err){
-    console.log(err);
+  Alert.alert('Something went wrong');
+  // Alert.alert(err);
+  console.log(err);
 }finally{
   setLoading(false);
 }
-  };
+};
 
  const handleForgotPasswordPress = () => {
-    Alert.alert('isse kuch nhi hota');
+    Alert.alert('In progress');
  }
  const image = {uri: 'https://img.freepik.com/free-vector/gradient-gray-futuristic-digital-bokeh-background_53876-116445.jpg?t=st=1723283687~exp=1723287287~hmac=ac01ce3d08970b64de07e7f8c13830f95cd5cf30da2bd556e8cfef411de33e25&w=740'};
 
   return (
+    <>
+    <StatusBar style="auto"/>
     <View style={styles.container}>
       <ImageBackground source={image} style={{
         flex: 1,
@@ -55,13 +59,12 @@ const Login = ({user}) => {
       <View style={{
         alignItems: 'center',
         paddingHorizontal:40,
-        // paddingTop:20,
         width: '100%',
-        marginTop:-100,
+        marginTop:100,
       }}>
       <Image source={require('../assets/logo.png')} style={{
-        width: 250,
-        height: 250,
+        width: 150,
+        height: 150,
         resizeMode: 'contain',
         marginBottom: 20,
       }}/>
@@ -97,14 +100,15 @@ const Login = ({user}) => {
     </View>
     </ImageBackground>
     </View>
+</>
   );
 };
 
 const styles = StyleSheet.create({
   container:{
     flex:1,
-        justifyContent:'center',
-        flexDirection:"row",
+    justifyContent:'center',
+    flexDirection:"row",
     },
     loginBox:{
         width:'100%',

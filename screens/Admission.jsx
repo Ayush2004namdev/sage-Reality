@@ -52,6 +52,7 @@ const Admission = () => {
         ],
         { cancelable: false }
       );
+      if(!formatDate(formData.date)) return Alert.alert("Validation Error", "Please Enter Valid Date", [{ text: "OK" }]);
       return;
     }
     try {
@@ -119,10 +120,10 @@ const Admission = () => {
                 style={{ flexGrow: 1, paddingHorizontal: 10 }}
                 value={formData.date.toLocaleDateString()}
                 placeholder="Select Date"
-                editable={false}
+                editable={true}
               />
               <TouchableOpacity
-                onPress={() => setShowDatePicker(false)}
+                onPress={() => setShowDatePicker(true)}
                 style={styles.dateIcon}
               >
                 <Icon name="date-range" size={24} color="black" />

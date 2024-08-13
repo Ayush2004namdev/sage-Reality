@@ -75,7 +75,6 @@ const Dashboard = ({setUserLoggedIn}) => {
       }).catch((err) => console.log({err}));
     },[user , update])
   )
-  const card = cardTemplate[2];
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>

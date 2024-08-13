@@ -80,8 +80,8 @@ const HomeVisit = () => {
       }
       if(key === 'mobileNumber'){
         if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return 'Mobile Number';
-        return false
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
       }
       return !formData[key];
     });

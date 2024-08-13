@@ -1,27 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, SafeAreaView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, StyleSheet, Image, SafeAreaView ,StatusBar, Platform } from 'react-native';
 import { blue } from '../constants';
 
+const statusBarHeight = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight || 0;
 const Header = () => {
   return (
+    <>
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" backgroundColor="black" />
+    <StatusBar barStyle={'light-content'} backgroundColor={'black'} />
+    </SafeAreaView>
       <View style={styles.headerContainer}>
         <Image
           source={require('../assets/logo.png')} 
           style={styles.logo}
-        />
+          />
         <Text style={styles.title}>Sage Realty</Text>
       </View>
-    </SafeAreaView>
+      </>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
-    paddingTop:30,
-    backgroundColor: 'black', 
+    height: statusBarHeight-5,
   },
   headerContainer: {
     flexDirection: 'row',

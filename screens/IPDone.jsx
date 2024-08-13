@@ -42,6 +42,7 @@ const IPDone = () => {
             ],
             { cancelable: false }
           );
+          if(!formatDate(formData.date)) return Alert.alert("Validation Error", "Please Enter Valid Date", [{ text: "OK" }]);
           return;
         } 
         console.log(formData);
@@ -106,9 +107,9 @@ const IPDone = () => {
                     style={{ flexGrow: 1, paddingHorizontal: 10 }}
                     value={formData.date.toLocaleDateString()}
                     placeholder="Select Date"
-                    editable={false}
+                    editable={true}
                   />
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.dateIcon}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
                   </TouchableOpacity>
                   {showDatePicker && (

@@ -101,7 +101,7 @@ const SetTarget = () => {
                 break;
             }
           }
-
+          if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
             const res = await axios.post(`http://10.22.130.15:8000/api/Set-Target/${user.user.first_name}`,{
               month:getMonth(formData.month),

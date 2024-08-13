@@ -23,7 +23,7 @@ const Add = () => {
   return (
     <View style={styles.container}>
       <View style={styles.waveContainer}>
-        <View style={styles.wave}></View>
+        {/* <View style={styles.wave}></View> */}
       </View>
       <Pressable onPress={() => handleNavigation('HomeVisit')} style={[styles.secondaryButton, isAddOpen && styles.homeButtonOpen]}>
         <Ionicons name='home-outline' size={24} color='#FFF' />
@@ -65,9 +65,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: 'white',
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    transform: [{ rotate: '0deg' }],
+    bottom: 2,
+    // left: 0,
+    // transform: [{ rotate: '0deg' }],
   },
   button: {
     backgroundColor: '#ddbf09',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     position: 'absolute',
-    top: -58,
+    bottom:25,
     shadowColor: yellow,
     shadowRadius: 5,
     elevation: 5,

@@ -9,7 +9,7 @@ import CorpVisit from './screens/CorpVisit';
 import Dashboard from './screens/Dashboard';
 import Menu from './screens/Menu';
 import SageMitraFollowUp from './screens/SageMitraFollowUp';
-import { Animated, Easing, SafeAreaView } from 'react-native';
+import { Animated, Easing, SafeAreaView, StatusBar } from 'react-native';
 import Header from './components/Header';
 import Splash from './components/Splash';
 import { blue } from './constants';
@@ -168,7 +168,7 @@ const MainComp = () => {
 
     const timer = setTimeout(() => {
       zoomInFull();
-    }, 8);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [scaleAnim]);
@@ -180,8 +180,12 @@ const MainComp = () => {
     } else {
       return (
         <>
+        <SafeAreaView style={{
+          flex:1,
+        }}>
           <Header />
-          <TabNavigator setUserLoggedIn={setUserLoggedIn}/>
+          <TabNavigator/>
+        </SafeAreaView>
         </>
       );
     }

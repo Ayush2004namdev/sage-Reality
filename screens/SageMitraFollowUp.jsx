@@ -87,7 +87,7 @@ const SageMitraFollowUp = () => {
     } 
     try{
       setLoading(true);
-      const res = await axios.post('http://10.22.130.15:8000/api/Sage-Mitra-Form', {
+      const res = await axios.post('http://182.70.253.15:8000/api/Sage-Mitra-Form', {
         name: formData.name,
         date: formData.date,
         mobileNumber: formData.mobileNumber,

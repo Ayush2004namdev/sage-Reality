@@ -60,7 +60,7 @@ const Event = () => {
         }
           try{
             setLoading(true);
-            const res = await axios.post(`http://10.22.130.15:8000/api/Event-Form` , {
+            const res = await axios.post(`http://182.70.253.15:8000/api/Event-Form` , {
               username: formData.name,
               Event_name: formData.eventName,
               start_date: formatDate(formData.startDate),

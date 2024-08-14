@@ -21,6 +21,7 @@ import Admission from './screens/Admission';
 import TabBarDashboardButton from './components/TabBarDashboardButton';
 import Login from './screens/Login'; // Import the Login component
 import { login } from './redux/slices/user';
+import SiteVisit from './screens/SiteVisit';
 
 const Tab = createBottomTabNavigator();
 
@@ -75,6 +76,14 @@ const TabNavigator = () => (
         tabBarVisible: false,
       }}
       component={SageMitraFollowUp}
+    />
+    <Tab.Screen
+        name='ClientSiteVisit'
+      options={{
+        tabBarButton: () => null,
+        tabBarVisible: false,
+      }}
+      component={SiteVisit}
     />
     <Tab.Screen
       options={{
@@ -168,7 +177,7 @@ const MainComp = () => {
 
     const timer = setTimeout(() => {
       zoomInFull();
-    }, 3000);
+    }, 3);
 
     return () => clearTimeout(timer);
   }, [scaleAnim]);

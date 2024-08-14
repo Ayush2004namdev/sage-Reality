@@ -111,7 +111,7 @@ const CorpVisit = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "http://10.22.130.15:8000/api/Coporate-Visit-Form",
+        "http://182.70.253.15:8000/api/Coporate-Visit-Form",
         {
           name : formData.name,
           date : formatDate(formData.date),
@@ -174,6 +174,7 @@ const CorpVisit = () => {
     <SafeAreaView>
       {showPopupDialog && (
             <DialogComponent
+
               title={showPopupDialog.title}
               message={showPopupDialog.message}
               workDone={showPopupDialog.workDone}

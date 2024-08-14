@@ -38,6 +38,7 @@ const BottomDrawer = ({ isVisible, onClose }) => {
     { name: 'Sage Mitra Follow Up', icon: require('../assets/SAGEMF.png'), route: 'SageMF' },
     { name: 'Home Visit', icon: require('../assets/HomeVisit.png'), route: 'HomeVisit' },
     { name: 'Event', icon: require('../assets/Events.png'), route: 'Event' },
+    { name: 'Client Site Visit', icon: require('../assets/ClientSiteVisit.png'), route: 'ClientSiteVisit' },
     { name: 'Admission Done', icon: require('../assets/Admission.png'), route: 'Admission' },
     { name: 'IP Done', icon: require('../assets/IP.png'), route: 'IpDone' }
   ];
@@ -53,6 +54,13 @@ const BottomDrawer = ({ isVisible, onClose }) => {
           <Image source={item.icon} style={{ width: 28, height: 28 }} />
           {/* <Ionicons name={item.icon} size={24} color="black" /> */}
           <Text style={styles.menuText}>{item.name}</Text>
+          <View style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+          }}>
+              <Image source={require('../assets/ArrowIcon.png')} style={{ width: 24, height: 24, }} />
+          </View>
         </TouchableOpacity>
       ))}
           <TouchableOpacity style={styles.menuItem} onPress={ handleLogOut}>

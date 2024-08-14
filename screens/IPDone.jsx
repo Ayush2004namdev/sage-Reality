@@ -52,7 +52,7 @@ const IPDone = () => {
 
         try{
           setLoading(true);
-          const res = await axios.post(`http://10.22.130.15:8000/api/Ip-Form`, {
+          const res = await axios.post(`http://182.70.253.15:8000/api/Ip-Form`, {
               username: formData.name,
               date: formatDate(formData.date),
               p_name: formData.patientName,

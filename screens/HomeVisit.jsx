@@ -111,7 +111,7 @@ const HomeVisit = () => {
       const teamMembers = formData.teamMembers.filter((member) => member !== "")
       setFormData({...formData , teamMembers});
       const res = await axios.post(
-        "http://10.22.130.15:8000/api/Home-Visit",
+        "http://182.70.253.15:8000/api/Home-Visit",
         {
           username: formData.name,
           customer_name : formData.customerName,

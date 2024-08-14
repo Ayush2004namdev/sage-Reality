@@ -10,7 +10,7 @@ import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
 import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
-const SetTarget = () => {
+const UpdateClientSiteVisitDetails = () => {
     const {user} = useSelector((state) => state.user);
     const {showPopupDialog} = useSelector((state) => state.misc);
     const dispatch = useDispatch();
@@ -459,4 +459,4 @@ const SetTarget = () => {
     });
 
 
-export default SetTarget
+export default UpdateClientSiteVisitDetails

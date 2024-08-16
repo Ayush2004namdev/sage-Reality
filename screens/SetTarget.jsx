@@ -10,6 +10,7 @@ import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
 import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
+import { submitForm } from "../lib/helper";
 const SetTarget = () => {
     const {user} = useSelector((state) => state.user);
     const {showPopupDialog} = useSelector((state) => state.misc);
@@ -109,7 +110,7 @@ const SetTarget = () => {
           if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
             setLoading(true);
-            const res = await axios.post(`http://182.70.253.15:8000/api/Set-Target/${user.user.first_name}`,{
+            const data = {
               month:getMonth(formData.month),
               year:formData.year,
               booking:formData.bookingTarget,
@@ -120,16 +121,30 @@ const SetTarget = () => {
               site_visit:formData.siteVisitTarget,
               admission:formData.admissionTarget,
               ip:formData.ipPatientTarget
-            } , {
-              withCredentials: true,
-              headers:{
-                Authorization: `Bearer ${user.access}`
-              }
-            })
-            setLoading(false);
-            if(res?.data?.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error, workDone: false}));
-            dispatch(setShowPopupDialog({title: "Success", message: "Saved Successfully", workDone: true , to: 'Dashboard'}));
+            }
+            await submitForm(`Set-Target/${user.user.first_name}`, data , user , setShowPopupDialog , setLoading , dispatch);
+            // const res = await axios.post(`http://182.70.253.15:8000/api/Set-Target/${user.user.first_name}`,{
+            //   month:getMonth(formData.month),
+            //   year:formData.year,
+            //   booking:formData.bookingTarget,
+            //   followup:formData.followUpTarget,
+            //   corporate_visit:formData.corporateTarget,
+            //   home_visit:formData.homeVisitTarget,
+            //   sm_followup:formData.SMFollowUpTarget,
+            //   site_visit:formData.siteVisitTarget,
+            //   admission:formData.admissionTarget,
+            //   ip:formData.ipPatientTarget
+            // } , {
+            //   withCredentials: true,
+            //   headers:{
+            //     Authorization: `Bearer ${user.access}`
+            //   }
+            // })
+            // setLoading(false);
+            // if(res?.data?.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error, workDone: false}));
+            // dispatch(setShowPopupDialog({title: "Success", message: "Saved Successfully", workDone: true , to: 'Dashboard'}));
           // Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
+          
           }catch(err){
             setLoading(false);
             console.log({err});

@@ -22,6 +22,7 @@ import DialogComponent from "../components/DialogComponent";
 import { setShowPopupDialog } from "../redux/slices/misc";
 import { useNavigation } from "@react-navigation/native";
 import Loading from "../components/Loading";
+import { submitForm } from "../lib/helper";
 const Admission = () => {
   const {navigate} = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -64,28 +65,45 @@ const Admission = () => {
     }
     try {
       setLoading(true);
-      const res = await axios.post(
-        `http://182.70.253.15:8000/api/Admission-Form`,
-        {
-          username: formData.name,
+      const data = {
+        username: formData.name,
           date: formatDate(formData.date),
           f_name: formData.fatherName,
           s_name: formData.studentName,
           vertical: formData.Vertical,
           branch_class: formData.branch,
-        },
-        {
-          withCredentials: "true",
-          headers: {
-            Authorization: `Bearer ${user.access}`,
-          },
-        }
-      );
-      setLoading(false);
-      if(res.error || res.data.error) return new Error(res.error || res.data.error);
-      console.log(res.data);
-      dispatch(setShowPopupDialog({title: "Success", message: "Form filled Successfully.", workDone: true , to: 'Dashboard'}));
+      }
+      await submitForm('Admission-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
+      // const res = await axios.post(
+      //   `http://182.70.253.15:8000/api/Admission-Form`,
+      //   {
+      //     username: formData.name,
+      //     date: formatDate(formData.date),
+      //     f_name: formData.fatherName,
+      //     s_name: formData.studentName,
+      //     vertical: formData.Vertical,
+      //     branch_class: formData.branch,
+      //   },
+      //   {
+      //     withCredentials: "true",
+      //     headers: {
+      //       Authorization: `Bearer ${user.access}`,
+      //     },
+      //   }
+      // );
+      // setLoading(false);
+      // if(res.error || res.data.error) return new Error(res.error || res.data.error);
+      // console.log(res.data);
+      // dispatch(setShowPopupDialog({title: "Success", message: "Form filled Successfully.", workDone: true , to: 'Dashboard'}));
       // Alert.alert("Success", "From filled Successfully.", [{ text: "OK" }]);
+      setFormData({
+        name: user.user.first_name,
+        date: new Date(),
+        fatherName: "",
+        studentName: "",
+        branch: "",
+        Vertical: "select",
+      })
     } catch (err) {
       setLoading(false);
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));

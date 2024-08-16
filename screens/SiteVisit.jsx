@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import { ScrollView, TextInput, TouchableOpacity } from "react-native";
@@ -10,12 +10,35 @@ import useChangeData from "../hooks/useChangeData";
 import { useSelector } from 'react-redux';
 import AddClientSiteVisitDetails from './AddClientSiteDetails';
 import UpdateClientSiteVisitDetails from './UpdateClientSiteVisitDetails';
+import { useFocusEffect } from '@react-navigation/native';
 const { width, height } = Dimensions.get('window');
 const SiteVisit = () => {
 
     const [showPopUp , setShowPopup] = useState(true);
     const [addClientSiteVisit , setAddClientSiteVisit] = useState(false);
     const [updateClientSiteVisit , setUpdateClientSiteVisit] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setShowPopup(true);
+            setAddClientSiteVisit(false);
+            setUpdateClientSiteVisit(false);
+            return () => {
+                setShowPopup(true);
+                setAddClientSiteVisit(false);
+                setUpdateClientSiteVisit(false);
+            }
+        },[])
+    )
+    useEffect(() => {
+        console.log('');
+
+        return () => {
+            setShowPopup(true);
+            setAddClientSiteVisit(false);
+            setUpdateClientSiteVisit(false);
+        }
+    },[])
 
     const handleOnPress = (val) => {
         setShowPopup(false);

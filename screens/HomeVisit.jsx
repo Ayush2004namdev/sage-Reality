@@ -26,6 +26,7 @@ import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
 import { setShowPopupDialog } from "../redux/slices/misc";
 import Loading from "../components/Loading";
+import { submitForm, takeImage } from "../lib/helper";
 
 const HomeVisit = () => {
   const { navigate } = useNavigation();
@@ -83,8 +84,8 @@ const HomeVisit = () => {
         if (formData["visit_type"] === "TeamVisit") return "Team Members";
         return false;
       }
-      if(key === 'mobileNumber'){
-        if(formData[key].length !== 10) return 'Mobile Number';
+      if(key === 'customerContact'){
+        if(formData[key].length !== 10) return 'customerContact';
         if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
         return true;
       }
@@ -92,6 +93,7 @@ const HomeVisit = () => {
     });
 
     if (emptyField) {
+      if(emptyField === 'customerContact') return Alert.alert("Validation Error", `Please enter a valid Mobile Number.`, [{ text: "OK" }]);
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -110,31 +112,18 @@ const HomeVisit = () => {
     setIsLoading(true);
       const teamMembers = formData.teamMembers.filter((member) => member !== "")
       setFormData({...formData , teamMembers});
-      const res = await axios.post(
-        "http://182.70.253.15:8000/api/Home-Visit",
-        {
-          username: formData.name,
-          customer_name : formData.customerName,
-          customer_contact : formData.customerContact,
-          date : formatDate(formData.date),
-          visit_details : formData.remark,
-          site_visit_name : formData.location,
-          visit_type : formData.visit_type,
-          image : formData.image,
-          teamMembers : formData.teamMembers
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${user.access}`,
-          },
-        }
-      );
-      setIsLoading(false);
-      if(res.data.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
-      // Alert.alert("Success", res.data.success , [{ text: "OK" }]);
-      setIsLoading(false);
-      dispatch(setShowPopupDialog({title: "Success", message: res.data.success , workDone: true , to: 'Dashboard'}));
+      const data = {
+        username: formData.name,
+        customer_name : formData.customerName,
+        customer_contact : formData.customerContact,
+        date : formatDate(formData.date),
+        visit_details : formData.remark,
+        site_visit_name : formData.location,
+        visit_type : formData.visit_type,
+        image : formData.image,
+        co_name : formData.teamMembers
+      }
+      await submitForm('Home-Visit' , data , user , setShowPopupDialog , setIsLoading , dispatch);
       setFormData({
         name: user.user.first_name,
         customerName: "",
@@ -154,27 +143,6 @@ const HomeVisit = () => {
       console.log({ err });
     }
   };
-
-  const takeImage = async () => {
-    let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission to access camera is required!");
-      return;
-    }
-
-    let result = await ImagePicker.launchCameraAsync({
-      base64: true,
-      allowsEditing: false,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setFormData({ ...formData, image: result.assets[0] });
-    }
-  };
-
- 
 
   return (
     <SafeAreaView>
@@ -252,7 +220,7 @@ const HomeVisit = () => {
                 editable={false}
               />
               <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
+                onPress={() => setShowDatePicker(false)}
                 style={styles.dateIcon}
               >
                 <Icon name="date-range" size={24} color="black" />
@@ -289,7 +257,7 @@ const HomeVisit = () => {
           </View>
 
           <Pressable
-            onPress={takeImage}
+            onPress={() => takeImage(setFormData)}
             style={[
               {
                 marginTop: 6,
@@ -333,7 +301,7 @@ const HomeVisit = () => {
               >
                 
                 <View style={styles.radioButton}>
-                  <RadioButton value="SoloVisit" />
+                  <RadioButton value="solo" />
                   <Text style={styles.radioLabel}>Solo Visit</Text>
                 </View>
                 <View style={styles.radioButton}>
@@ -346,7 +314,7 @@ const HomeVisit = () => {
 
           {showTeamSelect && (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Team Members</Text>
+              <Text style={styles.label}>Add Cofellow</Text>
               {formData.teamMembers.map((member, index) => (
                 <View key={index} style={styles.teamMemberContainer}>
                   <View style={styles.pickerContainer}>

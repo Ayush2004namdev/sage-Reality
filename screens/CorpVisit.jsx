@@ -15,7 +15,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { RadioButton } from "react-native-paper";
 import { SafeAreaView } from "react-navigation";
-import * as ImagePicker from "expo-image-picker";
+
 import { blue, yellow } from "../constants";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +26,7 @@ import useChangeData from "../hooks/useChangeData";
 import { setShowPopupDialog } from "../redux/slices/misc";
 import Loading from "../components/Loading";
 import DialogComponent from "../components/DialogComponent";
+import { submitForm, takeImage } from "../lib/helper";
 
 const CorpVisit = () => {
   const {navigate} = useNavigation();
@@ -56,10 +57,13 @@ const CorpVisit = () => {
   });
 
   const onPlannedDateChange = (event, selectedDate) => {
+    console.log(selectedDate);
     const currentDate = selectedDate || formData.plannedDate;
-    setShowPlannedDatePicker(Platform.OS === "ios");
+     console.log(currentDate);
+    setShowDatePicker(Platform.OS === "ios");
     setFormData({ ...formData, plannedDate: currentDate });
   };
+
 
   const addTeamMember = () => {
     setFormData({ ...formData, teamMembers: [...formData.teamMembers, ""] });
@@ -71,6 +75,8 @@ const CorpVisit = () => {
   };
 
   const handleTeamMemberChange = (index, value) => {
+    if(value === 'select') return;
+    if(formData.teamMembers.includes(value)) return;
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
@@ -110,36 +116,71 @@ const CorpVisit = () => {
     }
     try {
       setLoading(true);
-      const res = await axios.post(
-        "http://182.70.253.15:8000/api/Coporate-Visit-Form",
-        {
-          name : formData.name,
-          date : formatDate(formData.date),
-          corp_type : formData.corporateType,
-          corp_name : formData.corporate,
-          location : formData.location,
-          key_person : formData.keyPerson,
-          key_person_contact : formData.mobileNumber,
-          meet_person : formData.noOfPeopleMet,
-          image : formData.image,
-          data_collect : formData.DataCollected,
-          presentation : formData.firstGroupValue,
-          nxt_date : formatDate(formData.plannedDate),
-          reason : formData.reason,
-          visit_type : formData.secondGroupValue,
-          co_names : formData.teamMembers,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${user.access}`,
-          },
-        }
-      );
-      setLoading(false);
-      if(res.data.error) dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
-      // Alert.alert("Success", "Form Filled SuccessFully.", [{ text: "OK" }]);
-      dispatch(setShowPopupDialog({title: "Success", message: "Form Filled SuccessFully." , workDone: true , to: 'Dashboard'}));
+      const data = {
+        name : formData.name,
+        date : formatDate(formData.date),
+        corp_type : formData.corporateType,
+        corp_name : formData.corporate,
+        location : formData.location,
+        key_person : formData.keyPerson,
+        key_person_contact : formData.mobileNumber,
+        meet_person : formData.noOfPeopleMet,
+        image : formData.image,
+        data_collect : formData.DataCollected,
+        presentation : formData.firstGroupValue,
+        nxt_date : formatDate(formData.plannedDate),
+        reason : formData.reason,
+        visit_type : formData.secondGroupValue,
+        co_name : formData.teamMembers,
+      }
+      await submitForm('Coporate-Visit-Form',data , user , setShowPopupDialog , setLoading , dispatch);
+
+      // const res = await axios.post(
+      //   "http://182.70.253.15:8000/api/Coporate-Visit-Form",
+      //   {
+      //     name : formData.name,
+      //     date : formatDate(formData.date),
+      //     corp_type : formData.corporateType,
+      //     corp_name : formData.corporate,
+      //     location : formData.location,
+      //     key_person : formData.keyPerson,
+      //     key_person_contact : formData.mobileNumber,
+      //     meet_person : formData.noOfPeopleMet,
+      //     image : formData.image,
+      //     data_collect : formData.DataCollected,
+      //     presentation : formData.firstGroupValue,
+      //     nxt_date : formatDate(formData.plannedDate),
+      //     reason : formData.reason,
+      //     visit_type : formData.secondGroupValue,
+      //     co_name : formData.teamMembers,
+      //   },
+      //   {
+      //     withCredentials: true,
+      //     headers: {
+      //       Authorization: `Bearer ${user.access}`,
+      //     },
+      //   }
+      // );
+      // setLoading(false);
+      // if(res.data.error) dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
+      // dispatch(setShowPopupDialog({title: "Success", message: "Form Filled SuccessFully." , workDone: true , to: 'Dashboard'}));
+      setFormData({
+        name: user.user.first_name,
+        location: "",
+        keyPerson: "",
+        mobileNumber: "",
+        corporateType: "select",
+        corporate: "select",
+        firstGroupValue: null,
+        secondGroupValue: null,
+        date: new Date(),
+        plannedDate: new Date(),
+        image: null,
+        reason: "",
+        noOfPeopleMet: "",
+        DataCollected: "",
+        teamMembers: [],
+      })
       // navigate('Dashboard');
     } catch (err) {
       console.log(err);
@@ -147,34 +188,15 @@ const CorpVisit = () => {
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
       // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
     }finally{
+
     }
   };
 
-  const takeImage = async () => {
-    let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission to access camera is required!");
-      return;
-    }
-
-    let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
-      base64: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setFormData({ ...formData, image: result.assets[0] });
-    }
-    console.log(result);
-  };
 
   return (
     <SafeAreaView>
       {showPopupDialog && (
             <DialogComponent
-
               title={showPopupDialog.title}
               message={showPopupDialog.message}
               workDone={showPopupDialog.workDone}
@@ -380,7 +402,7 @@ const CorpVisit = () => {
               >
                 <TextInput
                   style={{ flexGrow: 1, paddingHorizontal: 10 }}
-                  value={formData.date.toLocaleDateString()}
+                  value={formData.plannedDate.toLocaleDateString()}
                   placeholder="Select Date"
                   editable={true}
                 />
@@ -392,7 +414,7 @@ const CorpVisit = () => {
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
-                    value={formData.date}
+                    value={formData.plannedDate}
                     mode="date"
                     display="default"
                     onChange={onPlannedDateChange}
@@ -417,7 +439,7 @@ const CorpVisit = () => {
           )}
 
           <Pressable
-            onPress={takeImage}
+            onPress={() => takeImage(setFormData)}
             style={[
               {
                 marginTop: 6,
@@ -449,7 +471,7 @@ const CorpVisit = () => {
               <RadioButton.Group
                 onValueChange={(value) => {
                   useChangeData("secondGroupValue", value , false , setFormData);
-                  if (value === "TeamVisit") {
+                  if (value === "team") {
                     setShowTeamSelect(true);
                   } else {
                     setShowTeamSelect(false);
@@ -459,11 +481,11 @@ const CorpVisit = () => {
                 value={formData.secondGroupValue}
               >
                 <View style={styles.radioButton}>
-                  <RadioButton value="SoloVisit" />
+                  <RadioButton value="solo" />
                   <Text style={styles.radioLabel}>Solo Visit</Text>
                 </View>
                 <View style={styles.radioButton}>
-                  <RadioButton value="TeamVisit" />
+                  <RadioButton value="team" />
                   <Text style={styles.radioLabel}>Team Visit</Text>
                 </View>
               </RadioButton.Group>
@@ -472,7 +494,7 @@ const CorpVisit = () => {
 
           {showTeamSelect && (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Team Members</Text>
+              <Text style={styles.label}>Add Cofellow</Text>
               {formData.teamMembers.map((member, index) => (
                 <View key={index} style={styles.teamMemberContainer}>
                   <View style={[styles.pickerContainer,{width:"90%"}]}>

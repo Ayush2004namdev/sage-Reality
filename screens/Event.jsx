@@ -13,6 +13,7 @@ import DialogComponent from "../components/DialogComponent";
 import { setShowPopupDialog } from "../redux/slices/misc";
 import { useNavigation } from "@react-navigation/native";
 import Loading from "../components/Loading";
+import { submitForm } from "../lib/helper";
 const Event = () => {
   const {navigate} = useNavigation();
   const {user} = useSelector((state) => state.user);
@@ -60,24 +61,35 @@ const Event = () => {
         }
           try{
             setLoading(true);
-            const res = await axios.post(`http://182.70.253.15:8000/api/Event-Form` , {
+            const data  = {
               username: formData.name,
-              Event_name: formData.eventName,
-              start_date: formatDate(formData.startDate),
-              end_date: formatDate(formData.endDate),
-              Event_type:formData.eventType,
-              num_leads: formData.numberOfLeads,
-              event_details: formData.eventDetails,
-              num_attendees: formData.numberOfAttendiees
-            } , {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${user.access}`
-              }})
-              setLoading(false);
-              if(res?.data?.error) return new Error(res.data.error);
-              dispatch(setShowPopupDialog({title: 'Success' , message: 'Form Submitted Successfully' , workDone: true , to: 'Dashboard'}));
-              // Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
+                Event_name: formData.eventName,
+                start_date: formatDate(formData.startDate),
+                end_date: formatDate(formData.endDate),
+                Event_type:formData.eventType,
+                num_leads: formData.numberOfLeads,
+                event_details: formData.eventDetails,
+                num_attendees: formData.numberOfAttendiees
+            }
+            await submitForm('Event-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
+            // const res = await axios.post(`http://182.70.253.15:8000/api/Event-Form` , {
+            //   username: formData.name,
+            //   Event_name: formData.eventName,
+            //   start_date: formatDate(formData.startDate),
+            //   end_date: formatDate(formData.endDate),
+            //   Event_type:formData.eventType,
+            //   num_leads: formData.numberOfLeads,
+            //   event_details: formData.eventDetails,
+            //   num_attendees: formData.numberOfAttendiees
+            // } , {
+            //   withCredentials: true,
+            //   headers: {
+            //     Authorization: `Bearer ${user.access}`
+            //   }})
+            //   setLoading(false);
+            //   if(res?.data?.error) return new Error(res.data.error);
+            //   dispatch(setShowPopupDialog({title: 'Success' , message: 'Form Submitted Successfully' , workDone: true , to: 'Dashboard'}));
+            //   // Alert.alert('Success' , 'Form Submitted Successfully' , [{text: 'OK'}]);
               setFormData({
                 name:user.user.first_name ,
                 eventType:'select',
@@ -88,7 +100,7 @@ const Event = () => {
                 numberOfAttendiees:'',
                 numberOfLeads:'',
               })
-              console.log(res.data);
+              // console.log(res.data);
               return;
           }
           catch(err){

@@ -1,17 +1,18 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
 import { blue } from "../constants";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import useChangeData from "../hooks/useChangeData";
 import { setShowPopupDialog } from "../redux/slices/misc";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
+import { submitForm } from "../lib/helper";
 
 const SageMitraFollowUp = () => {
   const {navigate} = useNavigation();
@@ -27,6 +28,31 @@ const SageMitraFollowUp = () => {
     setFormData({ ...formData, date: currentDate });
   };
   const dispatch = useDispatch();
+  useFocusEffect(
+    useCallback(() => {
+      console.log('');
+      setFormData({
+        name: user.user.first_name,
+        date: new Date(),
+        mobileNumber: "",
+        noOfLeads: "",
+        leadDetails: "",
+        sageMitra:''
+      })
+      return () => {
+        setFormData({
+          name: user.user.first_name,
+          date: new Date(),
+          mobileNumber: "",
+          noOfLeads: "",
+          leadDetails: "",
+          sageMitra:''
+        })
+      }
+    },[])
+  )
+
+
 
   const handleInputChange = (name, value) => {
     if(name === 'search'){
@@ -87,21 +113,32 @@ const SageMitraFollowUp = () => {
     } 
     try{
       setLoading(true);
-      const res = await axios.post('http://182.70.253.15:8000/api/Sage-Mitra-Form', {
+      const data = {
         name: formData.name,
         date: formData.date,
         mobileNumber: formData.mobileNumber,
         noOfLeads: formData.noOfLeads,
         leadDetails: formData.leadDetails,
         sageMitra: formData.sageMitra,
-      } , {
-        headers:{
-          Authorization: `Bearer ${user.access}`
-        }
-      })
-      setLoading(false);
-      if(res.data.error) return dispatch(setShowPopupDialog({title:'Error' , message: res.data.error , workDone: false , to: 'SageMitraFollowUp'}));
-      console.log(res.data);
+      }
+      await submitForm('Sage-Mitra-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
+      // const res = await axios.post('http://182.70.253.15:8000/api/Sage-Mitra-Form', {
+      //   name: formData.name,
+      //   date: formData.date,
+      //   mobileNumber: formData.mobileNumber,
+      //   noOfLeads: formData.noOfLeads,
+      //   leadDetails: formData.leadDetails,
+      //   sageMitra: formData.sageMitra,
+      // } , {
+      //   headers:{
+      //     Authorization: `Bearer ${user.access}`
+      //   }
+      // })
+      // setLoading(false);
+      // if(res.data.error) return dispatch(setShowPopupDialog({title:'Error' , message: res.data.error , workDone: false , to: 'SageMitraFollowUp'}));
+      // console.log(res.data);
+      // dispatch(setShowPopupDialog({title:'Success' , message: 'Sage Mitra Followup Added Successfully' , workDone: true , to: 'Dashboard'}));
+      // console.log('working 3')
       setFormData({
         name: user.user.first_name,
         date: new Date(),
@@ -110,8 +147,6 @@ const SageMitraFollowUp = () => {
         leadDetails: "",
         sageMitra:'',
       })
-      dispatch(setShowPopupDialog({title:'Success' , message: 'Sage Mitra Followup Added Successfully' , workDone: true , to: 'Dashboard'}));
-      // console.log('working 3')
       // Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
       // navigate('Dashboard');
     }catch(err){

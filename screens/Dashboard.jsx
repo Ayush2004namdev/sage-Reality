@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { setAllDropdownData, setIsFormSubmitted, setShowPopupDialog } from '../redux/slices/misc';
 import DialogComponent from '../components/DialogComponent';
 import LogoutPopUp from '../components/LogoutPopUp';
+import Loading from '../components/Loading';
 // import Test from '../components/TestTemplate';
 
 
@@ -17,17 +18,18 @@ const Dashboard = ({setUserLoggedIn}) => {
   const {update , showPopupDialog , logoutPopUp} = useSelector((state) => state.misc);
   const {user} = useSelector((state) => state.user);
   const {navigate} = useNavigation();
+  const [loading ,setLoading] = useState(true);
   const cardTemplate = [
     // { id: 0, text_id: 'total_panding_FW', text: "Today's Pending Follow Up", number: 0, backgroundColor: '#FFD166', icon: 'people-outline' },
     { id: null, text_id: 'total_event', text: 'Events Done', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png') },
-    { id: 1, text_id: 'total_leads', text: 'Leads', number: 10,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
+    { id: 1, text_id: 'total_leads', text: 'Leads', number: 0,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
     { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png')},
-    { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 10,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png')},
-    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 10,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png')},
-    { id: 5, text_id: 'total_SM_FW', text: 'Sage M/F', number: 10,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
-    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 10,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png')},
-    { id: 7, text_id: 'total_admission', text: 'Admission', number: 10,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png')},
-    { id: 8, text_id: 'total_ip', text: 'IP', number: 10,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png')},
+    { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png')},
+    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png')},
+    { id: 5, text_id: 'total_SM_FW', text: 'Sage M/F', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
+    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png')},
+    { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png')},
+    { id: 8, text_id: 'total_ip', text: 'IP', number: 0,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png')},
   ];
 
 
@@ -36,6 +38,7 @@ const Dashboard = ({setUserLoggedIn}) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // setLoading(false);
     const getData = async () => {
       try{
         const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
@@ -56,25 +59,32 @@ const Dashboard = ({setUserLoggedIn}) => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log('');
+      setTimeout(() => {
+        setLoading(false);
+      } , 1000)
+      setCardData([]);
+      // console.log('===============');
       axios.get(`http://182.70.253.15:8000/api/Dashboard/${user.user.first_name}` ,{
         withCredentials: true,
         headers:{
           'Authorization': `Bearer ${user.access}`
         }
       }).then((res) => {
+        // console.log(res.data);
         res?.data?.targets.forEach((target) => {
           const card = cardTemplate.find((card) => card.id === target.Target_id);
           if(card){     
             card.targetNo = target.target;  
           }
         })
+        
         Object.entries(res?.data?.total).forEach(([key, value]) => {
           const card = cardTemplate.find((card) => card.text_id.toString() === key.toString());
           if(card){
             card.number = value;
           }
         });
+        // console.log(cardTemplate);
         setCardData(cardTemplate);
       }).catch((err) => console.log({err}));
     },[user , update])
@@ -246,6 +256,7 @@ const Dashboard = ({setUserLoggedIn}) => {
                     fontSize:16,
                     fontWeight:'bold',
                   }}>{card.targetNo}</Text>
+                  {/* {card.id ===2 && console.log({'cd':card.number})} */}
                   <Text style={{
                     fontSize:16,
                     flexGrow:1,

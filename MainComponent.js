@@ -177,7 +177,7 @@ const MainComp = () => {
 
     const timer = setTimeout(() => {
       zoomInFull();
-    }, 3);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [scaleAnim]);

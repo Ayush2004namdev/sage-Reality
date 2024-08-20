@@ -3,10 +3,10 @@ import { View, StyleSheet, Animated, Easing, Dimensions, Image } from 'react-nat
 
 const { width, height } = Dimensions.get('window');
 
-const Loading = () => {
+const Loading = ({back}) => {
 
   return (
-    <View style={styles.overlay}>
+    <View style={[styles.overlay , {backgroundColor : back ? 'white' : 'rgba(0, 0, 0, 0.5)'}]}>
         <Image source={require('../assets/loading-anim.gif')} style={{ width: 100, height: 100 }} />
     </View>
   );

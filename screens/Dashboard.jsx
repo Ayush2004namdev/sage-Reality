@@ -90,7 +90,7 @@ const Dashboard = ({setUserLoggedIn}) => {
     },[user , update])
   )
 
-  return (
+  return loading ? <Loading back={true}/> : (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         {showPopupDialog && <DialogComponent
@@ -216,7 +216,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           </View> */}
 
           
-          {cardData && cardData.map((card) => (
+          {cardData?.length>0  && cardData.map((card) => (
             <View key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]}>
             <View style={{
               display:'flex',

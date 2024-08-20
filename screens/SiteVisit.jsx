@@ -31,8 +31,8 @@ const SiteVisit = () => {
         },[])
     )
     useEffect(() => {
+        
         console.log('');
-
         return () => {
             setShowPopup(true);
             setAddClientSiteVisit(false);

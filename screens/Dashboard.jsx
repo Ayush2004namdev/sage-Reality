@@ -9,6 +9,8 @@ import { setAllDropdownData, setIsFormSubmitted, setShowPopupDialog } from '../r
 import DialogComponent from '../components/DialogComponent';
 import LogoutPopUp from '../components/LogoutPopUp';
 import Loading from '../components/Loading';
+import DashBoardLoader from '../components/DashBoardLoader';
+import Loader from '../components/Loading';
 // import Test from '../components/TestTemplate';
 
 
@@ -59,9 +61,6 @@ const Dashboard = ({setUserLoggedIn}) => {
 
   useFocusEffect(
     useCallback(() => {
-      setTimeout(() => {
-        setLoading(false);
-      } , 1000)
       setCardData([]);
       // console.log('===============');
       axios.get(`http://182.70.253.15:8000/api/Dashboard/${user.user.first_name}` ,{
@@ -70,7 +69,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           'Authorization': `Bearer ${user.access}`
         }
       }).then((res) => {
-        // console.log(res.data);
+        console.log({'data':res.data.targets[4]});
         res?.data?.targets.forEach((target) => {
           const card = cardTemplate.find((card) => card.id === target.Target_id);
           if(card){     
@@ -84,13 +83,14 @@ const Dashboard = ({setUserLoggedIn}) => {
             card.number = value;
           }
         });
-        // console.log(cardTemplate);
+        console.log({'card':cardTemplate[4]});
         setCardData(cardTemplate);
+        setLoading(false);
       }).catch((err) => console.log({err}));
     },[user , update])
   )
 
-  return loading ? <Loading back={true}/> : (
+  return loading ? <Loader back={true}/> : (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         {showPopupDialog && <DialogComponent
@@ -101,121 +101,7 @@ const Dashboard = ({setUserLoggedIn}) => {
         {logoutPopUp && <LogoutPopUp navigate={navigate}/>}
         <ScrollView style={styles.scroller}>
           <View style={styles.devider}>
-          {/* {cardData && cardData.map((card) => (
-            <View key={card.id} style={[styles.innerContainer , {backgroundColor:'white'}]}>
-              <View style={styles.textContainer}>
-                <View style={{display:'flex' , alignItems:'center' , justifyContent:'center', paddingVertical:10, width:'100%'}}>
-                  <Image source={card.icon} style={{width:50 , height:50}} />
-                  <Text style={styles.dialogText}>{card.text}</Text>
-                  <Text style={styles.dialogNumber}>{card.number}{card.targetNo && `/ ${card.targetNo}`}</Text>
-                </View>
-                <View style={{display:'flex' , flexDirection:'row' , flexWrap:'wrap' , gap:5 , alignItems:'center'}}>
-                </View>
-              </View>
-            
-          </View>
-          ))} */}
-          {/* <View key={card.id} style={[styles.innerContainer , {backgroundColor:'white'}]}>
-              <View style={styles.textContainer}>
-                <View style={{display:'flex' , alignItems:'center' , justifyContent:'center', paddingVertical:10, width:'100%'}}>
-                  <Image source={card.icon} style={{width:50 , height:50}} />
-                  <Text style={styles.dialogText}>{card.text}</Text>
-                  <Text style={styles.dialogNumber}>{card.number}{card.targetNo && `/ ${card.targetNo}`}</Text>
-                </View>
-                <View style={{display:'flex' , flexDirection:'row' , flexWrap:'wrap' , gap:5 , alignItems:'center'}}>
-                </View>
-              </View>
-            
-          </View> */}
-
-         
-
-          {/* {cardData && cardData.map((card) => (
-               <View key={card.id} style={[styles.innerContainer , {alignItems:'center'}]}>
-               <View style={{display:'flex' , flexDirection:'column' , gap:5, borderRightWidth:0.2 , alignItems:'center' , justifyContent:'center' , paddingHorizontal:5 , width:'60%' }}>
-               <Image source={card.icon} style={{width:60 , height:60}} width={30} height={30}/>
-               <Text style={{
-                 fontSize:12,
-                 color:blue,
-                 fontWeight:'bold',
-               }}>{card.text}</Text>
-             </View>
-             <View style={{
-               display:'flex',
-               flexDirection:'column',
-               width:'40%',
-               height:'100%',
-               justifyContent:'center',
-               alignItems:'center',
-             }}>
-                 <Text style={{   
-                   fontSize:25,
-                 }}>{card.number}</Text>
-                  <Text style={{
-                    fontSize:20
-                  }}>{card.targetNo && `${card.targetNo}`}</Text>
-             </View>
-           </View>
-          ))} */}
-
-{/* <View className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column'}]}>
-              <View style={{
-                display:'flex',
-                flexDirection:'row',
-                alignItems:'center',
-                justifyContent:'space-between',
-                gap:8,
-                height:'40%',
-                width:'100%',
-              }}>
-                <Image source={require('../assets/SiteVisit.png')} style={{width:50 , height:50}} />
-                <Text style={{
-                  fontSize:13,
-                  textAlign:'center',
-                  fontFamily:'sans-serif',
-                  fontWeight:'bold',
-                  // backgroundColor:'pink',
-                  width:'50%',
-                  color:blue,
-                }}>{card.text}</Text>
-              </View>
-                <View style={{
-                  width:'100%',
-                  height:'55%',
-                  marginTop:10,
-                  paddingBottom:10                    
-                }}>
-                  <View style={{
-                    display:'flex',
-                    flexDirection:'row',
-                    justifyContent:'space-between',
-                  
-                    paddingTop:2
-                  }}>
-                    <Text style={{
-                      fontSize:15
-                    }}>{card.targetNo}</Text>
-                    <Text style={{
-                      fontSize:15
-                    }}>0</Text>
-                  </View>
-
-                  <View style={{
-                    display:'flex',
-                    flexDirection:'row',
-                    justifyContent:'space-between',
-                  }}>
-                    <Text style={{
-                      fontSize:15
-                    }}>Target</Text>
-                    <Text style={{
-                      fontSize:15,
-                    }}>Achived</Text>
-                  </View>
-                </View> 
-          </View> */}
-
-          
+    
           {cardData?.length>0  && cardData.map((card) => (
             <View key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]}>
             <View style={{
@@ -256,7 +142,6 @@ const Dashboard = ({setUserLoggedIn}) => {
                     fontSize:16,
                     fontWeight:'bold',
                   }}>{card.targetNo}</Text>
-                  {/* {card.id ===2 && console.log({'cd':card.number})} */}
                   <Text style={{
                     fontSize:16,
                     flexGrow:1,
@@ -270,11 +155,11 @@ const Dashboard = ({setUserLoggedIn}) => {
                   flexDirection:'row',
                   justifyContent:'space-between',
                 }}>
-                  {card.targetNo && (
-                      <Text style={{
+                   {console.log(card.targetNo)}
+                   {card?.targetNo !== undefined && <Text style={{
                         fontSize:10
-                      }}>Target</Text>
-                  )}    
+                      }}>Target</Text> }
+                        
                   <Text style={{
                     fontSize:10,
                      flexGrow:1,

@@ -8,7 +8,7 @@ const Loader = ({back}) => {
       <AnimatedLoader
         visible={true}
         overlayColor={back ?"rgba(255,255,255,1)" : "rgba(255,255,255,0.75)"}
-        source={require('../assets/loader.json')} 
+        source={require('../assets/loader.json')} // Update with your Lottie file path
         animationStyle={styles.lottie}
         speed={1}
       />
@@ -21,11 +21,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff', // Change to your desired background color
   },
   lottie: {
-    width: 400,  
-    height: 400, 
+    width: 400,  // Adjust size as needed
+    height: 400, // Adjust size as needed
   },
 });
 

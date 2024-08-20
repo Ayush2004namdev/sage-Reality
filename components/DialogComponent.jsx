@@ -1,52 +1,45 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, Dimensions, TouchableOpacity , Image } from 'react-native';
-import { Video } from 'expo-av';
-import { blue, yellow } from '../constants';  // Import your color constants
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import LottieView from 'lottie-react-native';
+import { blue } from '../constants';  // Import your color constants
 import { useDispatch } from 'react-redux';
-import { setIsFormSubmitted, setShowPopupDialog } from '../redux/slices/misc';
+import { setShowPopupDialog } from '../redux/slices/misc';
 
 const { width, height } = Dimensions.get('window');
 
-const DialogComponent = ({title='' , message='' , navigate ,to, cancel=false , workDone=true}) => {
+const DialogComponent = ({ title = '', message = '', navigate, to, cancel = false, workDone = true }) => {
   const dispatch = useDispatch();
-  const handleOkbuttonPress = () => {
-      dispatch(setShowPopupDialog(false));
-      if(!workDone) return;
-      if(navigate && to){
-        navigate(to);
-      }
-  }
 
+  const handleOkbuttonPress = () => {
+    dispatch(setShowPopupDialog(false));
+    if (!workDone) return;
+    if (navigate && to) {
+      navigate(to);
+    }
+  };
 
   return (
     <View style={styles.overlay}>
       <View style={styles.dialogContainer}>
-        <Video
-          source={workDone ? require('../assets/tick.mp4') : require('../assets/wrong.mp4')} 
-          rate={0.5}
-          volume={0}
-          isMuted={true}
-          resizeMode="contain"
-          shouldPlay
-          style={styles.video}
+        <LottieView
+          source={workDone ? require('../assets/success.json') : require('../assets/error.json')} // Replace with your Lottie file paths
+          autoPlay
+          loop={false}
+          style={styles.lottie}
         />
 
         <Text style={styles.text}>{title}</Text>
-        <Text style={{
-          marginBottom: 15,
-        }} >{message}</Text>
+        <Text style={{ marginBottom: 15 }}>{message}</Text>
 
         <View style={styles.buttonContainer}>
-          <View style={{
-            flexGrow: 1
-          }}>
-         {cancel && (
-           <TouchableOpacity style={[styles.button, { backgroundColor: 'white', borderColor: blue }]}>
-            <Text style={[styles.buttonText, { color: blue }]}>Cancel</Text>
-          </TouchableOpacity>
-         )} 
-         </View>
-          <TouchableOpacity onPress={handleOkbuttonPress} style={[styles.button, { backgroundColor: blue   }]}>
+          <View style={{ flexGrow: 1 }}>
+            {cancel && (
+              <TouchableOpacity style={[styles.button, { backgroundColor: 'white', borderColor: blue }]}>
+                <Text style={[styles.buttonText, { color: blue }]}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity onPress={handleOkbuttonPress} style={[styles.button, { backgroundColor: blue }]}>
             <Text style={[styles.buttonText, { color: 'white' }]}>OK</Text>
           </TouchableOpacity>
         </View>
@@ -76,13 +69,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
   },
-  video: {
-    // width: '100%',
+  lottie: {
     height: 200,
-    width:200,
+    width: 200,
     alignSelf: 'center',
-    // marginBottom: 20,
-    borderRadius:30
   },
   text: {
     textAlign: 'center',

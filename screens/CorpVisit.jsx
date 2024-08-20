@@ -10,6 +10,7 @@ import {
   Alert,
   Image,
   Pressable,
+  Button,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
@@ -38,6 +39,7 @@ const CorpVisit = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const [showKeyPresonTwo , setShowKeyPresonTwo] = useState(false);
   const [formData, setFormData] = useState({
     name: user.user.first_name,
     location: "",
@@ -53,6 +55,8 @@ const CorpVisit = () => {
     reason: "",
     noOfPeopleMet: "",
     DataCollected: "",
+    key_person_two: "",
+    key_person_contact_two: "",
     teamMembers: [],
   });
 
@@ -83,6 +87,10 @@ const CorpVisit = () => {
     setFormData({ ...formData, teamMembers: updatedMembers });
   };
 
+  const handleAddKeypersonPress = () => {
+      setShowKeyPresonTwo(true);
+  }
+
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
       if (key === "reason" ) {
@@ -96,11 +104,53 @@ const CorpVisit = () => {
         if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
         return true;
       }
+
+      if(key === 'key_person_contact_two') {
+        if(showKeyPresonTwo === false) return false;
+        if(formData[key].length !== 10) return 'Mobile Number';
+        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
+      }
+
+      if(key === 'key_person_two') {
+        if(showKeyPresonTwo === false) return false;
+        return !formData[key];
+      }
      
       return !formData[key];
     });
 
     if (emptyField) {
+      if(emptyField === 'mobileNumber' || emptyField === 'key_person_contact_two'){
+        Alert.alert(
+          "Validation Error",
+          `Please fill out valid Mobile Number.`,
+          [
+            {
+              text: "OK",
+              onPress: () => console.log(`Focus on ${emptyField} field`),
+            },
+          ],
+          { cancelable: false }
+        );
+        return;
+      }
+
+      if(emptyField === 'key_person_two'){
+        Alert.alert(
+          "Validation Error",
+          `Please fill out the Key Person Two field.`,
+          [
+            {
+              text: "OK",
+              onPress: () => console.log(`Focus on ${emptyField} field`),
+            },
+          ],
+          { cancelable: false }
+        );
+        return;
+      }
+
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -180,6 +230,8 @@ const CorpVisit = () => {
         noOfPeopleMet: "",
         DataCollected: "",
         teamMembers: [],
+        key_person_contact_two: "",
+        key_person_two: "",
       })
       // navigate('Dashboard');
     } catch (err) {
@@ -320,6 +372,44 @@ const CorpVisit = () => {
               style={styles.inputText}
             />
           </View>
+
+          {!showKeyPresonTwo && <Button onPress={handleAddKeypersonPress} title="Add key person"/>}
+          {showKeyPresonTwo && (
+              <>
+                 <View style={styles.inputGroup}>
+            <Text style={styles.label}>Key Person Two</Text>
+            <View style={{
+            display:'flex',
+            flexDirection:'row',
+            alignItems:'center',
+            gap:10,
+          }}>
+            <TextInput
+              value={formData.key_person_two}
+              onChangeText={(value) => useChangeData("key_person_two", value , false , setFormData)}
+              placeholder="Enter Key Person Two"
+              style={[styles.inputText , {width:"90%"}]}
+            />
+            <TouchableOpacity>
+                <Icon name="remove-circle-outline" size={24} color="red" onPress={() => {setShowKeyPresonTwo(false); setFormData({...formData , key_person_contact_two:'' , key_person_two:''})}}/>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Mobile Number</Text>
+            <TextInput
+              keyboardType="numeric"
+              value={formData.key_person_contact_two}
+              onChangeText={(value) => useChangeData("key_person_contact_two", value , true , setFormData)}
+              placeholder="Enter Mobile Number of Key Person Two"
+              style={styles.inputText}
+              />
+          </View>
+              
+              </>
+          )}
+
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>No of People Met</Text>

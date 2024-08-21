@@ -1,11 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import React, { useEffect } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
-import { setIsMenuOpen, setLogoutPopup, setShowPopupDialog, toggleAdd } from '../redux/slices/misc';
-import { logout } from '../redux/slices/user';
+import { setIsMenuOpen, setLogoutPopup, toggleAdd } from '../redux/slices/misc';
 
 const BottomDrawer = ({ isVisible, onClose }) => {
   const navigation = useNavigation();

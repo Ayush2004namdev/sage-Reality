@@ -1,16 +1,9 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Dimensions, StyleSheet, Text, View } from 'react-native';
-import { Picker } from "@react-native-picker/picker";
-import { ScrollView, TextInput, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-navigation";
-import DialogComponent from "../components/DialogComponent";
-import Loading from "../components/Loading";
 import { blue } from '../constants';
-import useChangeData from "../hooks/useChangeData";
-import { useSelector } from 'react-redux';
 import AddClientSiteVisitDetails from './AddClientSiteDetails';
 import UpdateClientSiteVisitDetails from './UpdateClientSiteVisitDetails';
-import { useFocusEffect } from '@react-navigation/native';
 const { width, height } = Dimensions.get('window');
 const SiteVisit = () => {
 

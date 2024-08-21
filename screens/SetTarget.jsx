@@ -5,14 +5,16 @@ import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { blue } from "../constants";
-import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
+import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 const SetTarget = () => {
-    const {user} = useSelector((state) => state.user);
+    const {user,location} = useSelector((state) => state.user);
     const {showPopupDialog} = useSelector((state) => state.misc);
     const dispatch = useDispatch();
     const [loading , setLoading] = useState(false);
@@ -109,6 +111,12 @@ const SetTarget = () => {
           }
           if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
+
+            if(!location) {
+              const userLocation = await getLocation();
+              dispatch(setUserLocation(userLocation));
+            }
+
             setLoading(true);
             const data = {
               month:getMonth(formData.month),
@@ -120,7 +128,8 @@ const SetTarget = () => {
               sm_followup:formData.SMFollowUpTarget,
               site_visit:formData.siteVisitTarget,
               admission:formData.admissionTarget,
-              ip:formData.ipPatientTarget
+              ip:formData.ipPatientTarget,
+              location: location
             }
             await submitForm(`Set-Target/${user.user.first_name}`, data , user , setShowPopupDialog , setLoading , dispatch);
             // const res = await axios.post(`http://182.70.253.15:8000/api/Set-Target/${user.user.first_name}`,{

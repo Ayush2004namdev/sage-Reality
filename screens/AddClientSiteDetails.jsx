@@ -1,33 +1,32 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import axios from "axios";
-import React, { useCallback, useState } from "react";
-import { RadioButton } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
 import {
   Alert,
-  Button,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+import { RadioButton } from "react-native-paper";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { blue } from "../constants";
-import { setShowPopupDialog, toggleUpdate } from "../redux/slices/misc";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { formatDate } from "../lib/features";
-import { submitForm } from "../lib/helper";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
 import { LocationData } from "../lib/constants";
+import { formatDate, getLocation } from "../lib/features";
+import { submitForm } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 
 const AddClientSiteVisitDetails = () => {
-  const { user } = useSelector((state) => state.user);
+  const { user,location } = useSelector((state) => state.user);
   const { showPopupDialog, members } = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
@@ -190,6 +189,12 @@ const AddClientSiteVisitDetails = () => {
         { text: "OK" },
       ]);
     console.log(formData);
+
+    if(!location) {
+      const userLocation = await getLocation();
+      dispatch(setUserLocation(userLocation));
+    }
+
     setLoading(true);
 
     const data = {
@@ -224,7 +229,7 @@ const AddClientSiteVisitDetails = () => {
       state: formData.state,
       interested_location:formData.interested_location,
       source: formData.source,
-      
+      location:location
     };
 
     // console.log('state',data.state);

@@ -1,22 +1,21 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
-import { formatDate } from "../lib/features";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
-import { setShowPopupDialog } from "../redux/slices/misc";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 const IPDone = () => {
     const {navigate} = useNavigation();
-    const {user} = useSelector((state) => state.user);
+    const {user,location} = useSelector((state) => state.user);
     const [loading , setLoading] = useState(false);
     const {showPopupDialog} = useSelector((state) => state.misc);
     const dispatch = useDispatch();
@@ -52,14 +51,23 @@ const IPDone = () => {
         } 
 
         try{
+
+          if(!location) {
+            const userLocation = await getLocation();
+            dispatch(setUserLocation(userLocation));
+          }
+
           setLoading(true);
           const data = {
             username: formData.name,
               date: formatDate(formData.date),
               p_name: formData.patientName,
               key_person: formData.keyPersonName,
+              location: location
           }
-          await submitForm('Ip-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
+          console.log('working');
+          await submitForm('Ip-Form' , data , user , setShowPopupDialog , setLoading , dispatch , location);
+          console.log('working');
           // const res = await axios.post(`http://182.70.253.15:8000/api/Ip-Form`, {
           //     username: formData.name,
           //     date: formatDate(formData.date),

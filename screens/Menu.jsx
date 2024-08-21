@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { Dimensions, Pressable, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setIsMenuOpen } from '../redux/slices/misc';
 import BottomDrawer from '../components/BottomDrawer';
+import { setIsMenuOpen } from '../redux/slices/misc';
 
 const { width, height } = Dimensions.get('window');
 

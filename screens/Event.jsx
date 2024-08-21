@@ -1,22 +1,22 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
 import { useDispatch, useSelector } from "react-redux";
-import { formatDate } from "../lib/features";
-import axios from "axios";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import { useNavigation } from "@react-navigation/native";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 const Event = () => {
   const {navigate} = useNavigation();
-  const {user} = useSelector((state) => state.user);
+  const {user,location} = useSelector((state) => state.user);
   const {event_type_list , showPopupDialog} = useSelector((state) => state.misc);
   const [loading , setLoading] = useState(false);
   const dispatch = useDispatch();
@@ -31,17 +31,18 @@ const Event = () => {
         numberOfLeads:'',
       });
     
-      const [showDatePicker, setShowDatePicker] = useState(false);
+      const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+      const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     
       const onStartDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || formData.startDate;
-        setShowDatePicker(Platform.OS === 'ios');
+        setShowStartDatePicker(Platform.OS === 'ios');
         setFormData({ ...formData, startDate: currentDate });
       };
     
       const onEndDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || formData.endDate;
-        setShowDatePicker(Platform.OS === 'ios');
+        setShowEndDatePicker(Platform.OS === 'ios');
         setFormData({ ...formData, endDate: currentDate });
       };
  
@@ -60,6 +61,10 @@ const Event = () => {
           return;
         }
           try{
+            if(!location) {
+              const userLocation = await getLocation();
+              dispatch(setUserLocation(userLocation));
+            }
             setLoading(true);
             const data  = {
               username: formData.name,
@@ -69,7 +74,8 @@ const Event = () => {
                 Event_type:formData.eventType,
                 num_leads: formData.numberOfLeads,
                 event_details: formData.eventDetails,
-                num_attendees: formData.numberOfAttendiees
+                num_attendees: formData.numberOfAttendiees,
+                location: location
             }
             await submitForm('Event-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
             // const res = await axios.post(`http://182.70.253.15:8000/api/Event-Form` , {
@@ -179,10 +185,10 @@ const Event = () => {
                     placeholder="Select Date"
                     editable={true}
                   />
-                  <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateIcon}>
+                  <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
                   </TouchableOpacity>
-                  {showDatePicker && (
+                  {showStartDatePicker && (
                     <DateTimePicker
                       value={formData.startDate}
                       mode="date"
@@ -202,10 +208,10 @@ const Event = () => {
                     placeholder="Select Date"
                     editable={true}
                   />
-                  <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateIcon}>
+                  <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
                   </TouchableOpacity>
-                  {showDatePicker && (
+                  {showEndDatePicker && (
                     <DateTimePicker
                       value={formData.endDate}
                       mode="date"

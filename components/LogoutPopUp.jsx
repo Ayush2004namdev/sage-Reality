@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { blue, yellow } from '../constants';
-import { useNavigation } from '@react-navigation/native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { blue } from '../constants';
 import { setIsMenuOpen, setLogoutPopup, toggleAdd } from '../redux/slices/misc';
 import { logout } from '../redux/slices/user';
 

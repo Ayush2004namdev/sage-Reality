@@ -4,7 +4,8 @@ const userSlice = createSlice({
     name: 'user',
     initialState: {
         user: false,
-        dashboardData: []
+        dashboardData: [],
+        location:null
     },
     reducers: {
         login: (state, action) => {
@@ -15,9 +16,12 @@ const userSlice = createSlice({
         },
         setDashboardData : (state,action) => {
             state.dashboardData = action.payload;
+        },
+        setUserLocation:(state,action) => {
+            state.location = action.payload;
         }
     },
 })
 
-export const { login, logout ,setDashboardData} = userSlice.actions;
+export const { login, logout ,setDashboardData , setUserLocation} = userSlice.actions;
 export default userSlice.reducer;

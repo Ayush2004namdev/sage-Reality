@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'
-import React from 'react'
+import { useNavigation } from '@react-navigation/native';
+import React from 'react';
 import { Image, Pressable } from 'react-native';
 
 const TabBarDashboardButton = (r) => {

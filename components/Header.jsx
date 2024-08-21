@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, SafeAreaView ,StatusBar, Platform } from 'react-native';
+import { Image, Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { blue } from '../constants';
 
 const statusBarHeight = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight || 0;

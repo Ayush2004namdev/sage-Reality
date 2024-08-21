@@ -1,16 +1,13 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView,Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { blue, yellow } from '../constants';
-import { Ionicons } from '@expo/vector-icons';
-import { setAllDropdownData, setIsFormSubmitted, setShowPopupDialog } from '../redux/slices/misc';
 import DialogComponent from '../components/DialogComponent';
-import LogoutPopUp from '../components/LogoutPopUp';
-import Loading from '../components/Loading';
-import DashBoardLoader from '../components/DashBoardLoader';
 import Loader from '../components/Loading';
+import LogoutPopUp from '../components/LogoutPopUp';
+import { blue } from '../constants';
+import { setAllDropdownData } from '../redux/slices/misc';
 // import Test from '../components/TestTemplate';
 
 
@@ -69,7 +66,8 @@ const Dashboard = ({setUserLoggedIn}) => {
           'Authorization': `Bearer ${user.access}`
         }
       }).then((res) => {
-        console.log({'data':res.data.targets[4]});
+      
+
         res?.data?.targets.forEach((target) => {
           const card = cardTemplate.find((card) => card.id === target.Target_id);
           if(card){     
@@ -83,7 +81,7 @@ const Dashboard = ({setUserLoggedIn}) => {
             card.number = value;
           }
         });
-        console.log({'card':cardTemplate[4]});
+      
         setCardData(cardTemplate);
         setLoading(false);
       }).catch((err) => console.log({err}));
@@ -155,7 +153,7 @@ const Dashboard = ({setUserLoggedIn}) => {
                   flexDirection:'row',
                   justifyContent:'space-between',
                 }}>
-                   {console.log(card.targetNo)}
+                  
                    {card?.targetNo !== undefined && <Text style={{
                         fontSize:10
                       }}>Target</Text> }

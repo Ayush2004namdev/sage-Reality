@@ -1,5 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as ImagePicker from "expo-image-picker";
+import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   Alert,
@@ -16,21 +17,19 @@ import {
 import { RadioButton } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { formatDate } from "../lib/features";
-import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
-import { setShowPopupDialog } from "../redux/slices/misc";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 
 const HomeVisit = () => {
   const { navigate } = useNavigation();
-  const { user } = useSelector((state) => state.user);
+  const { user, location } = useSelector((state) => state.user);
   const {members , showPopupDialog} = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -109,6 +108,12 @@ const HomeVisit = () => {
       return;
     }
     try {
+
+      if(!location) {
+        const userLocation = await getLocation();
+        dispatch(setUserLocation(userLocation));
+      }
+
     setIsLoading(true);
       const teamMembers = formData.teamMembers.filter((member) => member !== "")
       setFormData({...formData , teamMembers});
@@ -121,7 +126,8 @@ const HomeVisit = () => {
         site_visit_name : formData.location,
         visit_type : formData.visit_type,
         image : formData.image,
-        co_name : formData.teamMembers
+        co_name : formData.teamMembers,
+        location: location
       }
       await submitForm('Home-Visit' , data , user , setShowPopupDialog , setIsLoading , dispatch);
       setFormData({

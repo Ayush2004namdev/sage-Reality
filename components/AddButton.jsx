@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Pressable } from 'react-native';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleAdd } from '../redux/slices/misc';
 import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { blue, yellow } from '../constants';
+import { toggleAdd } from '../redux/slices/misc';
 
 const Add = () => {
   const navigator = useNavigation();

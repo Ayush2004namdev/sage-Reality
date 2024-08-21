@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   Alert,
   Image,
   ImageBackground,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { blue, yellow } from '../constants';
-import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { blue } from '../constants';
 import { login } from '../redux/slices/user';
-import { StatusBar } from 'expo-status-bar';
 
 const Login = ({user}) => {
   const [username, setUsername] = useState('');

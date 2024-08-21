@@ -1,5 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
   Alert,
@@ -13,16 +13,15 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import useChangeData from "../hooks/useChangeData";
-import { setShowPopupDialog } from "../redux/slices/misc";
 import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
-import { formatDate } from "../lib/features";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 
 const SageMitraFollowUp = () => {
   const { navigate } = useNavigation();
@@ -34,7 +33,7 @@ const SageMitraFollowUp = () => {
   const { sage_mitra_list, showPopupDialog } = useSelector(
     (state) => state.misc
   );
-  const { user } = useSelector((state) => state.user);
+  const { user, location } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.date;
@@ -143,6 +142,12 @@ const SageMitraFollowUp = () => {
       return;
     }
     try {
+
+      if(!location) {
+        const userLocation = await getLocation();
+        dispatch(setUserLocation(userLocation));
+      }
+
       setLoading(true);
       const data = {
         username : formData.name,
@@ -153,6 +158,7 @@ const SageMitraFollowUp = () => {
         sm_contact : formData.mobileNumber,
         new_sm_name : formData.sageMitra === 'Others' ? formData.new_sm_name : '',
         new_sm_contact : formData.sageMitra === 'Others' ? formData.new_sm_contact : '',
+        location: location
       };
       await submitForm(
         "Sage-Mitra-Form",

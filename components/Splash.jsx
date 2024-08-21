@@ -1,6 +1,6 @@
 // components/Splash.js
 import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 
 const Splash = ({ scaleAnim }) => {
     return (

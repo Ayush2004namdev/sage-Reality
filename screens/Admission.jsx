@@ -1,5 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,16 +14,15 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
-import { blue } from "../constants";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { formatDate } from "../lib/features";
-import useChangeData from "../hooks/useChangeData";
 import DialogComponent from "../components/DialogComponent";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import { useNavigation } from "@react-navigation/native";
 import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 const Admission = () => {
   const {navigate} = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ const Admission = () => {
   const {showPopupDialog} = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [showDatePicker, setShowDatePicker] = useState(false);
-
+  const {location} = useSelector((state) => state.user);
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.date;
     setShowDatePicker(Platform.OS === "ios");
@@ -64,6 +64,12 @@ const Admission = () => {
       return;
     }
     try {
+      
+      if(!location) {
+        const userLocation = await getLocation();
+        dispatch(setUserLocation(userLocation));
+      }
+
       setLoading(true);
       const data = {
         username: formData.name,
@@ -72,8 +78,10 @@ const Admission = () => {
           s_name: formData.studentName,
           vertical: formData.Vertical,
           branch_class: formData.branch,
+          location: location
       }
-      await submitForm('Admission-Form' , data , user , setShowPopupDialog , setLoading , dispatch);
+
+      await submitForm('Admission-Form' , data , user , setShowPopupDialog , setLoading , dispatch , location);
       // const res = await axios.post(
       //   `http://182.70.253.15:8000/api/Admission-Form`,
       //   {

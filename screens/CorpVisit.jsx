@@ -1,33 +1,33 @@
-import React, { useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import React, { useCallback, useState } from "react";
 import {
+  Alert,
+  Button,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
-  ScrollView,
   TouchableOpacity,
-  Platform,
-  Alert,
-  Image,
-  Pressable,
-  Button,
+  View,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
 import { RadioButton } from "react-native-paper";
 import { SafeAreaView } from "react-navigation";
 
-import { blue, yellow } from "../constants";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { formatDate } from "../lib/features";
-import { useNavigation } from "@react-navigation/native";
-import useChangeData from "../hooks/useChangeData";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import Loading from "../components/Loading";
 import DialogComponent from "../components/DialogComponent";
+import Loading from "../components/Loading";
+import { blue } from "../constants";
+import useChangeData from "../hooks/useChangeData";
+import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
+import { setShowPopupDialog } from "../redux/slices/misc";
+import { setUserLocation } from "../redux/slices/user";
 
 const CorpVisit = () => {
   const {navigate} = useNavigation();
@@ -37,7 +37,7 @@ const CorpVisit = () => {
   const [showTeamSelect, setShowTeamSelect] = useState(false);
   const { corporate_list, corporate_type, members , showPopupDialog} = useSelector((state) => state.misc);
   const [loading, setLoading] = useState(false);
-  const { user } = useSelector((state) => state.user);
+  const { user ,location} = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [showKeyPresonTwo , setShowKeyPresonTwo] = useState(false);
   const [formData, setFormData] = useState({
@@ -59,6 +59,28 @@ const CorpVisit = () => {
     key_person_contact_two: "",
     teamMembers: [],
   });
+
+  useFocusEffect(useCallback(() => {
+    setFormData({
+      name: user.user.first_name,
+      location: "",
+      keyPerson: "",
+      mobileNumber: "",
+      corporateType: "select",
+      corporate: "select",
+      firstGroupValue: null,
+      secondGroupValue: null,
+      date: new Date(),
+      plannedDate: new Date(),
+      image: null,
+      reason: "",
+      noOfPeopleMet: "",
+      DataCollected: "",
+      key_person_two: "",
+      key_person_contact_two: "",
+      teamMembers: [],
+    })
+  },[]))
 
   const onPlannedDateChange = (event, selectedDate) => {
     console.log(selectedDate);
@@ -165,6 +187,12 @@ const CorpVisit = () => {
       return;
     }
     try {
+
+      if(!location) {
+        const userLocation = await getLocation();
+        dispatch(setUserLocation(userLocation));
+      }
+
       setLoading(true);
       const data = {
         name : formData.name,

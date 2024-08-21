@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { blue } from '../constants';  // Import your color constants
+import React from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { blue } from '../constants'; // Import your color constants
 import { setShowPopupDialog } from '../redux/slices/misc';
 
 const { width, height } = Dimensions.get('window');

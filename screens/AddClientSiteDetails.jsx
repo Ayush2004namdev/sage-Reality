@@ -1016,7 +1016,7 @@ const AddClientSiteVisitDetails = () => {
                 borderBottomWidth: 0.2,
               }}
             >
-              Socials
+              Social Media Handels
             </Text>
 
             <View style={styles.inputGroup}>

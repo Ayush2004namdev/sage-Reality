@@ -29,6 +29,7 @@ const SageMitraFollowUp = () => {
   const [showenList, setShowenList] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const [showAddSageMitra, setShowAddSageMitra] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
 
   const { sage_mitra_list, showPopupDialog } = useSelector(
     (state) => state.misc
@@ -40,6 +41,18 @@ const SageMitraFollowUp = () => {
     setShowDatePicker(Platform.OS === "ios");
     setFormData({ ...formData, date: currentDate });
   };
+
+  const [formData, setFormData] = useState({
+    name: user.user.first_name,
+    date: new Date(),
+    mobileNumber: "",
+    noOfLeads: "",
+    leadDetails: "",
+    sageMitra: "",
+    new_sm_name: "",
+    new_sm_contact: "",
+  });
+
   const dispatch = useDispatch();
   useFocusEffect(
     useCallback(() => {
@@ -71,62 +84,60 @@ const SageMitraFollowUp = () => {
     if (name === "search") {
       setSearchVal(value);
       const searchTerm = value.toLowerCase();
-
+      setMobileNumber('');
+      // console.log(sage_mitra_list);
       const filteredList = sage_mitra_list.filter((item) => {
         return item[0] && item[0].toLowerCase().includes(searchTerm);
       });
-
-      setShowenList([...filteredList , 'Others']);
+      console.log(filteredList);
+      setShowenList([...filteredList]);
       return;
     }
 
+
     if (name === "sageMitra") {
-      if(value === 'Others'){
+      if (value === "Others") {
         setShowAddSageMitra(true);
         setSearchVal(value);
         setShowenList(false);
         return;
-      }else{
+      } else {
+        setMobileNumber(Number(value[1]));
+        // useChangeData("mobileNumber", Number(value[1]), true, setFormData);
         setShowAddSageMitra(false);
+        setMobileNumber(value[1]);
       }
       setSearchVal(value[0]);
       setShowenList(false);
+      setFormData({ ...formData, sageMitra: value[0] });
+      return;
     }
 
     setFormData({ ...formData, [name]: value });
   };
 
-  const [formData, setFormData] = useState({
-    name: user.user.first_name,
-    date: new Date(),
-    mobileNumber: "",
-    noOfLeads: "",
-    leadDetails: "",
-    sageMitra: "",
-    new_sm_name: "",
-    new_sm_contact: "", 
-  });
+  console.log({'sageMitra':formData.sageMitra});
 
   const handleSubmit = async () => {
     // console.log('working');
     const emptyField = Object.keys(formData).find((key) => {
-      if (key === "mobileNumber") {
-        if(formData.sageMitra === 'Others') return false;
-        if (formData[key].length !== 10) return "Mobile Number";
-        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
-        return true;
-      }
-      if(key === 'new_sm_contact' || key === 'new_sm_name'){
-        if(formData.sageMitra === 'Others'){
-          if(!formData[key]) return key;
+      if (key === "new_sm_contact" || key === "new_sm_name") {
+        if (formData.sageMitra === "Others") {
+          if (!formData[key]) return key;
         }
         return false;
       }
 
+      if(key === 'mobileNumber') return false;
+
+      if(key === 'leadDetails' && formData[key].length < 1) return key;
+
       return !formData[key];
     });
-    // console.log('working 2')
-    if (!emptyField) {
+
+    if(setShowAddSageMitra === false && (mobileNumber.length !== 10 || mobileNumber[0]<6) ) return Alert.alert('Validation Error', 'Please Enter Valid Mobile Number' , [{text:'OK'}]);
+
+    if (emptyField) {
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -138,28 +149,30 @@ const SageMitraFollowUp = () => {
         ],
         { cancelable: false }
       );
-
       return;
     }
     try {
-
-      if(!location) {
+      console.log(location);
+      if (!location) {
         const userLocation = await getLocation();
         dispatch(setUserLocation(userLocation));
       }
 
       setLoading(true);
       const data = {
-        username : formData.name,
-        sm_name : formData.sageMitra[0],
-        followup_date : formatDate(formData.date),
-        no_leads : formData.noOfLeads,
-        lead_Detail : formData.leadDetails,
-        sm_contact : formData.mobileNumber,
-        new_sm_name : formData.sageMitra === 'Others' ? formData.new_sm_name : '',
-        new_sm_contact : formData.sageMitra === 'Others' ? formData.new_sm_contact : '',
-        location: location
+        username: formData.name,
+        sm_name: formData.sageMitra[0],
+        followup_date: formatDate(formData.date),
+        no_leads: formData.noOfLeads,
+        lead_Detail: formData.leadDetails,
+        sm_contact: mobileNumber,
+        new_sm_name:
+          formData.sageMitra === "Others" ? formData.new_sm_name : "",
+        new_sm_contact:
+          formData.sageMitra === "Others" ? formData.new_sm_contact : "",
+        location: location,
       };
+      // console.log(data);
       await submitForm(
         "Sage-Mitra-Form",
         data,
@@ -260,25 +273,24 @@ const SageMitraFollowUp = () => {
                     height: "auto",
                   }}
                 >
-                  {showenList &&
-                    showenList.length > 0 &&
-                    (<>
-                    {showenList.map((item) => (
+                  {showenList && (
+                    <>
+                      {showenList.map((item) => (
+                        <TouchableOpacity
+                          onPress={() => handleInputChange("sageMitra", item)}
+                          key={item}
+                          style={{
+                            padding: 10,
+                            borderWidth: 1,
+                            borderTopWidth: 0,
+                            borderBottomColor: "black",
+                          }}
+                        >
+                          <Text>{item[0]}</Text>
+                        </TouchableOpacity>
+                      ))}
                       <TouchableOpacity
-                        onPress={() => handleInputChange("sageMitra", item)}
-                        key={item}
-                        style={{
-                          padding: 10,
-                          borderWidth: 1,
-                          borderTopWidth: 0,
-                          borderBottomColor: "black",
-                        }}
-                      >
-                        <Text>{item[0]}</Text>
-                      </TouchableOpacity>
-                    ))}  
-                      <TouchableOpacity
-                        onPress={() => handleInputChange("sageMitra", 'Others')}
+                        onPress={() => handleInputChange("sageMitra", "Others")}
                         // key={item}
                         style={{
                           padding: 10,
@@ -288,8 +300,9 @@ const SageMitraFollowUp = () => {
                         }}
                       >
                         <Text>Others</Text>
-                      </TouchableOpacity>  
-                    </>)}
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </ScrollView>
               </>
             )}
@@ -297,50 +310,50 @@ const SageMitraFollowUp = () => {
 
           {showAddSageMitra && (
             <>
-            <View style={styles.inputGroup}>
-            <Text style={styles.label}>New Sage Mitra</Text>
-            <TextInput
-              value={formData.new_sm_name}
-              onChangeText={(value) =>
-                useChangeData("new_sm_name", value, false, setFormData)
-              }
-              placeholder="Enter new Sage Mitra Name"
-              style={styles.inputText}
-              // keyboardType="numeric"
-              />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>New Sage Mitra</Text>
+                <TextInput
+                  value={formData.new_sm_name}
+                  onChangeText={(value) =>
+                    useChangeData("new_sm_name", value, false, setFormData)
+                  }
+                  placeholder="Enter new Sage Mitra Name"
+                  style={styles.inputText}
+                  // keyboardType="numeric"
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sage Mitra Mobile Number</Text>
-            <TextInput
-              value={formData.new_sm_contact}
-              onChangeText={(value) =>
-                useChangeData("new_sm_contact", value, true, setFormData)
-              }
-              placeholder="Enter New Sage Mitra Mobile Number"
-              style={styles.inputText}
-              keyboardType="numeric"
-            />
-          </View>
-          
-          </>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Sage Mitra Mobile Number</Text>
+                <TextInput
+                  value={formData.new_sm_contact}
+                  onChangeText={(value) =>
+                    useChangeData("new_sm_contact", value, true, setFormData)
+                  }
+                  placeholder="Enter New Sage Mitra Mobile Number"
+                  style={styles.inputText}
+                  keyboardType="numeric"
+                />
+              </View>
+            </>
           )}
-
           {!showAddSageMitra && (
             <View style={styles.inputGroup}>
-            <Text style={styles.label}>Mobile Number</Text>
-            <TextInput
-              value={formData.mobileNumber}
-              onChangeText={(value) =>
-                useChangeData("mobileNumber", value, true, setFormData)
-              }
-              placeholder="Enter Mobile Number"
-              style={styles.inputText}
-              keyboardType="numeric"
-            />
-          </View>
+              <Text style={styles.label}>Mobile Number</Text>
+              <TextInput
+                value={mobileNumber} 
+                onChangeText={(value) =>{
+                  if(isNaN(value) || value.toString().includes('.')) return;
+                  setMobileNumber(value);
+                  // useChangeData("mobileNumber", value, true, setFormData);
+                }
+                }
+                placeholder="Enter Mobile Number"
+                style={styles.inputText}
+                keyboardType="numeric"
+              />
+            </View>
           )}
-          
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Follow Up Date</Text>
@@ -364,7 +377,7 @@ const SageMitraFollowUp = () => {
                 editable={false}
               />
               <TouchableOpacity
-                onPress={() => setShowDatePicker(false)}
+                onPress={() => setShowDatePicker(true)}
                 style={styles.dateIcon}
               >
                 <Icon name="date-range" size={24} color="black" />

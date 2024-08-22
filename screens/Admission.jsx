@@ -46,7 +46,10 @@ const Admission = () => {
   };
 
   const handleSubmit = async () => {
-    const emptyField = Object.keys(formData).find((key) => !formData[key]);
+    const emptyField = Object.keys(formData).find((key) => {
+      if(key === 'Vertical') return formData[key] === 'select';
+      return !formData[key]
+    });
 
     if (emptyField) {
       Alert.alert(

@@ -31,7 +31,7 @@ const Login = ({user}) => {
     else{
         Alert.alert('Invalid Credentials');
     }
-    console.log(res.data);
+    // console.log(res.data);
 }catch(err){
   Alert.alert('Something went wrong');
   // Alert.alert(err);

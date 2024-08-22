@@ -14,7 +14,6 @@ const TabBarDashboardButton = (r) => {
         width: 45,
         height: 45,
       }} />
-        {/* <Ionicons name='home' size={30} color='white' /> */}
     </Pressable>
   )
 }

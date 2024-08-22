@@ -121,6 +121,9 @@ const CorpVisit = () => {
         }
         return false;
       }
+
+      if(key === 'corporateType' || key === 'corporate') return formData[key] === 'select';
+
       if(key === 'mobileNumber'){
         if(formData[key].length !== 10) return 'Mobile Number';
         if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
@@ -138,11 +141,31 @@ const CorpVisit = () => {
         if(showKeyPresonTwo === false) return false;
         return !formData[key];
       }
+
+      if(key === 'DataCollected') return false;
+
+      if(key === 'firstGroupValue') return false;
      
       return !formData[key];
     });
 
     if (emptyField) {
+
+      if(emptyField === 'secondGroupValue'){
+        Alert.alert(
+          "Validation Error",
+          `Please select the Visit Type.`,
+          [
+            {
+              text: "OK",
+              onPress: () => console.log(`Focus on ${emptyField} field`),
+            },
+          ],
+          { cancelable: false }
+        );
+        return;
+      }
+
       if(emptyField === 'mobileNumber' || emptyField === 'key_person_contact_two'){
         Alert.alert(
           "Validation Error",
@@ -210,7 +233,10 @@ const CorpVisit = () => {
         reason : formData.reason,
         visit_type : formData.secondGroupValue,
         co_name : formData.teamMembers,
+
       }
+
+      // console.log(data);
       await submitForm('Coporate-Visit-Form',data , user , setShowPopupDialog , setLoading , dispatch);
 
       // const res = await axios.post(

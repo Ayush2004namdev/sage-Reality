@@ -32,11 +32,11 @@ const BottomDrawer = ({ isVisible, onClose }) => {
 
   const menuItems = [
     { name: 'Set Monthly Target', icon: require('../assets/Target.png'), route: 'SetMonthlyTarget' },
-    { name: 'Corporate Visit', icon: require('../assets/CorpVisit.png'), route: 'CorpVisit' },
     { name: 'Sage Mitra Follow Up', icon: require('../assets/SAGEMF.png'), route: 'SageMF' },
+    { name: 'Corporate Visit', icon: require('../assets/CorpVisit.png'), route: 'CorpVisit' },
     { name: 'Home Visit', icon: require('../assets/HomeVisit.png'), route: 'HomeVisit' },
-    { name: 'Event', icon: require('../assets/Events.png'), route: 'Event' },
     { name: 'Client Site Visit', icon: require('../assets/ClientSiteVisit.png'), route: 'ClientSiteVisit' },
+    { name: 'Event', icon: require('../assets/Events.png'), route: 'Event' },
     { name: 'Admission Done', icon: require('../assets/Admission.png'), route: 'Admission' },
     { name: 'IP Done', icon: require('../assets/IP.png'), route: 'IpDone' }
   ];

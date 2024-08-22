@@ -65,9 +65,9 @@ const IPDone = () => {
               key_person: formData.keyPersonName,
               location: location
           }
-          console.log('working');
+          // console.log('working');
           await submitForm('Ip-Form' , data , user , setShowPopupDialog , setLoading , dispatch , location);
-          console.log('working');
+          // console.log('working');
           // const res = await axios.post(`http://182.70.253.15:8000/api/Ip-Form`, {
           //     username: formData.name,
           //     date: formatDate(formData.date),

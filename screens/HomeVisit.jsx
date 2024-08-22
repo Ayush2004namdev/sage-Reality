@@ -253,7 +253,7 @@ const HomeVisit = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location</Text>
+            <Text style={styles.label}>Address/Locality</Text>
             <TextInput
               value={formData.location}
               onChangeText={(value) => useChangeData("location", value , false , setFormData)}

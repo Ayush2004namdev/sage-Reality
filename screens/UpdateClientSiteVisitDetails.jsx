@@ -103,7 +103,7 @@ const UpdateClientSiteVisitDetails = () => {
   };
 
   const onBirthDateChange = (event, selectedDate) => {
-    console.log({ selectedDate });
+    // console.log({ selectedDate });
     const currentDate = selectedDate || formData.birth_date;
     setShowBirthDatePicker(false);
     setFormData({ ...formData, birth_date: currentDate });
@@ -133,7 +133,7 @@ const UpdateClientSiteVisitDetails = () => {
         }
       );
       const data = res.data.data[0];
-      console.log(data);
+      // console.log(data);
       const d = {
         data: [
           {
@@ -367,7 +367,7 @@ const UpdateClientSiteVisitDetails = () => {
         })
       );
       setLoading(false);
-      console.log(e);
+      // console.log(e);
       //   setFormData({
       //     visit_type: "direct_visit",
       //     name: user.user.first_name,
@@ -769,7 +769,7 @@ const UpdateClientSiteVisitDetails = () => {
                       editable={true}
                       value={formData.costumer_whatsapp}
                       onChangeText={(value) => {
-                        console.log(value);
+                        // console.log(value);
 
                         useChangeData(
                           "costumer_whatsapp",
@@ -1155,7 +1155,7 @@ const UpdateClientSiteVisitDetails = () => {
                     borderBottomWidth: 0.2,
                   }}
                 >
-                  Socials
+                  Social Media Handels
                 </Text>
 
                 <View style={styles.inputGroup}>

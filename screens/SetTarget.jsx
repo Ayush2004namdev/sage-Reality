@@ -176,7 +176,7 @@ const SetTarget = () => {
                     'Authorization': `Bearer ${user.access}`
                   }
                 })
-                console.log({'f':res.data});
+                // console.log({'f':res.data});
                 if(!res?.data) return;
                 res?.data?.forEach((target) => {
                   switch(target.Target_id){

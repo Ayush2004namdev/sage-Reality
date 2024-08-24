@@ -22,12 +22,13 @@ import useChangeData from "../hooks/useChangeData";
 import { LocationData } from "../lib/constants";
 import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import { setUserLocation } from "../redux/slices/user";
+import { setIsMenuOpen, setShowPopupDialog, toggleAdd } from "../redux/slices/misc";
+import { logout, setUserLocation } from "../redux/slices/user";
 
 const AddClientSiteVisitDetails = () => {
   const { user,location } = useSelector((state) => state.user);
-  const { showPopupDialog, members } = useSelector((state) => state.misc);
+  const { showPopupDialog, members,intereseted_localities } = useSelector((state) => state.misc);
+  console.log({'add':intereseted_localities})
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { navigate } = useNavigation();
@@ -188,12 +189,21 @@ const AddClientSiteVisitDetails = () => {
       return Alert.alert("Validation Error", "Please Add Valid Date", [
         { text: "OK" },
       ]);
-    console.log(formData);
+    // console.log(formData);
 
     if(!location) {
       const userLocation = await getLocation();
+      if(!userLocation) {
+        dispatch(logout());
+        dispatch(setIsMenuOpen(false));
+        dispatch(toggleAdd(false));
+      navigate('Dashboard');
+        return;
+      }
       dispatch(setUserLocation(userLocation));
     }
+    console.log(location);
+    const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
 
     setLoading(true);
 
@@ -229,9 +239,9 @@ const AddClientSiteVisitDetails = () => {
       state: formData.state,
       interested_location:formData.interested_location,
       source: formData.source,
-      location:location
+      lat_long:lat_long
     };
-
+    console.log(data);
     // console.log('state',data.state);
     // console.log( 'city',data.city);
     // console.log( 'source type',data.sourceType);
@@ -249,6 +259,13 @@ const AddClientSiteVisitDetails = () => {
       );
       setLoading(false);
     } catch (e) {
+
+      setLoading(false);
+      if(e?.message === 'Location request failed due to unsatisfied device settings'){
+        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+            return;
+        }
+      // dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));
       dispatch(
         setShowPopupDialog({
           title: "Error",
@@ -768,9 +785,12 @@ const AddClientSiteVisitDetails = () => {
                     style={styles.picker}
                     >
                     <Picker.Item label="Select" value="select" />
-                    <Picker.Item label="2 BHK" value="2bhk" />
+                    {intereseted_localities && intereseted_localities.map((item) => {
+                         return <Picker.Item key={item} label={item} value={item} />
+                    })}
+                    {/* <Picker.Item label="2 BHK" value="2bhk" />
                     <Picker.Item label="5 BHK" value="5bhk" />
-                    <Picker.Item label="4 BHK" value="4bhk" />
+                    <Picker.Item label="4 BHK" value="4bhk" /> */}
                     {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
                   </Picker>
                 </View>

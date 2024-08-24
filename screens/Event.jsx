@@ -111,6 +111,11 @@ const Event = () => {
           }
           catch(err){
             setLoading(false);
+      if(err?.message === 'Location request failed due to unsatisfied device settings'){
+        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+            return;
+        }
+      
             dispatch(setShowPopupDialog({title: 'Error' , message: 'Something Went Wrong' , workDone: false, to: 'Event'}));
             // Alert.alert('Error' , 'Something Went Wrong' , [{text: 'OK'}]);
             console.log(err);

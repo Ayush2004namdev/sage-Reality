@@ -8,6 +8,7 @@ import Loader from '../components/Loading';
 import LogoutPopUp from '../components/LogoutPopUp';
 import { blue } from '../constants';
 import { setAllDropdownData } from '../redux/slices/misc';
+import { setUserLocation } from '../redux/slices/user';
 // import Test from '../components/TestTemplate';
 
 
@@ -46,6 +47,7 @@ const Dashboard = ({setUserLoggedIn}) => {
             Authorization: `Bearer ${user.access}`
           }
         })
+        // console.log(res.data.interested_localities);
         dispatch(setAllDropdownData(res.data))
       }
       catch(err){
@@ -58,6 +60,7 @@ const Dashboard = ({setUserLoggedIn}) => {
 
   useFocusEffect(
     useCallback(() => {
+      // dispatch(setUserLocation(false));
       setCardData([]);
       // console.log('===============');
       axios.get(`http://182.70.253.15:8000/api/Dashboard/${user.user.first_name}` ,{
@@ -67,9 +70,9 @@ const Dashboard = ({setUserLoggedIn}) => {
         }
       }).then((res) => {
       
-        console.log({'full data':res.data});
-        console.log({'targets' : res.data.targets})
-        console.log({'total' : res.data.total})
+        // console.log({'full data':res.data});
+        // console.log({'targets' : res.data.targets})
+        // console.log({'total' : res.data.total})
         res?.data?.targets.forEach((target) => {
           const card = cardTemplate.find((card) => card.id === target.Target_id);
           if(card){     

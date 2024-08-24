@@ -89,7 +89,7 @@ const SageMitraFollowUp = () => {
       const filteredList = sage_mitra_list.filter((item) => {
         return item[0] && item[0].toLowerCase().includes(searchTerm);
       });
-      console.log(filteredList);
+
       setShowenList([...filteredList]);
       return;
     }
@@ -100,6 +100,7 @@ const SageMitraFollowUp = () => {
         setShowAddSageMitra(true);
         setSearchVal(value);
         setShowenList(false);
+        setFormData({ ...formData, sageMitra: 'Others' });
         return;
       } else {
         setMobileNumber(Number(value[1]));
@@ -116,7 +117,7 @@ const SageMitraFollowUp = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  console.log({'sageMitra':formData.sageMitra});
+  // console.log({'smmitra':formData.sageMitra});
 
   const handleSubmit = async () => {
     // console.log('working');
@@ -127,6 +128,8 @@ const SageMitraFollowUp = () => {
         }
         return false;
       }
+
+      if(key === 'sageMitra' && formData[key] === 'Others') return false;
 
       if(key === 'mobileNumber') return false;
 
@@ -152,7 +155,6 @@ const SageMitraFollowUp = () => {
       return;
     }
     try {
-      console.log(location);
       if (!location) {
         const userLocation = await getLocation();
         dispatch(setUserLocation(userLocation));
@@ -170,16 +172,16 @@ const SageMitraFollowUp = () => {
           formData.sageMitra === "Others" ? formData.new_sm_name : "",
         new_sm_contact:
           formData.sageMitra === "Others" ? formData.new_sm_contact : "",
-        location: location,
+        lat_long: location,
       };
-      // console.log(data);
+
       await submitForm(
         "Sage-Mitra-Form",
         data,
         user,
         setShowPopupDialog,
         setLoading,
-        dispatch
+        dispatch,true
       );
       // const res = await axios.post('http://182.70.253.15:8000/api/Sage-Mitra-Form', {
       //   name: formData.name,
@@ -209,8 +211,14 @@ const SageMitraFollowUp = () => {
       // setSearchVal('')
       // Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
       // navigate('Dashboard');
+      // setLoading(false); 
     } catch (err) {
       setLoading(false);
+      if(err?.message === 'Location request failed due to unsatisfied device settings'){
+        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+            return;
+        }
+
       dispatch(
         setShowPopupDialog({
           title: "Error",

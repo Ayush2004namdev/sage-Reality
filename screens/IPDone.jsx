@@ -96,6 +96,10 @@ const IPDone = () => {
           // navigate('Dashboard');
         }catch(err){
           setLoading(false);
+      if(err?.message === 'Location request failed due to unsatisfied device settings'){
+        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+            return;
+        }
           dispatch(setShowPopupDialog({ workDone: false , to: 'IpDone' , title: 'Error' , message: 'Something went wrong'}));
           // Alert.alert('Alert' , 'Something went wrong' , [{text: 'OK'}]);
         }

@@ -24,8 +24,8 @@ import { blue } from "../constants";
 import useChangeData from "../hooks/useChangeData";
 import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import { setUserLocation } from "../redux/slices/user";
+import { setIsMenuOpen, setShowPopupDialog, toggleAdd } from "../redux/slices/misc";
+import { logout, setUserLocation } from "../redux/slices/user";
 
 const HomeVisit = () => {
   const { navigate } = useNavigation();
@@ -91,7 +91,7 @@ const HomeVisit = () => {
       return !formData[key];
     });
 
-    if (emptyField) {
+    if (emptyField){
       if(emptyField === 'customerContact') return Alert.alert("Validation Error", `Please enter a valid Mobile Number.`, [{ text: "OK" }]);
       Alert.alert(
         "Validation Error",
@@ -107,13 +107,22 @@ const HomeVisit = () => {
       setIsLoading(false);
       return;
     }
-    try {
 
+    try {
       if(!location) {
         const userLocation = await getLocation();
+        console.log({userLocation});
+        if(!userLocation) {
+          dispatch(logout());
+          dispatch(setIsMenuOpen(false));
+          dispatch(toggleAdd(false));
+          navigate('Dashboard');
+          return;
+        }
         dispatch(setUserLocation(userLocation));
       }
 
+      const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
     setIsLoading(true);
       const teamMembers = formData.teamMembers.filter((member) => member !== "")
       setFormData({...formData , teamMembers});
@@ -127,7 +136,7 @@ const HomeVisit = () => {
         visit_type : formData.visit_type,
         image : formData.image,
         co_name : formData.teamMembers,
-        location: location
+        lat_long: lat_long,
       }
       await submitForm('Home-Visit' , data , user , setShowPopupDialog , setIsLoading , dispatch);
       setFormData({
@@ -140,13 +149,20 @@ const HomeVisit = () => {
         image: null,
         teamMembers: [],
         visit_type: "",
+        
       })
       // navigate('Dashboard');
     } catch (err) {
       // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
       setIsLoading(false);
+      if(err?.message === 'Location request failed due to unsatisfied device settings'){
+      dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+          dispatch(setIsMenuOpen(false));
+          dispatch(toggleAdd(false));
+          return;
+      }
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
-      console.log({ err });
+      console.log({ 'er':err.message });
     }
   };
 

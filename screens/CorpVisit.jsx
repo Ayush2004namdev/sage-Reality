@@ -26,8 +26,8 @@ import { blue } from "../constants";
 import useChangeData from "../hooks/useChangeData";
 import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
-import { setShowPopupDialog } from "../redux/slices/misc";
-import { setUserLocation } from "../redux/slices/user";
+import { setIsMenuOpen, setShowPopupDialog, toggleAdd } from "../redux/slices/misc";
+import { logout, setUserLocation } from "../redux/slices/user";
 
 const CorpVisit = () => {
   const {navigate} = useNavigation();
@@ -213,8 +213,17 @@ const CorpVisit = () => {
 
       if(!location) {
         const userLocation = await getLocation();
+        if(!userLocation) {
+          dispatch(logout());
+          dispatch(setIsMenuOpen(false));
+          dispatch(toggleAdd(false));
+          navigate('Dashboard');
+          return;
+        }
         dispatch(setUserLocation(userLocation));
       }
+
+      const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
 
       setLoading(true);
       const data = {
@@ -233,7 +242,7 @@ const CorpVisit = () => {
         reason : formData.reason,
         visit_type : formData.secondGroupValue,
         co_name : formData.teamMembers,
-
+        lat_long: lat_long,
       }
 
       // console.log(data);
@@ -291,6 +300,11 @@ const CorpVisit = () => {
     } catch (err) {
       console.log(err);
       setLoading(false);
+      if(err?.message === 'Location request failed due to unsatisfied device settings'){
+        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
+            return;
+        }
+      // dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
       // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
     }finally{

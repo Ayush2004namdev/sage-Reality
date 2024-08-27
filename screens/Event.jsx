@@ -61,10 +61,10 @@ const Event = () => {
           return;
         }
           try{
-            if(!location) {
-              const userLocation = await getLocation();
-              dispatch(setUserLocation(userLocation));
-            }
+            // if(!location) {
+            //   const userLocation = await getLocation();
+            //   dispatch(setUserLocation(userLocation));
+            // }
             setLoading(true);
             const data  = {
               username: formData.name,
@@ -122,6 +122,9 @@ const Event = () => {
           }
       };
     
+      const currentDate = new Date();
+      const oneDayAfter = new Date(currentDate);
+      oneDayAfter.setDate(currentDate.getDate());
      
     
       return (
@@ -141,9 +144,9 @@ const Event = () => {
             <View style={styles.container}>
               <Text style={styles.title}>Event Form</Text>
               <View style={styles.separator}></View>
-              <Text style={styles.caption}>Feed Your Event Details.</Text>
+              {/* <Text style={styles.caption}>Feed Your Event Details.</Text> */}
     
-              <View style={styles.inputGroup}>
+              {/* <View style={styles.inputGroup}>
                 <Text style={styles.label}>Name</Text>
                 <TextInput
                   value={formData.name}
@@ -152,7 +155,7 @@ const Event = () => {
                   placeholder="Enter Your Name"
                   style={styles.inputText}
                 />
-              </View>
+              </View> */}
 
             
               <View style={styles.inputGroup}>
@@ -188,7 +191,7 @@ const Event = () => {
                     style={{ flexGrow: 1, paddingHorizontal: 10 }}
                     value={formData.startDate.toLocaleDateString()}
                     placeholder="Select Date"
-                    editable={true}
+                    editable={false}
                   />
                   <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
@@ -198,6 +201,7 @@ const Event = () => {
                       value={formData.startDate}
                       mode="date"
                       display="default"
+                      maximumDate={oneDayAfter}
                       onChange={onStartDateChange}
                     />
                   )}
@@ -211,7 +215,7 @@ const Event = () => {
                     style={{ flexGrow: 1, paddingHorizontal: 10 }}
                     value={formData.endDate.toLocaleDateString()}
                     placeholder="Select Date"
-                    editable={true}
+                    editable={false}
                   />
                   <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
@@ -221,6 +225,7 @@ const Event = () => {
                       value={formData.endDate}
                       mode="date"
                       display="default"
+                      maximumDate={oneDayAfter}
                       onChange={onEndDateChange}
                     />
                   )}

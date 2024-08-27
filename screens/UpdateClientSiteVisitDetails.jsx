@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { RadioButton } from "react-native-paper";
+import { Checkbox, RadioButton } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,34 +22,50 @@ import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
 import { blue } from "../constants";
 import useChangeData from "../hooks/useChangeData";
-import { LocationData } from "../lib/constants";
 import { formatDate, getLocation } from "../lib/features";
 import { submitForm } from "../lib/helper";
-import { setIsMenuOpen, setShowPopupDialog, toggleAdd } from "../redux/slices/misc";
+import {
+  setCityLocation,
+  setIsMenuOpen,
+  setShowPopupDialog,
+  toggleAdd,
+} from "../redux/slices/misc";
 import { logout, setUserLocation } from "../redux/slices/user";
 
 const { height } = Dimensions.get("window");
 
 const UpdateClientSiteVisitDetails = () => {
-  const { user,location } = useSelector((state) => state.user);
-  const { showPopupDialog, members,intereseted_localities } = useSelector((state) => state.misc);
+  const { user, location } = useSelector((state) => state.user);
+  const {
+    showPopupDialog,
+    members,
+    intereseted_localities,
+    states_location,
+    city_location,
+  } = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
+  const [stateShowenList, setStateShowenList] = useState([]);
+  const [citySeach, setCitySearch] = useState('');
+  const [showCityList, setShowCityList] = useState([]);
+  const [stateSearch, setStateSearch] = useState('');
+  const [showPurposeFeild , setShowPurposeFeild] = useState(false);
   const { navigate } = useNavigation();
-  const [interestedLocation, setIntersetedLocation] = useState([]);
+  const [showRentStatus, setShowRentStatus] = useState(false);
   const [changed, setChanged] = useState(false);
+  const { source_list } = useSelector((state) => state.misc);
 
   const [formData, setFormData] = useState({
     visit_type: "direct",
     name: user.user.first_name,
     source: "",
-    costumer_name: "",
+    customer_name: "",
     member: "",
     visit_date: new Date(),
     address: "",
     monthly_rent: "",
-    costumer_contact: "",
-    costumer_whatsapp: "",
+    customer_contact: "",
+    customer_whatsapp: "",
     instagram_id: "",
     email_id: "",
     facebook_id: "",
@@ -68,7 +84,10 @@ const UpdateClientSiteVisitDetails = () => {
     state: "Select",
     interested_location: ["select"],
     source_type: "",
-    costumer_code: "",
+    customer_code: "",
+    site_location: ["select"],
+    residential_status: "tenent",
+    purpose:''
   });
 
   // Separate state for each date picker visibility
@@ -116,15 +135,15 @@ const UpdateClientSiteVisitDetails = () => {
   };
 
   const handleSearchClient = async () => {
-    if (formData.costumer_code === "")
-      return Alert.alert("Validation Error", "Please Enter Costumer Code", [
+    if (formData.customer_code === "")
+      return Alert.alert("Validation Error", "Please Enter customer Code", [
         { text: "OK" },
       ]);
     try {
       setLoading(true);
       const res = await axios.post(
         "http://182.70.253.15:8000/api/Get-Site-Visit-Data",
-        { customer_value: formData.costumer_code },
+        { customer_value: formData.customer_code },
         {
           withCredentials: true,
           headers: {
@@ -133,92 +152,76 @@ const UpdateClientSiteVisitDetails = () => {
         }
       );
       const data = res.data.data[0];
-      if(!data) {
+      if (!data) {
         Alert.alert("Error", "No Data Found", [{ text: "OK" }]);
-        setLoading(false)
+        setLoading(false);
         return;
-      
       }
-      // console.log(data);
-      const d = {
-        data: [
-          {
-            Address: "a",
-            Budget: "74",
-            Company: "3aa",
-            Customer_Contact_number: "9718153660",
-            Customer_Whatspp_number: "",
-            Customer_name: "a",
-            DOB: "2024-06-11",
-            Department: "a",
-            Designation: "a",
-            Email_id: "ayys@g.c",
-            Expected_possession: "",
-            Facebook_id: "",
-            Gross_Income: "1",
-            Instagram: "",
-            Interest: "",
-            Monthly_rent: "3",
-            Remark: " ",
-            Visit_Date: "2024-08-17",
-            access_id: 250041,
-            accommodation: "",
-            city: "akja",
-            id: 36,
-            marriage_anniversary: "2024-08-08",
-            official_mail: "i@g",
-            reference: null,
-            sales_name: null,
-            source: null,
-            source_type: "",
-            state: "Abaiang",
-            visit_type: null,
-          },
-        ],
-      };
 
       console.log(data?.Interest);
-      const interestedLocations = data?.Interest?.split(',').filter((item) => item !== '');
+      const interestedLocations = data?.Interest?.split(",").filter(
+        (item) => item !== ""
+      );
       const test = interestedLocations?.length > 0 ? [...interestedLocations] : ["select"];
-      console.log(test);
       if (data?.Customer_Contact_number) {
         const dataTemplate = {
           visit_type: data?.visit_type || "direct",
           name: data?.sales_name || user.user.first_name,
           source: data?.source || "",
-          costumer_name: data?.Customer_name || "",
+          customer_name: data?.Customer_name || "",
           member: data?.reference || "",
-          visit_date: data?.Visit_Date && new Date(data?.Visit_Date) || new Date(),
+          visit_date:
+            (data?.Visit_Date && new Date(data?.Visit_Date)) || new Date(),
           address: data?.Address || "",
           monthly_rent: data?.Monthly_rent || "",
-          costumer_contact: data?.Customer_Contact_number || "",
-          costumer_whatsapp: data?.Customer_Whatspp_number || "",
+          customer_contact: data?.Customer_Contact_number || "",
+          customer_whatsapp: data?.Customer_Whatspp_number || "",
           instagram_id: data?.Instagram || "",
           email_id: data?.Email_id || "",
           facebook_id: data?.Facebook_id || "",
-          company:data?.Company || "",
+          company: data?.Company || "",
           gross_annual_income: data?.Gross_Income || "",
           department: data?.Department || "",
-          designation:data?.Designation || "",
-          birth_date: data?.DOB && new Date(data?.DOB) || new Date(),
-          marrige_anniversary: data?.marriage_anniversary && new Date(data?.marriage_anniversary) || new Date(),
+          designation: data?.Designation || "",
+          birth_date: (data?.DOB && new Date(data?.DOB)) || new Date(),
+          marrige_anniversary:
+            (data?.marriage_anniversary &&
+              new Date(data?.marriage_anniversary)) ||
+            new Date(),
           budget: data?.Budget || "",
           official_email_id: data?.official_mail || "",
-          interest:data?.accommodation || "",
+          interest: data?.accommodation || "",
           possesion_date: data?.Expected_possession || "select",
-          remark:data?.Remark || "",
-          city:data?.city || "Select",
+          remark: data?.Remark || "",
+          city: data?.city || "Select",
           state: data?.state || "Select",
-          interested_location:interestedLocations?.length > 0 ? [...interestedLocations] : ["select"],
+          interested_location:
+            interestedLocations?.length > 0
+              ? [...interestedLocations]
+              : ["select"],
           source_type: data?.source_type || "",
-          costumer_code: formData.costumer_code || "",
+          customer_code: data?.customer_code || "",
+          residential_status: data?.residential_status || "tenent",
+          purpose: data?.purpose || "",
+          site_location: data?.site_location || "select",
+        };
+
+        if (
+          dataTemplate?.source_type === "Social Media" ||
+          dataTemplate?.source_type === "News Paper" ||
+          dataTemplate?.source_type === "Property Portals"
+        ) {
+          setShowSource(dataTemplate?.source);
         }
-        setFormData({...dataTemplate })
+
+        if (dataTemplate?.residential_status === "tenent")
+          setShowRentStatus(true);
+
+        setFormData({ ...dataTemplate });
         setShowClientData(true);
       }
       setLoading(false);
     } catch (e) {
-     
       console.log({ error: e });
     }
   };
@@ -226,79 +229,110 @@ const UpdateClientSiteVisitDetails = () => {
   const onSourceChange = (value) => {
     if (value === "select") return;
     setFormData({ ...formData, source_type: value });
-    if (value === "SocialMedia")
-      setShowSource(["Instagram", "Facebook", "Twitter", "LinkedIn", "Other"]);
-    if (value === "NewsPaper")
-      setShowSource([
-        "Dainik Bhaskar",
-        "Patrika",
-        "Times of India",
-        "Sandhya Prakash",
-        "Other",
-      ]);
-    if (value === "Hoardings")
-      setShowSource(["Hoardings", "Pamphlets", "Other"]);
-    if (value === "PropertyPortals")
-      setShowSource([
-        "99Acers",
-        "MagicBricks",
-        "Homeonline",
-        "tumeera",
-        "OLX",
-        "Houseing.com",
-        "Other",
-      ]);
+    if (value === "Social Media") {
+      const list = source_list.filter((item) => item[2] === 2);
+      const mainList = list.map((item) => item[0]);
+      setShowSource([...mainList]);
+    }
+    if (value === "News Paper") {
+      const list = source_list.filter((item) => item[2] === 1);
+      const mainList = list.map((item) => item[0]);
+      setShowSource([...mainList]);
+    }
+    if (value === "Hoardings") setShowSource(false);
+    if (value === "Property Portals") {
+      const list = source_list.filter((item) => item[2] === 3);
+      const mainList = list.map((item) => item[0]);
+      setShowSource([...mainList]);
+    }
     if (value === "select") setShowSource([]);
-    if (value === "Walkin" || value === "Google") setShowSource(false);
-
-    // setShowSource(true);
+    if (value === "Walk In" || value === "Google") setShowSource(false);
   };
 
-  const handleInterstLocationChange = (index,value) => {
-    if(value === 'select') return;
-    if(formData.interested_location.includes(value)) return;
+  const handleInterstLocationChange = (index, value) => {
+    if (value === "select") return;
+    if (formData.interested_location.includes(value)) return;
     const updatedLocations = formData.interested_location.map((location, i) =>
       i === index ? value : location
     );
-    setFormData({...formData , interested_location: updatedLocations});
-  }
+    setFormData({ ...formData, interested_location: updatedLocations });
+  };
 
-  const removeInterestedLocation = (value , index) => {
-    if(formData.interested_location.length === 1) return;
-    const updatedLocations = formData.interested_location.filter((location, i) => i !== index);
-    setFormData({...formData , interested_location: updatedLocations});
-  }
+  const removeInterestedLocation = (value, index) => {
+    if (formData.interested_location.length === 1) return;
+    const updatedLocations = formData.interested_location.filter(
+      (location, i) => i !== index
+    );
+    setFormData({ ...formData, interested_location: updatedLocations });
+  };
 
+  const handleStateChange = async (itemValue) => {
+    try{
+     
+      const {data} = await axios.post('http://10.22.130.15:8000/api/Get-City-Data' , {
+        'stateId': itemValue[1]
+      } , {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${user.access}`
+        }
+      })
+      if(!data['cities']) return Alert.alert('Error' , 'Something went wrong');
+      dispatch(setCityLocation(data['cities']));
+    }catch(err){
+      console.log(err);
+    }
+  }
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
-      
-      if(key === 'costumer_whatsapp' && sameWhatsappNumber) return false;
-      if(key === 'costumer_whatsapp' && !sameWhatsappNumber){
-        if(formData[key].length !== 10) return true;
-        if(formData[key].length === 10 && isNaN(formData[key])) return true;
-        if(formData[key][0] >=6 && formData[key][0] <=9) return false;
-        return true; 
-      }
-
-      if(key === 'costumer_contact'){
-        if(formData[key].length !== 10) return true;
-        if(isNaN(formData[key])) return true;
-        if(formData[key][0] >=6 && formData[key][0] <=9) return false;
-        return true; 
-      }
-
-      if(key === 'email_id' || key === 'official_email_id'){
-        if(formData[key].includes('@') && formData[key].includes('.')) return false;
+      if (key === "customer_whatsapp" && sameWhatsappNumber) return false;
+      if (key === "customer_whatsapp" && !sameWhatsappNumber) {
+        if (formData[key].length !== 10) return true;
+        if (formData[key].length === 10 && isNaN(formData[key])) return true;
+        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
         return true;
       }
 
-      if(key === 'interested_location') return formData[key].length < 1;
+      if (key === "customer_contact") {
+        if (formData[key].length !== 10) return true;
+        if (isNaN(formData[key])) return true;
+        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+        return true;
+      }
 
-      if(key === 'source' && formData.visit_type === 'indirect') return false;
+      if (key === "monthly_rent") {
+        if (formData[key] === "" && showRentStatus === true) return true;
+        return false;
+      }
 
-      if(key === 'member' && formData.visit_type === 'direct') return false;
+      if (key === "email_id" || key === "official_email_id") {
+        if (formData[key].includes("@") && formData[key].includes("."))
+          return false;
+        return true;
+      }
 
-      return !formData[key]
+      if (key === "interested_location") return formData[key].length < 1;
+
+      // if(key === 'source' && formData.visit_type === 'direct') return false;
+
+      if (
+        key === "source" &&
+        (formData.source === "select" || formData.source === "")
+      ) {
+        if (
+          formData.source_type === "News Paper" ||
+          formData.source_type === "Social Media" ||
+          formData.source_type === "Property Portals"
+        )
+          return true;
+        console.log("source", formData.source);
+        console.log("source type", formData.source_type);
+        return false;
+      }
+
+      if (key === "member" && formData.visit_type === "direct") return false;
+
+      return !formData[key];
     });
 
     if (emptyField) {
@@ -320,59 +354,69 @@ const UpdateClientSiteVisitDetails = () => {
         { text: "OK" },
       ]);
     console.log(formData);
-
-    if(!location) {
-      const userLocation = await getLocation();
-      if(!userLocation) {
-        dispatch(logout());
-        dispatch(setIsMenuOpen(false));
-        dispatch(toggleAdd(false));
-      navigate('Dashboard');
+    // const isLocationEnabled = await Location.hasServicesEnabledAsync();
+    try {
+      if (!location) {
+        setLoading(true);
+        const userLocation = await getLocation();
+        setLoading(false);
+        if (!userLocation) {
+          dispatch(logout());
+          dispatch(setIsMenuOpen(false));
+          dispatch(toggleAdd(false));
+          navigate("Dashboard");
+          return;
+        }
+        dispatch(setUserLocation(userLocation));
         return;
       }
-      dispatch(setUserLocation(userLocation));
-    }
-    // console.log(location);
-    const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
+      // console.log(location);
+      const lat_long = [
+        location?.coords?.latitude,
+        location?.coords?.longitude,
+      ];
 
-    setLoading(true);
+      setLoading(true);
 
-    const data = {
-      username: formData.name,
-      member: formData.member,
-      customer_id: formData.customer_id,
-      customer_name: formData.costumer_name,
-      date: formatDate(formData.visit_date),
-      monthly_rent: formData.monthly_rent,
-      address: formData.address,
-      customer_contact: formData.costumer_contact,
-      customer_whatsapp: sameWhatsappNumber
-        ? formData.costumer_contact
-        : formData.costumer_whatsapp,
-      instagram: formData.instagram_id,
-      email: formData.email_id,
-      facebook: formData.facebook_id,
-      company: formData.company,
-      annual_income: formData.gross_annual_income,
-      department: formData.department,
-      designation: formData.designation,
-      DOB: formatDate(formData.birth_date),
-      marriage_anniversary: formatDate(formData.marrige_anniversary),
-      accommodation: formData.interest,
-      Budget: formData.budget,
-      expected_possession: formData.possesion_date,
-      Remark: formData.remark,
-      official_email: formData.official_email_id,
-      visit_type: formData.visit_type,
-      sourceType: formData.source_type,
-      city: formData.city,
-      state: formData.state,
-      interested_location: formData.interested_location,
-      source: formData.source,
-      lat_long: lat_long,
-    };
+      const data = {
+        username: formData.name,
+        member: formData.member,
+        // customer_id: formData.customer_id,
+        customer_name: formData.customer_name,
+        date: formatDate(formData.visit_date),
+        monthly_rent: formData.monthly_rent,
+        address: formData.address,
+        customer_contact: formData.customer_contact,
+        customer_whatsapp: sameWhatsappNumber
+          ? formData.customer_contact
+          : formData.customer_whatsapp,
+        instagram: formData.instagram_id,
+        email: formData.email_id,
+        facebook: formData.facebook_id,
+        company: formData.company,
+        annual_income: formData.gross_annual_income,
+        department: formData.department,
+        designation: formData.designation,
+        DOB: formatDate(formData.birth_date),
+        marriage_anniversary: formatDate(formData.marrige_anniversary),
+        accommodation: formData.interest,
+        Budget: formData.budget,
+        expected_possession: formData.possesion_date,
+        Remark: formData.remark,
+        official_email: formData.official_email_id,
+        visit_type: formData.visit_type,
+        sourceType: formData.source_type,
+        city: formData.city,
+        state: formData.state,
+        interested_location: formData.interested_location,
+        source: formData.source,
+        lat_long: lat_long,
+        siteLocation: formData.site_location,
+        purpose:formData.purpose,
+        residential_status: formData.residential_status,
+      };
 
-    try {
+      // console.log(data.siteLocation);
       await submitForm(
         "Site-Visit",
         data,
@@ -384,10 +428,19 @@ const UpdateClientSiteVisitDetails = () => {
       setLoading(false);
     } catch (e) {
       setLoading(false);
-      if(e?.message === 'Location request failed due to unsatisfied device settings'){
-        dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
-            return;
-        }
+      if (
+        e?.message ===
+        "Location request failed due to unsatisfied device settings"
+      ) {
+        dispatch(
+          setShowPopupDialog({
+            title: "Location Access Denied",
+            message: "Please allow the location access for the application",
+            workDone: false,
+          })
+        );
+        return;
+      }
       dispatch(
         setShowPopupDialog({
           title: "Error",
@@ -395,37 +448,80 @@ const UpdateClientSiteVisitDetails = () => {
           workDone: false,
         })
       );
-      // setLoading(false);
-      // console.log(e);
-      //   setFormData({
-      //     visit_type: "direct_visit",
-      //     name: user.user.first_name,
-      //     costumer_name: "",
-      //     visit_date: new Date(),
-      //     monthly_rent: "",
-      //     address: "",
-      //     costumer_contact: "",
-      //     costumer_whatsapp: "",
-      //     instagram_id: "",
-      //     email_id: "",
-      //     facebook_id: "",
-      //     company: "",
-      //     gross_annual_income: "",
-      //     department: "",
-      //     designation: "",
-      //     birth_date: new Date(),
-      //     marrige_anniversary: new Date(),
-      //     budget: "",
-      //     official_email_id:'',
-      //     interest:'',
-      //     possesion_date: new Date(),
-      //     remark: "",
-      // })
-      // setSearchVal('');
+      setLoading(false);
+      console.log(e);
+      setFormData({
+        visit_type: "direct_visit",
+        name: user.user.first_name,
+        customer_name: "",
+        visit_date: new Date(),
+        monthly_rent: "",
+        address: "",
+        customer_contact: "",
+        customer_whatsapp: "",
+        instagram_id: "",
+        email_id: "",
+        facebook_id: "",
+        company: "",
+        gross_annual_income: "",
+        department: "",
+        designation: "",
+        birth_date: new Date(),
+        marrige_anniversary: new Date(),
+        budget: "",
+        official_email_id: "",
+        interest: "",
+        possesion_date: new Date(),
+        remark: "",
+        site_location: "select",
+        residential_status: "tenent",
+        purpose: "",
+      });
+      setSearchVal("");
     }
   };
 
   const handleInputChange = (key, value) => {
+
+    if(key === 'citySearch'){
+      setCitySearch(value);
+      const searchTerm = value.toLowerCase();
+      const filteredList = city_location.filter((item) => {
+        return item && item.toLowerCase().includes(searchTerm);
+      });
+      setShowCityList(filteredList);
+      return;
+    }
+
+    if(key === 'city'){
+      console.log(value);
+      setFormData({...formData , city: value});
+      setCitySearch(value);
+      setShowCityList([]);
+      return
+    }
+
+    if(key === 'state'){
+      console.log(value);
+      setFormData({...formData , state: value[0]});
+      handleStateChange(value);
+      setStateSearch(value[0]);
+      setStateShowenList([]);
+      return;
+    }
+
+    if (key === "stateSearch") {
+      setStateSearch(value);
+      const searchTerm = value.toLowerCase();
+      const filteredList = states_location.filter((item) => {
+        return item[0] && item[0].toLowerCase().includes(searchTerm);
+      });
+
+      setStateShowenList(filteredList);
+
+      return;
+    }
+
     if (key === "search") {
       setSearchVal(value);
       const searchTerm = value.toLowerCase();
@@ -447,6 +543,14 @@ const UpdateClientSiteVisitDetails = () => {
     setFormData({ ...formData, [key]: value });
   };
 
+  const currentDate = new Date();
+
+  const oneDayBefore = new Date(currentDate);
+  oneDayBefore.setDate(currentDate.getDate() - 1);
+
+  const oneDayAfter = new Date(currentDate);
+  oneDayAfter.setDate(currentDate.getDate());
+
   return (
     <SafeAreaView>
       {showPopupDialog && (
@@ -464,7 +568,7 @@ const UpdateClientSiteVisitDetails = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Site Form Visit</Text>
           <View style={styles.separator}></View>
-          <Text style={styles.caption}>Feed Client Site Visit Details.</Text>
+          {/* <Text style={styles.caption}>Feed Client Site Visit Details.</Text> */}
 
           {/* General Feild starts */}
           <View style={styles.sectionStyle}>
@@ -506,7 +610,13 @@ const UpdateClientSiteVisitDetails = () => {
                   }}
                   value={formData.visit_type}
                 >
-                  <View style={styles.radioButton}>
+                  <View style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                  }}>
+
+<View style={styles.radioButton}>
                     <RadioButton value="direct" />
                     <Text style={styles.radioLabel}>Direct Visit</Text>
                   </View>
@@ -514,12 +624,14 @@ const UpdateClientSiteVisitDetails = () => {
                     <RadioButton value="indirect" />
                     <Text style={styles.radioLabel}>Indirect Visit</Text>
                   </View>
+
+                  </View>
                 </RadioButton.Group>
               </View>
               {showMemberBox && (
                 <View style={styles.inputGroup}>
                   <TextInput
-                    placeholder="Enter Lead Owner"
+                    placeholder="Enter Lead Owner Name"
                     style={styles.inputText}
                     value={searchVal}
                     onChangeText={(val) => handleInputChange("search", val)}
@@ -555,18 +667,21 @@ const UpdateClientSiteVisitDetails = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Costumer Code</Text>
+              <Text style={styles.label}>Customer Code/Mobile Number</Text>
               <TextInput
                 editable
-                value={formData.costumer_code}
+                value={formData.customer_code}
                 onChangeText={(value) => {
-                  useChangeData("costumer_code", value, true, setFormData);
+                  useChangeData("customer_code", value, true, setFormData);
                 }}
-                placeholder="Enter Costumer Code"
+                placeholder="Enter Customer Code/Mobile Number"
                 style={styles.inputText}
                 keyboardType="numeric"
               />
             </View>
+
+            
+
             {/* General Feild Ends */}
           </View>
 
@@ -575,6 +690,30 @@ const UpdateClientSiteVisitDetails = () => {
           )}
           {showClientData && (
             <>
+
+<View style={styles.inputGroup}>
+              <Text style={styles.label}>Site Location</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.site_location}
+                  onValueChange={(itemValue) =>
+                    setFormData({ ...formData, site_location: itemValue })
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Select" value="select" />
+                  <Picker.Item label="Sage Golden Spring" value="SGS" />
+                  <Picker.Item label="Sage Golden Plaza" value="SGP" />
+                  <Picker.Item label="Sage Sun Villa" value="SSV" />
+                  <Picker.Item label="Sage Bunglow" value="SAGE Bunglow" />
+                  <Picker.Item label="Sage Nirvana" value="SN" />
+                  <Picker.Item label="Sage Milestone" value="SM" />
+                  <Picker.Item label="Sage Skyline" value="SAGE Skyline" />
+                  <Picker.Item label="Sage Prestige" value="SAGE Prestige" />
+                </Picker>
+              </View>
+            </View>
+
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Visit Date</Text>
                 <View
@@ -608,6 +747,8 @@ const UpdateClientSiteVisitDetails = () => {
                       mode="date"
                       display="default"
                       onChange={onDateChange}
+                      minimumDate={oneDayBefore}
+                      maximumDate={oneDayAfter}
                     />
                   )}
                 </View>
@@ -622,16 +763,15 @@ const UpdateClientSiteVisitDetails = () => {
                     style={styles.picker}
                   >
                     <Picker.Item label="Select" value="select" />
-                    <Picker.Item label="NewsPaper" value="NewsPaper" />
-                    <Picker.Item label="Social Media" value="SocialMedia" />
+                    <Picker.Item label="News Paper" value="News Paper" />
+                    <Picker.Item label="Social Media" value="Social Media" />
                     <Picker.Item label="Hoardings" value="Hoardings" />
                     <Picker.Item label="Google" value="Google" />
-                    <Picker.Item label="Walk In" value="Walkin" />
+                    <Picker.Item label="Walk In" value="Walk In" />
                     <Picker.Item
                       label="Property Portals"
-                      value="PropertyPortals"
+                      value="Property Portals"
                     />
-                    <Picker.Item label="Walk In" value="Walkin" />
                   </Picker>
                 </View>
               </View>
@@ -658,7 +798,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
               )}
 
-              {/* Costumer Details Feild starts */}
+              {/* customer Details Feild starts */}
               <View style={styles.sectionStyle}>
                 <Text
                   style={{
@@ -667,23 +807,23 @@ const UpdateClientSiteVisitDetails = () => {
                     borderBottomWidth: 0.2,
                   }}
                 >
-                  Costumer Details
+                  customer Details
                 </Text>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Costumer Name</Text>
+                  <Text style={styles.label}>customer Name</Text>
                   <TextInput
                     editable
-                    value={formData.costumer_name.toUpperCase()}
+                    value={formData.customer_name.toUpperCase()}
                     onChangeText={(value) =>
                       useChangeData(
-                        "costumer_name",
+                        "customer_name",
                         value.toUpperCase(),
                         false,
                         setFormData
                       )
                     }
-                    placeholder="Enter Costumer Name"
+                    placeholder="Enter customer Name"
                     style={styles.inputText}
                   />
                 </View>
@@ -702,113 +842,143 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>State</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={formData.state}
-                      onValueChange={(itemValue) =>
-                        useChangeData("state", itemValue, false, setFormData)
-                      }
-                      style={styles.picker}
-                    >
-                      <Picker.Item label="Select" value="select" />
-                      {LocationData &&
-                        Object.keys(LocationData).map((item) => {
-                          return (
-                            <Picker.Item key={item} label={item} value={item} />
-                          );
-                        })}
-                    </Picker>
-                  </View>
-                </View>
+            <Text style={styles.label}>State</Text>
+            <TextInput
+              placeholder="State"
+              style={styles.inputText}
+              value={stateSearch}
+              onChangeText={(val) => handleInputChange("stateSearch", val)}
+            />
+            {stateSearch && (
+              <>
+                <ScrollView
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                >
+                  {stateShowenList && (
+                    <>
+                      {stateShowenList.map((item) => (
+                        <TouchableOpacity
+                          onPress={() => handleInputChange("state", item)}
+                          key={item}
+                          style={{
+                            padding: 10,
+                            borderWidth: 1,
+                            borderTopWidth: 0,
+                            borderBottomColor: "black",
+                          }}
+                        >
+                          <Text>{item[0]}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </ScrollView>
+              </>
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>City</Text>
+            <TextInput
+              placeholder="City"
+              style={styles.inputText}
+              value={citySeach}
+              onChangeText={(val) => handleInputChange("citySearch", val)}
+            />
+            {citySeach && (
+              <>
+                <ScrollView
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                >
+                  {showCityList && (
+                    <>
+                      {showCityList.map((item) => (
+                        <TouchableOpacity
+                          onPress={() => handleInputChange("city", item)}
+                          key={item}
+                          style={{
+                            padding: 10,
+                            borderWidth: 1,
+                            borderTopWidth: 0,
+                            borderBottomColor: "black",
+                          }}
+                        >
+                          <Text>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </ScrollView>
+              </>
+            )}
+          </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>City</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={formData.city}
-                      onValueChange={(itemValue) =>
-                        useChangeData("city", itemValue, false, setFormData)
-                      }
-                      style={styles.picker}
-                    >
-                      <Picker.Item label="Select" value="select" />
-                      {LocationData &&
-                        LocationData[formData.state] &&
-                        LocationData[formData.state].map((item) => {
-                          return (
-                            <Picker.Item key={item} label={item} value={item} />
-                          );
-                        })}
-                      {/* <Picker.Item label="2 BHK" value="2bhk" />
-                <Picker.Item label="5 BHK" value="5bhk" /> */}
-                      {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
-                    </Picker>
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Contact Number Of Costumer</Text>
+                  <Text style={styles.label}>Contact Number Of customer</Text>
                   <TextInput
                     editable={true}
-                    value={formData.costumer_contact}
+                    value={formData.customer_contact}
                     onChangeText={(value) =>
                       useChangeData(
-                        "costumer_contact",
+                        "customer_contact",
                         value,
                         true,
                         setFormData
                       )
                     }
-                    placeholder="Enter Costumer Contact Number"
+                    placeholder="Enter customer Contact Number"
                     style={styles.inputText}
                     keyboardType="numeric"
                   />
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Same Whatsapp Number</Text>
-                  <View style={styles.radioGroup}>
-                    <RadioButton.Group
-                      onValueChange={(value) => {
-                        // console.log(sameWhatsappNumber);
-                        if (value === "yes") {
-                          setSameWhatsappNumber(true);
-                        } else {
-                          setSameWhatsappNumber(false);
-                        }
-                      }}
-                      value={sameWhatsappNumber ? "yes" : "no"}
-                    >
-                      <View style={styles.radioButton}>
-                        <RadioButton value="yes" />
-                        <Text style={styles.radioLabel}>Yes</Text>
-                      </View>
-                      <View style={styles.radioButton}>
-                        <RadioButton value="no" />
-                        <Text style={styles.radioLabel}>No</Text>
-                      </View>
-                    </RadioButton.Group>
-                  </View>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <Checkbox.Android
+                    label="Same Whatsapp Number"
+                    position="leading"
+                    onPress={(e) => {
+                      setSameWhatsappNumber(!sameWhatsappNumber);
+                    }}
+                    status={!sameWhatsappNumber ? "unchecked" : "checked"}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                    }}
+                  >
+                    Same Whatsapp Number
+                  </Text>
                 </View>
 
                 {!sameWhatsappNumber && (
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Costumer Whatsapp Number</Text>
+                  <View style={[styles.inputGroup, { marginTop: 5 }]}>
+                    <Text style={styles.label}>Customer Whatsapp Number</Text>
                     <TextInput
                       editable={true}
-                      value={formData.costumer_whatsapp}
+                      value={formData.customer_whatsapp}
                       onChangeText={(value) => {
-                        // console.log(value);
+                        console.log(value);
 
                         useChangeData(
-                          "costumer_whatsapp",
+                          "customer_whatsapp",
                           value,
                           true,
                           setFormData
                         );
                       }}
-                      placeholder="Enter Costumer Whatsapp Number"
+                      placeholder="Enter customer Whatsapp Number"
                       style={styles.inputText}
                       keyboardType="numeric"
                     />
@@ -861,6 +1031,8 @@ const UpdateClientSiteVisitDetails = () => {
                         mode="date"
                         display="default"
                         onChange={onBirthDateChange}
+                        minimumDate={oneDayBefore}
+                        maximumDate={oneDayAfter}
                       />
                     )}
                   </View>
@@ -899,97 +1071,152 @@ const UpdateClientSiteVisitDetails = () => {
                         mode="date"
                         display="default"
                         onChange={onMarriageDateChange}
+                        minimumDate={oneDayBefore}
+                        maximumDate={oneDayAfter}
                       />
                     )}
                   </View>
                 </View>
 
                 <View style={styles.inputGroup}>
-            <Text style={styles.label}>Interested Locations</Text>
-                    {console.log(formData.interested_location)}
-            {formData.interested_location.map((item , index) => (
-              
-                 <View key={item} style={{
-                  flexDirection: "row",
-                  // flexWrap: "wrap",
-                  width:'100%',
-                  gap:4,
-                  alignItems:'center',
-                  // backgroundColor:'red',
-                }}>
-                {/* {console.log({item})} */}
-                <View style={[styles.pickerContainer , {width:'90%' , height:'80%'}]}>
-                  <Picker
-                    selectedValue={item}
-                    onValueChange={(itemValue) =>{
-                      handleInterstLocationChange(index,itemValue);
-                      // useChangeData("interest", itemValue, false, setFormData)
-                    }
-                    }
-                    style={styles.picker}
+                  <Text style={styles.label}>Interested Locations</Text>
+                  {console.log(formData.interested_location)}
+                  {formData.interested_location.map((item, index) => (
+                    <View
+                      key={item}
+                      style={{
+                        flexDirection: "row",
+                        // flexWrap: "wrap",
+                        width: "100%",
+                        gap: 4,
+                        alignItems: "center",
+                        // backgroundColor:'red',
+                      }}
                     >
-                    <Picker.Item label="Select" value="select" />
-                    {intereseted_localities && intereseted_localities.map((item) => {
-                         return <Picker.Item key={item} label={item} value={item} />
-                    })}
-                    {/* <Picker.Item label="2 BHK" value="2bhk" />
+                      {/* {console.log({item})} */}
+                      <View
+                        style={[
+                          styles.pickerContainer,
+                          { width: "90%", height: "80%" },
+                        ]}
+                      >
+                        <Picker
+                          selectedValue={item}
+                          onValueChange={(itemValue) => {
+                            handleInterstLocationChange(index, itemValue);
+                            // useChangeData("interest", itemValue, false, setFormData)
+                          }}
+                          style={styles.picker}
+                        >
+                          <Picker.Item label="Select" value="select" />
+                          {intereseted_localities &&
+                            intereseted_localities.map((item) => {
+                              return (
+                                <Picker.Item
+                                  key={item}
+                                  label={item}
+                                  value={item}
+                                />
+                              );
+                            })}
+                          {/* <Picker.Item label="2 BHK" value="2bhk" />
                     <Picker.Item label="5 BHK" value="5bhk" />
                     <Picker.Item label="4 BHK" value="4bhk" /> */}
-                    {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
-                  </Picker>
-                </View>
+                          {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
+                        </Picker>
+                      </View>
 
-                {formData.interested_location.includes(item) && index === formData.interested_location.length - 1 && (
-                  <TouchableOpacity style={{
-                    backgroundColor:  'blue',
-                    width:40,
-                    height:40,
-                    display:'flex',
-                    justifyContent:'center',
-                    alignItems:'center',
-                    borderRadius:20
-                      }}
-                       onPress={() => {formData.interested_location.includes('') ? '' : setFormData({...formData , interested_location: [...formData.interested_location  , '']})}}>
-                        
-                    <Icon name="add" size={24} color="white" />
-                  </TouchableOpacity>
-                )}
-                {formData.interested_location.includes(item) && index !== formData.interested_location.length - 1 && (
-                  <TouchableOpacity style={{
-                    backgroundColor:  'red',
-                    width:40,
-                    height:40,
-                    display:'flex',
-                    justifyContent:'center',
-                    alignItems:'center',
-                    borderRadius:20
-                      }}
-                       onPress={() => removeInterestedLocation(item, index)}>
-                        
-                    <Icon name="remove" size={24} color="white" />
-                  </TouchableOpacity>
-                )}
-                    
+                      {formData.interested_location.includes(item) &&
+                        index === formData.interested_location.length - 1 && (
+                          <TouchableOpacity
+                            style={{
+                              backgroundColor: "blue",
+                              width: 40,
+                              height: 40,
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              borderRadius: 20,
+                            }}
+                            onPress={() => {
+                              formData.interested_location.includes("")
+                                ? ""
+                                : setFormData({
+                                    ...formData,
+                                    interested_location: [
+                                      ...formData.interested_location,
+                                      "",
+                                    ],
+                                  });
+                            }}
+                          >
+                            <Icon name="add" size={24} color="white" />
+                          </TouchableOpacity>
+                        )}
+                      {formData.interested_location.includes(item) &&
+                        index !== formData.interested_location.length - 1 && (
+                          <TouchableOpacity
+                            style={{
+                              backgroundColor: "red",
+                              width: 40,
+                              height: 40,
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              borderRadius: 20,
+                            }}
+                            onPress={() =>
+                              removeInterestedLocation(item, index)
+                            }
+                          >
+                            <Icon name="remove" size={24} color="white" />
+                          </TouchableOpacity>
+                        )}
+                    </View>
+                  ))}
                 </View>
-            ))}
-           
-          </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Monthly Rent</Text>
-                  <TextInput
-                    editable={true}
-                    value={formData.monthly_rent}
-                    onChangeText={(value) =>
-                      useChangeData("monthly_rent", value, true, setFormData)
-                    }
-                    placeholder="Enter Monthly Rent"
-                    style={styles.inputText}
-                    keyboardType="numeric"
-                  />
+                  <Text style={styles.label}>Residentail Status</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={formData.residential_status}
+                      onValueChange={(itemValue) => {
+                        useChangeData(
+                          "residential_status",
+                          itemValue,
+                          false,
+                          setFormData
+                        );
+                        itemValue !== "owner"
+                          ? setShowRentStatus(true)
+                          : setShowRentStatus(false);
+                      }}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Owner" value="owner" />
+                      <Picker.Item label="Tenent" value="tenent" />
+                    </Picker>
+                  </View>
                 </View>
 
-                {/* Costumer Details Feild Ends */}
+                {showRentStatus && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Monthly Rent</Text>
+                    <TextInput
+                      editable={true}
+                      value={formData.monthly_rent}
+                      onChangeText={(value) =>
+                        useChangeData("monthly_rent", value, true, setFormData)
+                      }
+                      placeholder="Enter Monthly Rent"
+                      style={styles.inputText}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                )}
+
+                {/* customer Details Feild Ends */}
               </View>
 
               {/* Professional Detials Feilds Starts */}
@@ -1030,7 +1257,7 @@ const UpdateClientSiteVisitDetails = () => {
                     onChangeText={(value) =>
                       useChangeData("department", value, false, setFormData)
                     }
-                    placeholder="Enter Department"
+                    placeholder="Enter Department Name"
                     style={styles.inputText}
                   />
                 </View>
@@ -1121,12 +1348,12 @@ const UpdateClientSiteVisitDetails = () => {
                       style={styles.picker}
                     >
                       <Picker.Item label="Select" value="select" />
-                      <Picker.Item label="Ready To Move" value="readytomove" />
                       <Picker.Item
-                        label="Within 6 Months"
-                        value="within6months"
+                        label="Ready To Move"
+                        value="ready to move"
                       />
-                      <Picker.Item label="Can Wait" value="canwait" />
+                      <Picker.Item label="Within 6 Months" value="6 months" />
+                      <Picker.Item label="Not in Hurry" value="not in hurry" />
                     </Picker>
                   </View>
                 </View>
@@ -1150,21 +1377,44 @@ const UpdateClientSiteVisitDetails = () => {
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={formData.interest}
-                      onValueChange={(itemValue) =>
-                        useChangeData("interest", itemValue, false, setFormData)
-                      }
+                      onValueChange={(itemValue) => {
+                        if(itemValue === 'commercial'){
+                          setShowPurposeFeild(true);
+                       }else{
+                         setShowPurposeFeild(false);
+                       }
+                        useChangeData(
+                          "interest",
+                          itemValue,
+                          false,
+                          setFormData
+                        );
+                      }}
                       style={styles.picker}
                     >
                       <Picker.Item label="Select" value="select" />
-                      <Picker.Item label="Appartment" value="Appartment" />
-                      <Picker.Item label="Bunglow" value="Bunglow" />
-                      <Picker.Item label="Commercial" value="Commercial" />
-                      <Picker.Item label="Flat" value="Flat" />
-                      <Picker.Item label="Plot" value="Plot" />
+                      <Picker.Item label="Appartment" value="apartment" />
+                      <Picker.Item label="Bunglow" value="bunglow" />
+                      <Picker.Item label="Commercial" value="commercial" />
+                      <Picker.Item label="Flat" value="flat" />
+                      <Picker.Item label="Plot" value="plot" />
                       {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
                     </Picker>
                   </View>
                 </View>
+
+                { showPurposeFeild && <View style={[styles.inputGroup , {marginTop:0}]}>
+            <Text style={styles.label}>Purpose</Text>
+            <TextInput
+              editable
+              value={formData.purpose}
+              onChangeText={(value) =>
+                useChangeData("purpose", value, false, setFormData)
+              }
+              placeholder="Enter Purpose"
+              style={styles.inputText}
+            />
+          </View>}
 
                 <View style={[styles.inputGroup, { marginTop: 0 }]}>
                   <Text style={styles.label}>Remarks</Text>
@@ -1191,7 +1441,7 @@ const UpdateClientSiteVisitDetails = () => {
                     borderBottomWidth: 0.2,
                   }}
                 >
-                  Social Media Handels
+                  Social Media Handles
                 </Text>
 
                 <View style={styles.inputGroup}>

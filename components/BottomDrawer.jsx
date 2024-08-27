@@ -1,9 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
 import { setIsMenuOpen, setLogoutPopup, toggleAdd } from '../redux/slices/misc';
+
+const { height } = Dimensions.get('window');
 
 const BottomDrawer = ({ isVisible, onClose }) => {
   const navigation = useNavigation();
@@ -25,59 +27,63 @@ const BottomDrawer = ({ isVisible, onClose }) => {
     dispatch(setLogoutPopup(true));
     dispatch(setIsMenuOpen(false));
     navigation.navigate('Dashboard');
-    // dispatch(setIsMenuOpen(false));
-    // dispatch(toggleAdd(false));
-    // dispatch(logout());
-  }
+  };
 
   const menuItems = [
     { name: 'Set Monthly Target', icon: require('../assets/Target.png'), route: 'SetMonthlyTarget' },
     { name: 'Sage Mitra Follow Up', icon: require('../assets/SAGEMF.png'), route: 'SageMF' },
     { name: 'Corporate Visit', icon: require('../assets/CorpVisit.png'), route: 'CorpVisit' },
     { name: 'Home Visit', icon: require('../assets/HomeVisit.png'), route: 'HomeVisit' },
-    { name: 'Client Site Visit', icon: require('../assets/ClientSiteVisit.png'), route: 'ClientSiteVisit' },
+    { name: 'Site Visit', icon: require('../assets/ClientSiteVisit.png'), route: 'ClientSiteVisit' },
     { name: 'Event', icon: require('../assets/Events.png'), route: 'Event' },
     { name: 'Admission Done', icon: require('../assets/Admission.png'), route: 'Admission' },
     { name: 'IP Done', icon: require('../assets/IP.png'), route: 'IpDone' }
   ];
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(toggleAdd(false));
-  },[])
+  }, []);
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      {menuItems.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.menuItem} onPress={() => { navigation.navigate(item.route); onClose(); }}>
-          <Image source={item.icon} style={{ width: 28, height: 28 }} />
-          {/* <Ionicons name={item.icon} size={24} color="black" /> */}
-          <Text style={styles.menuText}>{item.name}</Text>
-          <View style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-          }}>
-              <Image source={require('../assets/ArrowIcon.png')} style={{ width: 24, height: 24, }} />
-          </View>
-        </TouchableOpacity>
-      ))}
-          <TouchableOpacity style={styles.menuItem} onPress={ handleLogOut}>
-          <Image source={require('../assets/Logout.png')} style={{ width: 24, height: 24 }} />
-          <Text style={styles.menuText}>Logout</Text>
-        </TouchableOpacity>
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <Text style={styles.closeButtonText}>CLOSE</Text>
-      </TouchableOpacity>
-    </Animated.View>
+    <View style={styles.overlay}>
+      {isVisible && <Pressable style={styles.fullscreen} onPress={onClose} />}
+      <Animated.View style={[styles.container, animatedStyle]}>
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          {menuItems.map((item, index) => (
+            <TouchableOpacity key={index} style={styles.menuItem} onPress={() => { navigation.navigate(item.route); onClose(); }}>
+              <Image source={item.icon} style={{ width: 28, height: 28 }} />
+              <Text style={styles.menuText}>{item.name}</Text>
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <Image source={require('../assets/ArrowIcon.png')} style={{ width: 24, height: 24 }} />
+              </View>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogOut}>
+            <Image source={require('../assets/Logout.png')} style={{ width: 24, height: 24 }} />
+            <Text style={styles.menuText}>Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>CLOSE</Text>
+          </TouchableOpacity>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject, // Fills the entire screen
+    justifyContent: 'flex-end',
+    zIndex: 1000, // Ensure it overlays all other content
+  },
+  fullscreen: {
+    ...StyleSheet.absoluteFillObject, // Captures all touch events
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
   container: {
-    position: 'absolute',
-    bottom: 0,
     width: '100%',
-    height: 'auto',
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

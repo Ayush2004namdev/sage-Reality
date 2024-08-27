@@ -7,8 +7,9 @@ import DialogComponent from '../components/DialogComponent';
 import Loader from '../components/Loading';
 import LogoutPopUp from '../components/LogoutPopUp';
 import { blue } from '../constants';
-import { setAllDropdownData } from '../redux/slices/misc';
+import { setAllDropdownData, setShowPopupDialog } from '../redux/slices/misc';
 import { setUserLocation } from '../redux/slices/user';
+import { getLocation } from '../lib/features';
 // import Test from '../components/TestTemplate';
 
 
@@ -19,15 +20,16 @@ const Dashboard = ({setUserLoggedIn}) => {
   const {user} = useSelector((state) => state.user);
   const {navigate} = useNavigation();
   const [loading ,setLoading] = useState(true);
+  const [showLocationError , setShowLocationError] = useState(false);
   const cardTemplate = [
     // { id: 0, text_id: 'total_panding_FW', text: "Today's Pending Follow Up", number: 0, backgroundColor: '#FFD166', icon: 'people-outline' },
     // { id: 1, text_id: 'total_leads', text: 'Leads', number: 0,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
     { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png')},
-    { id: 5, text_id: 'total_SM_FW', text: 'Sage M/F', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
+    { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra FollowUp', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
     { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png')},
     { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png')},
     { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png')},
-    { id: null, text_id: 'total_event', text: 'Events Done', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png') },
+    { id: null, text_id: 'total_event', text: 'Event', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png') },
     { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png')},
     { id: 8, text_id: 'total_ip', text: 'IP', number: 0,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png')},
   ];
@@ -41,16 +43,25 @@ const Dashboard = ({setUserLoggedIn}) => {
     // setLoading(false);
     const getData = async () => {
       try{
-        const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
+        await getLocation();
+        // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
+          // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
+          const res = await axios.get('http://10.22.130.15:8000/api/Get-Data' , {
           withCredentials: true,
           headers:{
             Authorization: `Bearer ${user.access}`
           }
         })
+        // console.log(res.data.source);
+        console.log(res.data.states_location);
         // console.log(res.data.interested_localities);
         dispatch(setAllDropdownData(res.data))
       }
       catch(err){
+        if(err?.message === 'Location request failed due to unsatisfied device settings'){
+          setShowLocationError({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false});
+          return;
+          }
         console.log(err);
       }
     }
@@ -95,6 +106,17 @@ const Dashboard = ({setUserLoggedIn}) => {
 
   return loading ? <Loader back={true}/> : (
     <SafeAreaView style={{ flex: 1 }}>
+    {showLocationError && (
+        <DialogComponent
+          setShowLocationError={setShowLocationError}
+          title={showLocationError.title}
+          message={showLocationError.message}
+          workDone={showLocationError.workDone}
+          cancel={false}
+          navigate={navigate}
+          to={showLocationError.to}
+        />
+      )}
       <View style={styles.container}>
         {showPopupDialog && <DialogComponent
           title="Form Submitted"
@@ -115,7 +137,7 @@ const Dashboard = ({setUserLoggedIn}) => {
               height:'40%',
               width:'100%',
             }}>
-              <Image source={card.icon} style={{width:60 , height:60 }} />
+              <Image source={card.icon} style={{width:55 , height:55 }} />
               <Text style={{
                 fontSize:16,
                 textAlign:'center',

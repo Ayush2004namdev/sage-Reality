@@ -80,6 +80,11 @@ const CorpVisit = () => {
       key_person_contact_two: "",
       teamMembers: [],
     })
+    setShowKeyPresonTwo(false);
+    setShowReasonTextInput(false);
+    setShowPlannedDatePicker(false);
+    setShowDatePicker(false);
+    setShowTeamSelect(false);
   },[]))
 
   const onPlannedDateChange = (event, selectedDate) => {
@@ -140,16 +145,25 @@ const CorpVisit = () => {
       if(key === 'key_person_two') {
         if(showKeyPresonTwo === false) return false;
         return !formData[key];
-      }
-
-      if(key === 'DataCollected') return false;
-
-      if(key === 'firstGroupValue') return false;
-     
+      }     
       return !formData[key];
     });
 
     if (emptyField) {
+
+      if(emptyField === 'firstGroupValue'){
+        Alert.alert(
+          "Validation Error",
+          `Please select the Presentation Type.`,
+          [
+            {
+              text: "OK",
+              onPress: () => console.log(`Focus on ${emptyField} field`),
+            },
+          ],
+          { cancelable: false }
+        );
+      }
 
       if(emptyField === 'secondGroupValue'){
         Alert.alert(
@@ -221,6 +235,7 @@ const CorpVisit = () => {
           return;
         }
         dispatch(setUserLocation(userLocation));
+        return;
       }
 
       const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
@@ -330,10 +345,8 @@ const CorpVisit = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Corporate Visit</Text>
           <View style={styles.separator}></View>
-          <Text style={styles.caption}>Feed Your Corporate Visit Details.</Text>
-          <Text style={styles.caption}>Fill all the Details.</Text>
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
               value={formData.name}
@@ -342,9 +355,9 @@ const CorpVisit = () => {
               placeholder="Enter Your Name"
               style={styles.inputText}
             />
-          </View>
+          </View> */}
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Date</Text>
             <View
               style={[
@@ -372,10 +385,10 @@ const CorpVisit = () => {
                 <Icon name="date-range" size={24} color="black" />
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Select Corporate Type</Text>
+            <Text style={styles.label}>Corporate Type</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.corporateType}
@@ -393,7 +406,7 @@ const CorpVisit = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Select Corporate</Text>
+            <Text style={styles.label}>Corporate Name</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.corporate}
@@ -425,7 +438,7 @@ const CorpVisit = () => {
             <TextInput
               value={formData.keyPerson}
               onChangeText={(value) => useChangeData("keyPerson", value , false , setFormData)}
-              placeholder="Enter Key Person"
+              placeholder="Enter Key Person Name "
               style={styles.inputText}
             />
           </View>
@@ -455,7 +468,7 @@ const CorpVisit = () => {
             <TextInput
               value={formData.key_person_two}
               onChangeText={(value) => useChangeData("key_person_two", value , false , setFormData)}
-              placeholder="Enter Key Person Two"
+              placeholder="Enter Key Person Two Name"
               style={[styles.inputText , {width:"90%"}]}
             />
             <TouchableOpacity>
@@ -487,7 +500,7 @@ const CorpVisit = () => {
               onChangeText={(value) =>
                 useChangeData("noOfPeopleMet", value , true , setFormData)
               }
-              placeholder="Enter No of People Met..."
+              placeholder="Enter No of People Met"
               style={styles.inputText}
             />
           </View>
@@ -574,6 +587,7 @@ const CorpVisit = () => {
                   <DateTimePicker
                     value={formData.plannedDate}
                     mode="date"
+                    minimumDate={new Date()}
                     display="default"
                     onChange={onPlannedDateChange}
                   />
@@ -586,12 +600,22 @@ const CorpVisit = () => {
             <View
               style={[styles.inputGroup, { marginTop: -20, marginBottom: 30 }]}
             >
-              <Text style={styles.label}>Reason</Text>
+              <View style={{
+                display:'flex',
+                flexDirection:'row',
+                justifyContent:'space-between',
+                alignItems:'center',
+              }}>
+                <Text style={styles.label}>Reason</Text>
+                <Text style={{
+                  color: formData.reason.length > 150 ? 'green' : 'red'
+                }}>{formData.reason.length}/150</Text>
+                </View>
               <TextInput
                 value={formData.reason}
                 onChangeText={(value) => useChangeData("reason", value , false , setFormData)}
                 placeholder="Enter Reason"
-                style={styles.inputText}
+                style={[styles.inputText , {height: 100 , textAlignVertical: "top"}]}
               />
             </View>
           )}
@@ -638,7 +662,12 @@ const CorpVisit = () => {
                 }}
                 value={formData.secondGroupValue}
               >
-                <View style={styles.radioButton}>
+               <View style={{
+                display:'flex',
+                flexDirection:'row',
+                width:'100%',
+               }}>
+               <View style={styles.radioButton}>
                   <RadioButton value="solo" />
                   <Text style={styles.radioLabel}>Solo Visit</Text>
                 </View>
@@ -646,6 +675,8 @@ const CorpVisit = () => {
                   <RadioButton value="team" />
                   <Text style={styles.radioLabel}>Team Visit</Text>
                 </View>
+                </View> 
+                
               </RadioButton.Group>
             </View>
           </View>

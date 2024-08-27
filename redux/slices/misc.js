@@ -13,7 +13,10 @@ const miscSlice = createSlice({
     sage_mitra_list: [],
     showPopupDialog: false,
     logoutPopUp: false,
-    intereseted_localities: []
+    intereseted_localities: [],
+    source_list: [],
+    states_location:[],
+    city_location:[],
   },
   reducers: {
     toggleAdd: (state, action) => {
@@ -33,7 +36,8 @@ const miscSlice = createSlice({
         state.members = action.payload.members;
         state.sage_mitra_list = action.payload.sage_mitra_list;
         state.intereseted_localities = action.payload?.interested_localities;
-            console.log({'inters':state.intereseted_localities});
+        state.source_list = action.payload?.source;
+        state.states_location = action.payload?.states_location;
         // console.log({'inters':intereseted_localities});
     },
     setShowPopupDialog: (state, action) => {
@@ -44,6 +48,9 @@ const miscSlice = createSlice({
     },
     setNewSageMitra : (state,action) => {
       state.sage_mitra_list = [...state.sage_mitra_list , action.payload];
+    },
+    setCityLocation : (state,action) => {
+      state.city_location = action.payload;
     }
   },
 
@@ -56,6 +63,7 @@ export const {
   setAllDropdownData,
   setShowPopupDialog,
   setLogoutPopup,
-  setNewSageMitra
+  setNewSageMitra,
+  setCityLocation
 } = miscSlice.actions;
 export default miscSlice.reducer;

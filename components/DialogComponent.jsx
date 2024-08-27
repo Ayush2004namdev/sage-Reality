@@ -7,10 +7,14 @@ import { setShowPopupDialog } from '../redux/slices/misc';
 
 const { width, height } = Dimensions.get('window');
 
-const DialogComponent = ({ title = '', message = '', navigate, to, cancel = false, workDone = true }) => {
+const DialogComponent = ({ title = '', message = '', navigate, to, cancel = false, workDone = true , setShowLocationError=false }) => {
   const dispatch = useDispatch();
 
   const handleOkbuttonPress = () => {
+    if(setShowLocationError){
+      setShowLocationError(false);
+      return;
+    }
     dispatch(setShowPopupDialog(false));
     if (!workDone) return;
     if (navigate && to) {

@@ -52,10 +52,10 @@ const IPDone = () => {
 
         try{
 
-          if(!location) {
-            const userLocation = await getLocation();
-            dispatch(setUserLocation(userLocation));
-          }
+          // if(!location) {
+          //   const userLocation = await getLocation();
+          //   dispatch(setUserLocation(userLocation));
+          // }
 
           setLoading(true);
           const data = {
@@ -105,7 +105,12 @@ const IPDone = () => {
         }
       };
     
-     
+      const currentDate = new Date();
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const oneDayAfter = new Date(currentDate);
+      oneDayAfter.setDate(currentDate.getDate());
+      // const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
     
       return (
         <SafeAreaView>
@@ -124,7 +129,7 @@ const IPDone = () => {
             <View style={styles.container}>
               <Text style={styles.title}>Ip Patient</Text>
               <View style={styles.separator}></View>
-              <Text style={styles.caption}>Feed Your IP Patient Details.</Text>
+              {/* <Text style={styles.caption}>Feed Your IP Patient Details.</Text> */}
     
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Name</Text>
@@ -144,7 +149,7 @@ const IPDone = () => {
                     style={{ flexGrow: 1, paddingHorizontal: 10 }}
                     value={formData.date.toLocaleDateString()}
                     placeholder="Select Date"
-                    editable={true}
+                    editable={false}
                   />
                   <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
@@ -152,6 +157,8 @@ const IPDone = () => {
                   {showDatePicker && (
                     <DateTimePicker
                       value={formData.date}
+                      minimumDate={firstDayOfMonth}
+                      maximumDate={oneDayAfter}
                       mode="date"
                       display="default"
                       onChange={onDateChange}

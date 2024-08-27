@@ -66,6 +66,8 @@ const SageMitraFollowUp = () => {
         sageMitra: "",
       });
       setSearchVal("");
+      setMobileNumber("");
+
       return () => {
         setFormData({
           name: user.user.first_name,
@@ -76,6 +78,7 @@ const SageMitraFollowUp = () => {
           sageMitra: "",
         });
         setSearchVal("");
+        setMobileNumber("");
       };
     }, [])
   );
@@ -133,7 +136,7 @@ const SageMitraFollowUp = () => {
 
       if(key === 'mobileNumber') return false;
 
-      if(key === 'leadDetails' && formData[key].length < 1) return key;
+      if(key === 'leadDetails' && formData[key].length < 150) return key;
 
       return !formData[key];
     });
@@ -141,6 +144,9 @@ const SageMitraFollowUp = () => {
     if(setShowAddSageMitra === false && (mobileNumber.length !== 10 || mobileNumber[0]<6) ) return Alert.alert('Validation Error', 'Please Enter Valid Mobile Number' , [{text:'OK'}]);
 
     if (emptyField) {
+
+      if(emptyField === 'leadDetails') return Alert.alert('Validation Error', 'Please Enter atleast 150 characters in Lead Details' , [{text:'OK'}]);
+
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -155,10 +161,10 @@ const SageMitraFollowUp = () => {
       return;
     }
     try {
-      if (!location) {
-        const userLocation = await getLocation();
-        dispatch(setUserLocation(userLocation));
-      }
+      // if (!location) {
+      //   const userLocation = await getLocation();
+      //   dispatch(setUserLocation(userLocation));
+      // }
 
       setLoading(true);
       const data = {
@@ -250,10 +256,10 @@ const SageMitraFollowUp = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Sage Mitra Follow Up</Text>
           <View style={styles.separator}></View>
-          <Text style={styles.caption}>
+          {/* <Text style={styles.caption}>
             Feed Your Sage Mitra Followup Details.
-          </Text>
-
+          </Text> */}
+{/* 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -263,12 +269,12 @@ const SageMitraFollowUp = () => {
               style={styles.inputText}
               editable={false}
             />
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Select Sage Mitra</Text>
             <TextInput
-              placeholder="Enter SAGE Mitra"
+              placeholder="Enter SAGE Mitra Name"
               style={styles.inputText}
               value={searchVal}
               onChangeText={(val) => handleInputChange("search", val)}
@@ -363,7 +369,7 @@ const SageMitraFollowUp = () => {
             </View>
           )}
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Follow Up Date</Text>
             <View
               style={[
@@ -385,7 +391,7 @@ const SageMitraFollowUp = () => {
                 editable={false}
               />
               <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
+                onPress={() => setShowDatePicker(false)}
                 style={styles.dateIcon}
               >
                 <Icon name="date-range" size={24} color="black" />
@@ -399,7 +405,7 @@ const SageMitraFollowUp = () => {
                 />
               )}
             </View>
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>No Of leads</Text>
@@ -422,7 +428,7 @@ const SageMitraFollowUp = () => {
                 useChangeData("leadDetails", value, false, setFormData)
               }
               placeholder="Enter Lead Details/Description"
-              style={styles.inputText}
+              style={[styles.inputText , {height: 100 , textAlignVertical: 'top'}]}
             />
           </View>
 

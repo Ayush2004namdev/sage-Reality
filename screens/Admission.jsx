@@ -68,10 +68,10 @@ const Admission = () => {
     }
     try {
       
-      if(!location) {
-        const userLocation = await getLocation();
-        dispatch(setUserLocation(userLocation));
-      }
+      // if(!location) {
+      //   const userLocation = await getLocation();
+      //   dispatch(setUserLocation(userLocation));
+      // }
 
       setLoading(true);
       const data = {
@@ -127,6 +127,11 @@ const Admission = () => {
     }
   };
 
+  const currentDate = new Date();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const oneDayAfter = new Date(currentDate);
+  oneDayAfter.setDate(currentDate.getDate());
+
   return (
     <SafeAreaView>
       {showPopupDialog && (
@@ -144,9 +149,9 @@ const Admission = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Admission</Text>
           <View style={styles.separator}></View>
-          <Text style={styles.caption}>Feed Your Admission Done Details.</Text>
+          {/* <Text style={styles.caption}>Feed Your Admission Done Details.</Text> */}
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
               value={formData.name}
@@ -155,7 +160,7 @@ const Admission = () => {
               placeholder="Enter Your Name"
               style={styles.inputText}
             />
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Admission Date</Text>
@@ -176,7 +181,7 @@ const Admission = () => {
                 style={{ flexGrow: 1, paddingHorizontal: 10 }}
                 value={formData.date.toLocaleDateString()}
                 placeholder="Select Date"
-                editable={true}
+                editable={false}
               />
               <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
@@ -188,6 +193,8 @@ const Admission = () => {
                 <DateTimePicker
                   value={formData.date}
                   mode="date"
+                  maximumDate={oneDayAfter}
+                  minimumDate={firstDayOfMonth}
                   display="default"
                   onChange={onDateChange}
                 />

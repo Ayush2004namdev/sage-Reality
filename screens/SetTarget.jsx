@@ -112,10 +112,10 @@ const SetTarget = () => {
           if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
 
-            if(!location) {
-              const userLocation = await getLocation();
-              dispatch(setUserLocation(userLocation));
-            }
+            // if(!location) {
+            //   const userLocation = await getLocation();
+            //   dispatch(setUserLocation(userLocation));
+            // }
 
             setLoading(true);
             const data = {
@@ -188,10 +188,10 @@ const SetTarget = () => {
                     case 1 :
                         dataTemplate.bookingTarget = target.target;
                         break;
-                    case 2 :
+                    case 3 :
                         dataTemplate.followUpTarget = target.target;
                         break;
-                    case 3 :
+                    case 2 :
                         dataTemplate.corporateTarget = target.target;
                         break;
                     case 4 :
@@ -244,7 +244,7 @@ const SetTarget = () => {
             <View style={styles.container}>
               <Text style={styles.title}>Set Monthly Target</Text>
               <View style={styles.separator}></View>
-              <Text style={styles.caption}>Feed Your Monthly Target.</Text>
+              {/* <Text style={styles.caption}>Feed Your Monthly Target.</Text> */}
     
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Name</Text>
@@ -297,7 +297,7 @@ const SetTarget = () => {
     
     
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Booking Target</Text>
+                <Text style={styles.label}>Booking</Text>
                 
                 <TextInput
                   value={formData.bookingTarget.toString()}
@@ -307,42 +307,9 @@ const SetTarget = () => {
                   keyboardType="numeric"
                 />
               </View>
-    
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Corporate Target</Text>
-                <TextInput
-                  value={formData.corporateTarget.toString()}
-                  onChangeText={value => useChangeData('corporateTarget', value , true , setFormData)}
-                  placeholder="Enter Coporate Target"
-                  style={styles.inputText}
-                  keyboardType="numeric"
-                />
-              </View>
-    
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Follow Up Target</Text>
-                <TextInput
-                  value={formData.followUpTarget.toString()}
-                  onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
-                  placeholder="Enter Follow Up Target"
-                  style={styles.inputText}
-                  keyboardType="numeric"
-                />
-              </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Home Visit Target</Text>
-                <TextInput
-                  value={formData.homeVisitTarget.toString()}
-                  onChangeText={value => useChangeData('homeVisitTarget', value , true , setFormData)}
-                  placeholder="Enter Home Visit Target"
-                  style={styles.inputText}
-                  keyboardType="numeric"
-                />
-              </View>
-    
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Sage Mitra F/W Target</Text>
+                <Text style={styles.label}>Sage Mitra F/W</Text>
                 <TextInput
                   value={formData.SMFollowUpTarget.toString()}
                   onChangeText={value => useChangeData('SMFollowUpTarget', value , true , setFormData)}
@@ -353,7 +320,42 @@ const SetTarget = () => {
               </View>
     
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Site Visit Target</Text>
+                <Text style={styles.label}>Corporate</Text>
+                <TextInput
+                  value={formData.corporateTarget.toString()}
+                  onChangeText={value => useChangeData('corporateTarget', value , true , setFormData)}
+                  placeholder="Enter Coporate Target"
+                  style={styles.inputText}
+                  keyboardType="numeric"
+                />
+              </View>
+    
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Follow Up</Text>
+                <TextInput
+                  value={formData.followUpTarget.toString()}
+                  onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
+                  placeholder="Enter Follow Up Target"
+                  style={styles.inputText}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Home Visit</Text>
+                <TextInput
+                  value={formData.homeVisitTarget.toString()}
+                  onChangeText={value => useChangeData('homeVisitTarget', value , true , setFormData)}
+                  placeholder="Enter Home Visit Target"
+                  style={styles.inputText}
+                  keyboardType="numeric"
+                />
+              </View>
+    
+             
+    
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Site Visit</Text>
                 <TextInput
                   value={formData.siteVisitTarget.toString()}
                   onChangeText={value => useChangeData('siteVisitTarget', value ,true , setFormData)}
@@ -364,7 +366,7 @@ const SetTarget = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Admission Target</Text>
+                <Text style={styles.label}>Admission</Text>
                 <TextInput
                   value={formData.admissionTarget.toString()}
                   onChangeText={value => useChangeData('admissionTarget', value , true , setFormData)}
@@ -372,10 +374,10 @@ const SetTarget = () => {
                   style={styles.inputText}
                   keyboardType="numeric"
                 />
-              </View>
+            </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>IP Patient Target</Text>
+                <Text style={styles.label}>IP Patient</Text>
                 <TextInput
                   value={formData.ipPatientTarget.toString()}
                   onChangeText={value => useChangeData('ipPatientTarget', value , true , setFormData)}

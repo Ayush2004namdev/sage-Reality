@@ -172,7 +172,7 @@ const Login = ({ user }) => {
                 color: blue,
               }}
             >
-              Sage Anandam!
+              Sage Realty
             </Text>
             <View style={styles.loginBox}>
               <TextInput
@@ -205,7 +205,7 @@ const Login = ({ user }) => {
                 onPress={handleForgotPasswordPress}
                 style={{ width: "100%" }}
               >
-                <Text style={{ textAlign: "right" }}>Forgot Password</Text>
+                <Text style={{ textAlign: "center" , marginTop:5 , fontWeight:'bold' , color:blue }}>Forget Password</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -227,8 +227,8 @@ const Login = ({ user }) => {
               <Pressable
                 style={{
                   backgroundColor: "white",
-                  width: width - 40,
-                  height: height / 2,
+                  minWidth: width - 40,
+                  // minHeight: height / 2.2,
                   marginHorizontal: 20,
                   marginVertical: height / 4,
                   borderRadius: 10,
@@ -293,8 +293,8 @@ const Login = ({ user }) => {
               <Pressable
                 style={{
                   backgroundColor: "white",
-                  width: width - 40,
-                  height: height / 2,
+                  minWidth: width - 40,
+                  // minHeight: height / 2,
                   marginHorizontal: 20,
                   marginVertical: height / 4,
                   borderRadius: 10,

@@ -1,7 +1,7 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -24,13 +24,17 @@ import { blue } from "../constants";
 import useChangeData from "../hooks/useChangeData";
 import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
-import { setIsMenuOpen, setShowPopupDialog, toggleAdd } from "../redux/slices/misc";
+import {
+  setIsMenuOpen,
+  setShowPopupDialog,
+  toggleAdd,
+} from "../redux/slices/misc";
 import { logout, setUserLocation } from "../redux/slices/user";
 
 const HomeVisit = () => {
   const { navigate } = useNavigation();
   const { user, location } = useSelector((state) => state.user);
-  const {members , showPopupDialog} = useSelector((state) => state.misc);
+  const { members, showPopupDialog } = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: user.user.first_name,
@@ -46,35 +50,91 @@ const HomeVisit = () => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTeamSelect, setShowTeamSelect] = useState(false);
-  const [loading , setIsLoading] = useState(false);
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || formData.date;
-    setShowDatePicker(Platform.OS === "ios");
-    setFormData({ ...formData, date: currentDate });
-  };
+  const [loading, setIsLoading] = useState(false);
+  // const onDateChange = (event, selectedDate) => {
+  //   const currentDate = selectedDate || formData.date;
+  //   setShowDatePicker(Platform.OS === "ios");
+  //   setFormData({ ...formData, date: currentDate });
+  // };
 
+  useFocusEffect(
+    useCallback(() => {
+      setFormData({
+        name: user.user.first_name,
+        customerName: "",
+        customerContact: "",
+        remark: "",
+        location: "",
+        date: new Date(),
+        image: null,
+        teamMembers: [],
+        visit_type: "",
+      })
+    },[])
+  )
+
+
+  const handleSearchUserData = async (value) => {
+    try {
+      setIsLoading(true);
+      const res = await axios.post(
+        "http://10.22.130.15:8000/api/Get-Site-Visit-Data",
+        { home_contact: value },
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${user.access}`,
+          },
+        }
+      );
+      console.log(res.data.data);
+      if (res?.data?.data) {
+
+        const teamMembers =  res?.data?.data?.co_fellow?.split(",");
+        const dataTemplate = {
+          name: res.data.data.name,
+          customerName: res.data.data.C_name,
+          customerContact: res.data.data.C_ph,
+          remark: res.data.data.detail,
+          location: res.data.data.location,
+          date: new Date(res.data.data.date),
+          image:null,
+          teamMembers: teamMembers?.length > 0 ? [...teamMembers] : [],
+          visit_type: res.data.data.visit_type,
+        }
+        if(teamMembers?.length>0) setShowTeamSelect(true);
+        setFormData(dataTemplate);
+        console.log(res.data);
+      }
+      else{
+        Alert.alert("Alert" , "No data found" , [{text: "OK"}]);
+      }
+      setIsLoading(false)
+    } catch (err) {
+      console.log(err);
+      setIsLoading(false);
+    }
+  };
 
   const addTeamMember = () => {
     setFormData({ ...formData, teamMembers: [...formData.teamMembers, ""] });
   };
-  
+
   const removeTeamMember = (index) => {
     formData.teamMembers.splice(index, 1);
-    setFormData({ ...formData, teamMembers:formData.teamMembers});
+    setFormData({ ...formData, teamMembers: formData.teamMembers });
   };
-  
+
   const handleTeamMemberChange = (index, value) => {
-    if(value === 'select') return;
-    if(formData.teamMembers.includes(value)) return;
+    if (value === "select") return;
+    if (formData.teamMembers.includes(value)) return;
     const updatedMembers = formData.teamMembers.map((member, i) =>
       i === index ? value : member
     );
     setFormData({ ...formData, teamMembers: updatedMembers });
   };
 
-
   const handleSubmit = async () => {
-    
     const emptyField = Object.keys(formData).find((key) => {
       if (
         key === "teamMembers" &&
@@ -83,16 +143,21 @@ const HomeVisit = () => {
         if (formData["visit_type"] === "TeamVisit") return "Team Members";
         return false;
       }
-      if(key === 'customerContact'){
-        if(formData[key].length !== 10) return 'customerContact';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+      if (key === "customerContact") {
+        if (formData[key].length !== 10) return "customerContact";
+        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
         return true;
       }
       return !formData[key];
     });
 
-    if (emptyField){
-      if(emptyField === 'customerContact') return Alert.alert("Validation Error", `Please enter a valid Mobile Number.`, [{ text: "OK" }]);
+    if (emptyField) {
+      if (emptyField === "customerContact")
+        return Alert.alert(
+          "Validation Error",
+          `Please enter a valid Mobile Number.`,
+          [{ text: "OK" }]
+        );
       Alert.alert(
         "Validation Error",
         `Please fill out the ${emptyField} field.`,
@@ -109,36 +174,49 @@ const HomeVisit = () => {
     }
 
     try {
-      if(!location) {
+      if (!location) {
         const userLocation = await getLocation();
-        console.log({userLocation});
-        if(!userLocation) {
+        console.log({ userLocation });
+        if (!userLocation) {
           dispatch(logout());
           dispatch(setIsMenuOpen(false));
           dispatch(toggleAdd(false));
-          navigate('Dashboard');
+          navigate("Dashboard");
           return;
         }
         dispatch(setUserLocation(userLocation));
+        return;
       }
 
-      const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
-    setIsLoading(true);
-      const teamMembers = formData.teamMembers.filter((member) => member !== "")
-      setFormData({...formData , teamMembers});
+      const lat_long = [
+        location?.coords?.latitude,
+        location?.coords?.longitude,
+      ];
+      setIsLoading(true);
+      const teamMembers = formData.teamMembers.filter(
+        (member) => member !== ""
+      );
+      setFormData({ ...formData, teamMembers });
       const data = {
         username: formData.name,
-        customer_name : formData.customerName,
-        customer_contact : formData.customerContact,
-        date : formatDate(formData.date),
-        visit_details : formData.remark,
-        site_visit_name : formData.location,
-        visit_type : formData.visit_type,
-        image : formData.image,
-        co_name : formData.teamMembers,
+        customer_name: formData.customerName,
+        customer_contact: formData.customerContact,
+        date: formatDate(formData.date),
+        visit_details: formData.remark,
+        site_visit_name: formData.location,
+        visit_type: formData.visit_type,
+        image: formData.image,
+        co_name: formData.teamMembers,
         lat_long: lat_long,
-      }
-      await submitForm('Home-Visit' , data , user , setShowPopupDialog , setIsLoading , dispatch);
+      };
+      await submitForm(
+        "Home-Visit",
+        data,
+        user,
+        setShowPopupDialog,
+        setIsLoading,
+        dispatch
+      );
       setFormData({
         name: user.user.first_name,
         customerName: "",
@@ -149,43 +227,57 @@ const HomeVisit = () => {
         image: null,
         teamMembers: [],
         visit_type: "",
-        
-      })
+      });
       // navigate('Dashboard');
     } catch (err) {
       // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
       setIsLoading(false);
-      if(err?.message === 'Location request failed due to unsatisfied device settings'){
-      dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
-          dispatch(setIsMenuOpen(false));
-          dispatch(toggleAdd(false));
-          return;
+      if (
+        err?.message ===
+        "Location request failed due to unsatisfied device settings"
+      ) {
+        dispatch(
+          setShowPopupDialog({
+            title: "Location Access Denied",
+            message: "Please allow the location access for the application",
+            workDone: false,
+          })
+        );
+        dispatch(setIsMenuOpen(false));
+        dispatch(toggleAdd(false));
+        return;
       }
-      dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
-      console.log({ 'er':err.message });
+      dispatch(
+        setShowPopupDialog({
+          title: "Error",
+          message: "Something went wrong",
+          workDone: false,
+        })
+      );
+      console.log({ er: err.message });
     }
   };
 
   return (
     <SafeAreaView>
       {showPopupDialog && (
-            <DialogComponent
-              title={showPopupDialog.title}
-              message={showPopupDialog.message}
-              workDone={showPopupDialog.workDone}
-              cancel={false}
-              navigate={navigate}
-              to={showPopupDialog.to}
-            />
-          )}
-          {loading && <Loading/>}
+        <DialogComponent
+          title={showPopupDialog.title}
+          message={showPopupDialog.message}
+          workDone={showPopupDialog.workDone}
+          cancel={false}
+          navigate={navigate}
+          to={showPopupDialog.to}
+        />
+      )}
+      {loading && <Loading />}
       <ScrollView>
         <View style={styles.container}>
           <Text style={styles.title}>Home Visit Form</Text>
           <View style={styles.separator}></View>
-          <Text style={styles.caption}>Feed Your Home Visit Details..</Text>
+          {/* <Text style={styles.caption}>Feed Your Home Visit Details</Text> */}
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
               editable={false}
@@ -194,14 +286,16 @@ const HomeVisit = () => {
               placeholder="Enter Your Name"
               style={styles.inputText}
             />
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}> Customer Name</Text>
             <TextInput
               value={formData.customerName}
-              onChangeText={(value) => useChangeData("customerName", value , false , setFormData)}
-              placeholder="Enter customer Name"
+              onChangeText={(value) =>
+                useChangeData("customerName", value, false, setFormData)
+              }
+              placeholder="Enter Customer Name"
               style={styles.inputText}
             />
           </View>
@@ -209,18 +303,20 @@ const HomeVisit = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Customer Contact Number</Text>
             <TextInput
-            keyboardType="numeric"
+              keyboardType="numeric"
               value={formData.customerContact}
-              onChangeText={(value) =>
-                useChangeData("customerContact", value , true , setFormData)
-              }
-              
+              onChangeText={(value) => {
+                if (value.length == 10) {
+                  handleSearchUserData(value);
+                }
+                useChangeData("customerContact", value, true, setFormData);
+              }}
               placeholder="Enter Customer Contact Number"
               style={styles.inputText}
             />
           </View>
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Visit Date</Text>
             <View
               style={[
@@ -256,13 +352,15 @@ const HomeVisit = () => {
                 />
               )}
             </View>
-          </View>
+          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Remark</Text>
             <TextInput
               value={formData.remark}
-              onChangeText={(value) => useChangeData("remark", value , false , setFormData)}
+              onChangeText={(value) =>
+                useChangeData("remark", value, false, setFormData)
+              }
               placeholder="Remark"
               style={styles.inputText}
             />
@@ -272,7 +370,9 @@ const HomeVisit = () => {
             <Text style={styles.label}>Address/Locality</Text>
             <TextInput
               value={formData.location}
-              onChangeText={(value) => useChangeData("location", value , false , setFormData)}
+              onChangeText={(value) =>
+                useChangeData("location", value, false, setFormData)
+              }
               placeholder="Enter Location"
               style={styles.inputText}
             />
@@ -310,18 +410,30 @@ const HomeVisit = () => {
             <View style={styles.radioGroup}>
               <RadioButton.Group
                 onValueChange={(value) => {
-                  useChangeData("visit_type", value , false , setFormData);
+                  useChangeData("visit_type", value, false, setFormData);
                   if (value === "team") {
                     setShowTeamSelect(true);
                   } else {
                     // setFormData({ ...formData, teamMembers: [] });
                     setShowTeamSelect(false);
-                    setFormData({ ...formData, teamMembers: []  , visit_type: value});
+                    setFormData({
+                      ...formData,
+                      teamMembers: [],
+                      visit_type: value,
+                    });
                   }
                 }}
                 value={formData.visit_type}
               >
-                
+                <View style={{
+                  // backgroundColor: 'red',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  // justifyContent: 'space-between',
+                }}>
+
+
                 <View style={styles.radioButton}>
                   <RadioButton value="solo" />
                   <Text style={styles.radioLabel}>Solo Visit</Text>
@@ -330,6 +442,7 @@ const HomeVisit = () => {
                   <RadioButton value="team" />
                   <Text style={styles.radioLabel}>Team Visit</Text>
                 </View>
+          </View>
               </RadioButton.Group>
             </View>
           </View>
@@ -340,18 +453,19 @@ const HomeVisit = () => {
               {formData.teamMembers.map((member, index) => (
                 <View key={index} style={styles.teamMemberContainer}>
                   <View style={styles.pickerContainer}>
-
-                  <Picker
-                selectedValue={formData.teamMembers[index]}
-                onValueChange={(itemValue) => handleTeamMemberChange(index,itemValue)}
-                style={styles.picker}
-                >
-                <Picker.Item label="Select" value="select" />
-                {members.map((item) => (
-                    <Picker.Item key={item} label={item} value={item} />
-                ))}
-              </Picker>
-              </View>
+                    <Picker
+                      selectedValue={formData.teamMembers[index]}
+                      onValueChange={(itemValue) =>
+                        handleTeamMemberChange(index, itemValue)
+                      }
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Select" value="select" />
+                      {members.map((item) => (
+                        <Picker.Item key={item} label={item} value={item} />
+                      ))}
+                    </Picker>
+                  </View>
                   <TouchableOpacity
                     onPress={() => removeTeamMember(index)}
                     style={styles.removeButton}
@@ -364,25 +478,32 @@ const HomeVisit = () => {
                 onPress={addTeamMember}
                 style={styles.addButton}
               >
-                <Text style={{
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  padding: 5,
-                  borderRadius: 5,
-                  borderWidth: 1,
-                  borderColor: 'white',
-                  width: 50,
-                  marginVertical: 5,
-                  backgroundColor:blue,
-
-                }}>Add</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    padding: 5,
+                    borderRadius: 5,
+                    borderWidth: 1,
+                    borderColor: "white",
+                    width: 50,
+                    marginVertical: 5,
+                    backgroundColor: blue,
+                  }}
+                >
+                  Add
+                </Text>
               </TouchableOpacity>
             </View>
           )}
 
-          <TouchableOpacity disabled={loading} onPress={handleSubmit} style={[styles.submitButton]}>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={handleSubmit}
+            style={[styles.submitButton]}
+          >
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
@@ -410,13 +531,13 @@ const styles = StyleSheet.create({
     width: 72,
     marginVertical: 5,
   },
-  teamMemberContainer:{
-    flexDirection: 'row',
-    alignItems: 'center',
+  teamMemberContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 5,
     marginHorizontal: 5,
     gap: 5,
-  },  
+  },
   caption: {
     color: "#000",
     fontSize: 12,
@@ -449,7 +570,7 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
     borderWidth: 4,
-    borderColor:'black',
+    borderColor: "black",
   },
   datePickerContainer: {
     flexDirection: "row",

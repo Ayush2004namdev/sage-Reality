@@ -1,11 +1,10 @@
 import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Image,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,6 +25,7 @@ import { formatDate, getLocation } from "../lib/features";
 import { submitForm, takeImage } from "../lib/helper";
 import {
   setIsMenuOpen,
+  setLogoutPopup,
   setShowPopupDialog,
   toggleAdd,
 } from "../redux/slices/misc";
@@ -48,14 +48,10 @@ const HomeVisit = () => {
     visit_type: "",
   });
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTeamSelect, setShowTeamSelect] = useState(false);
   const [loading, setIsLoading] = useState(false);
-  // const onDateChange = (event, selectedDate) => {
-  //   const currentDate = selectedDate || formData.date;
-  //   setShowDatePicker(Platform.OS === "ios");
-  //   setFormData({ ...formData, date: currentDate });
-  // };
+  const inputRefs = useRef({});
+
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +74,7 @@ const HomeVisit = () => {
     try {
       setIsLoading(true);
       const res = await axios.post(
-        "http://10.22.130.15:8000/api/Get-Site-Visit-Data",
+        "http://182.70.253.15:8000/api/Get-Site-Visit-Data",
         { home_contact: value },
         {
           withCredentials: true,
@@ -96,7 +92,7 @@ const HomeVisit = () => {
           customerName: res.data.data.C_name,
           customerContact: res.data.data.C_ph,
           remark: res.data.data.detail,
-          location: res.data.data.location,
+          location: res.data.data.Visit_location,
           date: new Date(res.data.data.date),
           image:null,
           teamMembers: teamMembers?.length > 0 ? [...teamMembers] : [],
@@ -104,13 +100,16 @@ const HomeVisit = () => {
         }
         if(teamMembers?.length>0) setShowTeamSelect(true);
         setFormData(dataTemplate);
-        console.log(res.data);
+        // console.log(res.data);
       }
       else{
         Alert.alert("Alert" , "No data found" , [{text: "OK"}]);
       }
       setIsLoading(false)
     } catch (err) {
+      if(err.message === 'Network Error'){
+        Alert.alert("🔴 OOPS" , "Something went Wrong" , [{text: "OK"}]);
+      }
       console.log(err);
       setIsLoading(false);
     }
@@ -134,37 +133,130 @@ const HomeVisit = () => {
     setFormData({ ...formData, teamMembers: updatedMembers });
   };
 
+
+  console.log(formData.teamMembers);
+
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
-      if (
-        key === "teamMembers" &&
-        (formData[key].length <= 0 || formData[key][0] === "")
-      ) {
-        if (formData["visit_type"] === "TeamVisit") return "Team Members";
-        return false;
-      }
-      if (key === "customerContact") {
-        if (formData[key].length !== 10) return "customerContact";
-        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
+
+      // if(typeof formData[key] === 'string'){
+      //   if(formData[key].trim().length >= 4){
+      //     return key;
+      //   }
+      // }
+
+      if (key === "teamMembers") {
+        const fileterd = formData[key].filter((member) => member !== "");
+        if(fileterd.length > 0 && formData["visit_type"] === 'team') return false;
+        if (formData["visit_type"] === "solo") return false;
         return true;
       }
+
+      
+      if (key === "customerContact") {
+        const mob = formData[key].toString();
+        if (mob.length !== 10) return "customerContact";
+        if (mob[0] >= 6 && mob[0] <= 9) return false;
+        return true;
+      }
+
+
+      // console.log(key,formData[key]);
+      if(typeof key === 'string'){
+        console.log(key);
+        if(key === 'date') return false;
+        if(key === 'image') return !formData[key];
+        // if(key === 'teamMembers') return formData[key].length <= 0 || formData[key][0] === "";
+        if(formData[key]?.trim()?.length < 4) return true;
+      }
+
+      
+
+      if(key === "remark"){
+        if(formData[key].length < 150) return key;
+      }
+
       return !formData[key];
     });
 
-    if (emptyField) {
+    let alertFieldName = "";
+
+  switch (emptyField) {
+    case "customerName":
+      alertFieldName = "Customer Name";
+      break;
+    case "customerContact":
+      alertFieldName = "Customer Contact";
+      break;
+    case "remark":
+      alertFieldName = "Remark";
+      break;
+    case "location":
+      alertFieldName = "Location";
+      break;
+    case "date":
+      alertFieldName = "Date";
+      break;
+    case "image":
+      alertFieldName = "Image";
+      break;
+    case "teamMembers":
+      alertFieldName = "Team Members";
+      break;
+    case "visit_type":
+      alertFieldName = "Visit Type";
+      break;
+    default:
+      alertFieldName = false;
+  }
+
+    if (emptyField && alertFieldName) {
+
+
       if (emptyField === "customerContact")
         return Alert.alert(
-          "Validation Error",
+          "🔴 OOPS!",
           `Please enter a valid Mobile Number.`,
-          [{ text: "OK" }]
+          [
+            {
+              text: "OK",
+              onPress: () => inputRefs?.current["customerContact"]?.focus(),
+            },
+          ]
         );
-      Alert.alert(
-        "Validation Error",
-        `Please fill out the ${emptyField} field.`,
+
+        if (emptyField === "remark")
+          return Alert.alert(
+            "🔴 OOPS!",
+            `Please enter atleast 150 characters.`,
+            [
+              {
+                text: "OK",
+                onPress: () => inputRefs?.current["remark"]?.focus(),
+              },
+            ]
+          );
+
+          if (emptyField === "image")
+            return Alert.alert(
+              "🔴 OOPS!",
+              "Please provide an image.",
+              [
+                {
+                text: "OK",
+                onPress: () => console.log(`Focus on ${emptyField} field`),
+              }
+            ]
+            );          
+
+        
+     Alert.alert(
+        "🔴 OOPS!",
+        `Please Provide ${alertFieldName}.`,
         [
           {
             text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
           },
         ],
         { cancelable: false }
@@ -203,7 +295,7 @@ const HomeVisit = () => {
         customer_contact: formData.customerContact,
         date: formatDate(formData.date),
         visit_details: formData.remark,
-        site_visit_name: formData.location,
+        Visit_location: formData.location,
         visit_type: formData.visit_type,
         image: formData.image,
         co_name: formData.teamMembers,
@@ -228,6 +320,7 @@ const HomeVisit = () => {
         teamMembers: [],
         visit_type: "",
       });
+      setIsLoading(false);
       // navigate('Dashboard');
     } catch (err) {
       // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
@@ -297,6 +390,7 @@ const HomeVisit = () => {
               }
               placeholder="Enter Customer Name"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["customerName"] = ref)}
             />
           </View>
 
@@ -313,56 +407,33 @@ const HomeVisit = () => {
               }}
               placeholder="Enter Customer Contact Number"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["customerContact"] = ref)}
             />
           </View>
 
-          {/* <View style={styles.inputGroup}>
-            <Text style={styles.label}>Visit Date</Text>
-            <View
-              style={[
-                styles.datePickerContainer,
-                {
-                  borderWidth: 1,
-                  borderColor: "black",
-                  alignItems: "center",
-                  paddingTop: 10,
-                  paddingBottom: 5,
-                  borderRadius: 5,
-                },
-              ]}
-            >
-              <TextInput
-                style={{ flexGrow: 1, paddingHorizontal: 10 }}
-                value={formData.date.toLocaleDateString()}
-                placeholder="Select Date"
-                editable={false}
-              />
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(false)}
-                style={styles.dateIcon}
-              >
-                <Icon name="date-range" size={24} color="black" />
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={formData.date}
-                  mode="date"
-                  display="default"
-                  onChange={onDateChange}
-                />
-              )}
-            </View>
-          </View> */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Remark</Text>
+          <View style={{
+                display:'flex',
+                flexDirection:'row',
+                justifyContent:'space-between',
+                alignItems:'center',
+              }}>
+                <Text style={styles.label}>Remark</Text>
+                <Text style={{
+                  color: formData.remark.length > 150 ? 'green' : 'red'
+                }}>{formData.remark.length}/150</Text>
+                </View>
+           
             <TextInput
               value={formData.remark}
               onChangeText={(value) =>
                 useChangeData("remark", value, false, setFormData)
               }
               placeholder="Remark"
-              style={styles.inputText}
+              style={[styles.inputText , {minHeight: 100 , maxHeight:150, textAlignVertical: 'top'}]}
+              multiline={true}
+              ref={(ref) => (inputRefs.current["remark"] = ref)}
             />
           </View>
 
@@ -375,6 +446,7 @@ const HomeVisit = () => {
               }
               placeholder="Enter Location"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["location"] = ref)}
             />
           </View>
 
@@ -508,7 +580,7 @@ const HomeVisit = () => {
           </TouchableOpacity>
         </View>
         <View
-          style={{ width: "100%", height: 100, backgroundColor: "white" }}
+          style={{ width: "100%", height: 100, backgroundColor: '#F6F5F5', }}
         ></View>
       </ScrollView>
     </SafeAreaView>
@@ -518,7 +590,7 @@ const HomeVisit = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: '#F6F5F5',
     paddingHorizontal: 24,
     paddingVertical: 10,
   },

@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Platform,
@@ -30,6 +30,7 @@ const SageMitraFollowUp = () => {
   const [searchVal, setSearchVal] = useState("");
   const [showAddSageMitra, setShowAddSageMitra] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
+  const inputRefs = useRef({});
 
   const { sage_mitra_list, showPopupDialog } = useSelector(
     (state) => state.misc
@@ -43,14 +44,15 @@ const SageMitraFollowUp = () => {
   };
 
   const [formData, setFormData] = useState({
+    new_sm_name: "",
+    new_sm_contact: "",
     name: user.user.first_name,
     date: new Date(),
     mobileNumber: "",
     noOfLeads: "",
     leadDetails: "",
     sageMitra: "",
-    new_sm_name: "",
-    new_sm_contact: "",
+   
   });
 
   const dispatch = useDispatch();
@@ -58,6 +60,8 @@ const SageMitraFollowUp = () => {
     useCallback(() => {
       console.log("");
       setFormData({
+        new_sm_name: "",
+        new_sm_contact: "",
         name: user.user.first_name,
         date: new Date(),
         mobileNumber: "",
@@ -67,9 +71,11 @@ const SageMitraFollowUp = () => {
       });
       setSearchVal("");
       setMobileNumber("");
-
+      setLoading(false);
       return () => {
         setFormData({
+          new_sm_name: "",
+          new_sm_contact: "",
           name: user.user.first_name,
           date: new Date(),
           mobileNumber: "",
@@ -124,10 +130,22 @@ const SageMitraFollowUp = () => {
 
   const handleSubmit = async () => {
     // console.log('working');
-    const emptyField = Object.keys(formData).find((key) => {
+    const emptyField = Object.keys(formData).find((key) => 
+      {
+
+        console.log(key , formData[key]);
+
       if (key === "new_sm_contact" || key === "new_sm_name") {
         if (formData.sageMitra === "Others") {
-          if (!formData[key]) return key;
+          console.log(key,formData[key]); 
+
+          if(key === 'new_sm_contact'){
+            const mob = formData[key].toString();
+            if(mob.length !== 10 || mob[0]<6) return key;
+          } 
+          if(key === 'new_sm_name' && formData[key].length < 3) return key;
+
+          return false;
         }
         return false;
       }
@@ -143,29 +161,62 @@ const SageMitraFollowUp = () => {
 
     if(setShowAddSageMitra === false && (mobileNumber.length !== 10 || mobileNumber[0]<6) ) return Alert.alert('Validation Error', 'Please Enter Valid Mobile Number' , [{text:'OK'}]);
 
-    if (emptyField) {
+    let alertFieldName = "";
 
-      if(emptyField === 'leadDetails') return Alert.alert('Validation Error', 'Please Enter atleast 150 characters in Lead Details' , [{text:'OK'}]);
+  switch (emptyField) {
+    case "mobileNumber":
+      alertFieldName = "Mobile Number";
+      break;
+    case "noOfLeads":
+      alertFieldName = "Number of Leads";
+      break;
+    case "leadDetails":
+      alertFieldName = "Lead Details";
+      break;
+    case "sageMitra":
+      alertFieldName = "Sage Mitra";
+      break;
+    case "new_sm_name":
+      alertFieldName = "New Sage Mitra Name";
+      break;
+    case "new_sm_contact":
+      alertFieldName = "New Sage Mitra Contact";
+      break;
+    default:
+      alertFieldName = false;
+  }
 
-      Alert.alert(
-        "Validation Error",
-        `Please fill out the ${emptyField} field.`,
-        [
-          {
-            text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
-          },
-        ],
-        { cancelable: false }
-      );
+
+    if (emptyField && alertFieldName) {
+
+      if(emptyField === 'leadDetails'){
+        return Alert.alert(
+          "🔴 OOPS!",
+          `Please Provide atleast 150 characters.`,
+          [
+            {
+              text: "OK",
+              onPress: () => inputRefs?.current[emptyField]?.focus(),
+            }
+          ]
+        );
+
+        }
+
+        Alert.alert(
+          "🔴 OOPS!",
+          `Please Provide valid ${alertFieldName}.`,
+          [
+            {
+              text: "OK",
+              onPress: () => inputRefs?.current[emptyField]?.focus(),
+            }
+          ]
+        );
       return;
     }
-    try {
-      // if (!location) {
-      //   const userLocation = await getLocation();
-      //   dispatch(setUserLocation(userLocation));
-      // }
 
+    try {
       setLoading(true);
       const data = {
         username: formData.name,
@@ -188,36 +239,9 @@ const SageMitraFollowUp = () => {
         setShowPopupDialog,
         setLoading,
         dispatch,true
-      );
-      // const res = await axios.post('http://182.70.253.15:8000/api/Sage-Mitra-Form', {
-      //   name: formData.name,
-      //   date: formData.date,
-      //   mobileNumber: formData.mobileNumber,
-      //   noOfLeads: formData.noOfLeads,
-      //   leadDetails: formData.leadDetails,
-      //   sageMitra: formData.sageMitra,
-      // } , {
-      //   headers:{
-      //     Authorization: `Bearer ${user.access}`
-      //   }
-      // })
+      ); 
       // setLoading(false);
-      // if(res.data.error) return dispatch(setShowPopupDialog({title:'Error' , message: res.data.error , workDone: false , to: 'SageMitraFollowUp'}));
-      // console.log(res.data);
-      // dispatch(setShowPopupDialog({title:'Success' , message: 'Sage Mitra Followup Added Successfully' , workDone: true , to: 'Dashboard'}));
-      // console.log('working 3')
-      // setFormData({
-      //   name: user.user.first_name,
-      //   date: new Date(),
-      //   mobileNumber: "",
-      //   noOfLeads: "",
-      //   leadDetails: "",
-      //   sageMitra: "",
-      // });
-      // setSearchVal('')
-      // Alert.alert('Success', 'Sage Mitra Followup Added Successfully' , [{text:'OK'}]);
-      // navigate('Dashboard');
-      // setLoading(false); 
+      // alert('Form Submitted Successfully');
     } catch (err) {
       setLoading(false);
       if(err?.message === 'Location request failed due to unsatisfied device settings'){
@@ -234,8 +258,6 @@ const SageMitraFollowUp = () => {
         })
       );
 
-      // console.log(err);
-      // Alert.alert('Error', 'Something went wrong' , [{text:'OK'}]);
     }
   };
 
@@ -256,20 +278,6 @@ const SageMitraFollowUp = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Sage Mitra Follow Up</Text>
           <View style={styles.separator}></View>
-          {/* <Text style={styles.caption}>
-            Feed Your Sage Mitra Followup Details.
-          </Text> */}
-{/* 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={formData.name}
-              onChangeText={(value) => handleInputChange("name", value)}
-              placeholder="Enter Your Name"
-              style={styles.inputText}
-              editable={false}
-            />
-          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Select Sage Mitra</Text>
@@ -278,6 +286,7 @@ const SageMitraFollowUp = () => {
               style={styles.inputText}
               value={searchVal}
               onChangeText={(val) => handleInputChange("search", val)}
+              ref={(ref) => (inputRefs.current["sageMitra"] = ref)}
             />
             {searchVal && (
               <>
@@ -333,6 +342,7 @@ const SageMitraFollowUp = () => {
                   }
                   placeholder="Enter new Sage Mitra Name"
                   style={styles.inputText}
+                  ref={(ref) => (inputRefs.current["new_sm_name"] = ref)}
                   // keyboardType="numeric"
                 />
               </View>
@@ -347,6 +357,7 @@ const SageMitraFollowUp = () => {
                   placeholder="Enter New Sage Mitra Mobile Number"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => (inputRefs.current["new_sm_contact"] = ref)}
                 />
               </View>
             </>
@@ -365,47 +376,11 @@ const SageMitraFollowUp = () => {
                 placeholder="Enter Mobile Number"
                 style={styles.inputText}
                 keyboardType="numeric"
+                ref={(ref) => (inputRefs.current["mobileNumber"] = ref)}
               />
             </View>
           )}
 
-          {/* <View style={styles.inputGroup}>
-            <Text style={styles.label}>Follow Up Date</Text>
-            <View
-              style={[
-                styles.datePickerContainer,
-                {
-                  borderWidth: 1,
-                  borderColor: "black",
-                  alignItems: "center",
-                  paddingTop: 10,
-                  paddingBottom: 5,
-                  borderRadius: 5,
-                },
-              ]}
-            >
-              <TextInput
-                style={{ flexGrow: 1, paddingHorizontal: 10 }}
-                value={formData.date.toLocaleDateString()}
-                placeholder="Select Date"
-                editable={false}
-              />
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(false)}
-                style={styles.dateIcon}
-              >
-                <Icon name="date-range" size={24} color="black" />
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={formData.date}
-                  mode="date"
-                  display="default"
-                  onChange={onDateChange}
-                />
-              )}
-            </View>
-          </View> */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>No Of leads</Text>
@@ -417,18 +392,32 @@ const SageMitraFollowUp = () => {
               placeholder="No of leads shared in this follow up"
               style={styles.inputText}
               keyboardType="numeric"
+              ref={(ref) => (inputRefs.current["noOfLeads"] = ref)}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Lead Details</Text>
+          <View style={{
+                display:'flex',
+                flexDirection:'row',
+                justifyContent:'space-between',
+                alignItems:'center',
+              }}>
+                 <Text style={styles.label}>Lead Details</Text>
+                <Text style={{
+                  color: formData.leadDetails.length > 150 ? 'green' : 'red'
+                }}>{formData.leadDetails.length}/150</Text>
+                </View>
+           
             <TextInput
               value={formData.leadDetails}
               onChangeText={(value) =>
                 useChangeData("leadDetails", value, false, setFormData)
               }
               placeholder="Enter Lead Details/Description"
-              style={[styles.inputText , {height: 100 , textAlignVertical: 'top'}]}
+              style={[styles.inputText , {height: 100 , textAlignVertical: 'top' }]}
+              ref={(ref) => (inputRefs.current["leadDetails"] = ref)}
+              multiline={true}
             />
           </View>
 
@@ -437,7 +426,7 @@ const SageMitraFollowUp = () => {
           </TouchableOpacity>
         </View>
         <View
-          style={{ width: "100%", height: 100, backgroundColor: "white" }}
+          style={{ width: "100%", height: 100, backgroundColor: '#F6F5F5', }}
         ></View>
       </ScrollView>
     </SafeAreaView>
@@ -447,7 +436,7 @@ const SageMitraFollowUp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: '#F6F5F5',
     paddingHorizontal: 24,
     paddingVertical: 10,
   },

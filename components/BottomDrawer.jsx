@@ -36,8 +36,8 @@ const BottomDrawer = ({ isVisible, onClose }) => {
     { name: 'Home Visit', icon: require('../assets/HomeVisit.png'), route: 'HomeVisit' },
     { name: 'Site Visit', icon: require('../assets/ClientSiteVisit.png'), route: 'ClientSiteVisit' },
     { name: 'Event', icon: require('../assets/Events.png'), route: 'Event' },
-    { name: 'Admission Done', icon: require('../assets/Admission.png'), route: 'Admission' },
-    { name: 'IP Done', icon: require('../assets/IP.png'), route: 'IpDone' }
+      { name: 'Admission ', icon: require('../assets/Admission.png'), route: 'Admission' },
+    { name: 'IP ', icon: require('../assets/IP.png'), route: 'IpDone' }
   ];
 
   const dispatch = useDispatch();

@@ -2,11 +2,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Alert,
   Button,
   Dimensions,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -86,7 +87,7 @@ const UpdateClientSiteVisitDetails = () => {
     source_type: "",
     customer_code: "",
     site_location: ["select"],
-    residential_status: "tenent",
+    residential_status: "tenant",
     purpose:''
   });
 
@@ -101,6 +102,8 @@ const UpdateClientSiteVisitDetails = () => {
   const [sameWhatsappNumber, setSameWhatsappNumber] = useState(false);
   const [showSource, setShowSource] = useState(false);
   const [showClientData, setShowClientData] = useState(false);
+  const inputRefs = useRef({});
+  const [customerCode, setCustomerCode] = useState("");
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.visit_date;
@@ -143,7 +146,7 @@ const UpdateClientSiteVisitDetails = () => {
       setLoading(true);
       const res = await axios.post(
         "http://182.70.253.15:8000/api/Get-Site-Visit-Data",
-        { customer_value: formData.customer_code },
+        { customer_value: customerCode },
         {
           withCredentials: true,
           headers: {
@@ -152,6 +155,7 @@ const UpdateClientSiteVisitDetails = () => {
         }
       );
       const data = res.data.data[0];
+      console.log({data});
       if (!data) {
         Alert.alert("Error", "No Data Found", [{ text: "OK" }]);
         setLoading(false);
@@ -192,7 +196,7 @@ const UpdateClientSiteVisitDetails = () => {
           official_email_id: data?.official_mail || "",
           interest: data?.accommodation || "",
           possesion_date: data?.Expected_possession || "select",
-          remark: data?.Remark || "",
+          remark: data?.purpose || "",
           city: data?.city || "Select",
           state: data?.state || "Select",
           interested_location:
@@ -200,21 +204,36 @@ const UpdateClientSiteVisitDetails = () => {
               ? [...interestedLocations]
               : ["select"],
           source_type: data?.source_type || "",
-          customer_code: data?.customer_code || "",
-          residential_status: data?.residential_status || "tenent",
+          customer_code:  "",
+          residential_status: data?.residential_status || "tenant",
           purpose: data?.purpose || "",
           site_location: data?.site_location || "select",
         };
 
-        if (
-          dataTemplate?.source_type === "Social Media" ||
-          dataTemplate?.source_type === "News Paper" ||
-          dataTemplate?.source_type === "Property Portals"
-        ) {
-          setShowSource(dataTemplate?.source);
+        if(data?.access_id){
+
+          setCustomerCode(data?.access_id);
+          dataTemplate.customer_code = Number(data?.access_id)
+        }
+        if(data?.customer_contact === data?.customer_whatsapp){
+          setSameWhatsappNumber(true);
         }
 
-        if (dataTemplate?.residential_status === "tenent")
+        if(data?.state){
+          setStateSearch(data?.state);
+        }
+        if(data?.city){
+          setCitySearch(data?.city);
+        }
+        if(dataTemplate?.purpose === 'commercial'){
+          setShowPurposeFeild(true);
+        }
+
+        if(data?.residential_status === 'tenant'){
+          setShowRentStatus(true);
+        }
+
+        if (dataTemplate?.residential_status === "tenant")
           setShowRentStatus(true);
 
         setFormData({ ...dataTemplate });
@@ -222,7 +241,11 @@ const UpdateClientSiteVisitDetails = () => {
       }
       setLoading(false);
     } catch (e) {
+      setLoading(false);
       console.log({ error: e });
+      return Alert.alert("🔴", "Something went wrong", [
+        { text: "OK" },
+      ]);
     }
   };
 
@@ -269,7 +292,7 @@ const UpdateClientSiteVisitDetails = () => {
   const handleStateChange = async (itemValue) => {
     try{
      
-      const {data} = await axios.post('http://10.22.130.15:8000/api/Get-City-Data' , {
+      const {data} = await axios.post('http://182.70.253.15:8000/api/Get-City-Data' , {
         'stateId': itemValue[1]
       } , {
         withCredentials: true,
@@ -285,72 +308,202 @@ const UpdateClientSiteVisitDetails = () => {
   }
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
-      if (key === "customer_whatsapp" && sameWhatsappNumber) return false;
-      if (key === "customer_whatsapp" && !sameWhatsappNumber) {
-        if (formData[key].length !== 10) return true;
-        if (formData[key].length === 10 && isNaN(formData[key])) return true;
-        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
-        return true;
+      // console.count('rin')
+      if(key === 'purpose'){
+        if(formData[key] === '' && showPurposeFeild) return true;
+        return false;
+      } 
+      
+      if(key === 'customer_whatsapp' && sameWhatsappNumber) return false;
+      if(key === 'customer_whatsapp' && !sameWhatsappNumber){
+        if(formData[key].length !== 10) return true;
+        if(formData[key].length === 10 && isNaN(formData[key])) return true;
+        if(formData[key][0] >=6 && formData[key][0] <=9) return false;
+        return true; 
       }
-
-      if (key === "customer_contact") {
-        if (formData[key].length !== 10) return true;
-        if (isNaN(formData[key])) return true;
-        if (formData[key][0] >= 6 && formData[key][0] <= 9) return false;
-        return true;
+      
+      if(key === 'monthly_rent'){
+        if(typeof formData[key] === 'string'){
+          if(formData[key].length < 4  && showRentStatus === true) return true;
+          return false;
+        }
+        else{
+          if(Number(formData[key]) < 1 && showRentStatus === true) return true;
+          return false;
+        }
       }
-
-      if (key === "monthly_rent") {
-        if (formData[key] === "" && showRentStatus === true) return true;
+      
+      if(key === 'member' && formData.visit_type === 'direct') return false;
+      
+      if(key === 'source' && (formData.source === 'select' || formData.source === '')){
+        if( formData.source_type === 'NewsPaper' || formData.source_type === 'Social Media' || formData.source_type === 'Property Portals'  ) return true;
+        console.log('source',formData.source);
+        //  console.log('source type',formData.source_type);
         return false;
       }
+      
+      if(typeof formData[key] === 'string'){
+        if(formData[key].trim().length < 4 ){
+          return key;
+        }
+      }
+      if(key === 'customer_contact'){
+        const mob = formData[key].toString();
+        if(mob.length !== 10) return true;
+        // if(isNaN(formData[key])) return true;
+        if(mob[0] >=6 && mob[0] <=9) return false;
+        return true; 
+      }
+     
 
-      if (key === "email_id" || key === "official_email_id") {
-        if (formData[key].includes("@") && formData[key].includes("."))
-          return false;
+      if(key === 'email_id' || key === 'official_email_id'){
+        if(formData[key].includes('@') && formData[key].includes('.')) return false;
         return true;
       }
 
-      if (key === "interested_location") return formData[key].length < 1;
+      if(key === 'interested_location') {
+        if(formData[key].length === 0) return true;
+        let filtered = formData[key].filter((item) => item !== '' || item !== 'select');
+        // filtered = filtered.filter(item => item !== 'select');
+        // console.log('wnl slkfjg =======',filtered)
+        if(filtered.length > 0) return false;
+        return true;
+      }
+
+      if(key === 'interest'){
+        if(formData[key] === 'select') return true;
+      }
+
+      
+      if(key === 'site_location' && formData.site_location === 'select') return true;
 
       // if(key === 'source' && formData.visit_type === 'direct') return false;
+      
+      
 
-      if (
-        key === "source" &&
-        (formData.source === "select" || formData.source === "")
-      ) {
-        if (
-          formData.source_type === "News Paper" ||
-          formData.source_type === "Social Media" ||
-          formData.source_type === "Property Portals"
-        )
-          return true;
-        console.log("source", formData.source);
-        console.log("source type", formData.source_type);
+      if(key === 'state' ){
+        if(formData.state === 'Select') return true;
         return false;
       }
 
-      if (key === "member" && formData.visit_type === "direct") return false;
+      if(key === 'city' ){
+        if(formData.city === 'Select') return true;
+        return false;
+      }
+    
 
-      return !formData[key];
+      return !formData[key]
     });
 
-    if (emptyField) {
-      Alert.alert(
-        "Validation Error",
-        `Enter Valid ${emptyField}.`,
+    let alertFieldName = "";
+
+  switch (emptyField) {
+    case "source":
+      alertFieldName = "Source";
+      break;
+    case "customer_name":
+      alertFieldName = "Customer Name";
+      break;
+    case "member":
+      alertFieldName = "Lead Owner Name";
+      break;
+    case "address":
+      alertFieldName = "Address";
+      break;
+    case "monthly_rent":
+      alertFieldName = "Monthly Rent";
+      break;
+    case "customer_contact":
+      alertFieldName = "Customer Contact";
+      break;
+    case "customer_whatsapp":
+      alertFieldName = "Customer WhatsApp";
+      break;
+    case "instagram_id":
+      alertFieldName = "Instagram ID";
+      break;
+    case "email_id":
+      alertFieldName = "Email ID";
+      break;
+    case "facebook_id":
+      alertFieldName = "Facebook ID";
+      break;
+    case "company":
+      alertFieldName = "Company";
+      break;
+    case "gross_annual_income":
+      alertFieldName = "Gross Annual Income";
+      break;
+    case "department":
+      alertFieldName = "Department";
+      break;
+    case "designation":
+      alertFieldName = "Designation";
+      break;
+    case "birth_date":
+      alertFieldName = "Birth Date";
+      break;
+    case "marrige_anniversary":
+      alertFieldName = "Marriage Anniversary";
+      break;
+    case "budget":
+      alertFieldName = "Budget";
+      break;
+    case "official_email_id":
+      alertFieldName = "Official Email ID";
+      break;
+    case "interest":
+      alertFieldName = "Interest";
+      break;
+    case "possesion_date":
+      alertFieldName = "Possession Date";
+      break;
+    case "remark":
+      alertFieldName = "Remark";
+      break;
+    case "city":
+      alertFieldName = "City";
+      break;
+    case "state":
+      alertFieldName = "State";
+      break;
+    case "interested_location":
+      alertFieldName = "Interested Location";
+      break;
+    case "source_type":
+      alertFieldName = "Source Type";
+      break;
+    case "customer_code":
+      alertFieldName = "Customer Code";
+      break;
+    case "site_location":
+      alertFieldName = "Site Location";
+      break;
+    case "residential_status":
+      alertFieldName = "Residential Status";
+      break;
+    case "purpose":
+      alertFieldName = "Purpose";
+      break;
+    default:
+      alertFieldName = false;
+  }
+
+    if (emptyField && alertFieldName) {
+      return Alert.alert(
+        "🔴 OOPS!",
+        `Please provide ${alertFieldName}.`,
         [
           {
             text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
           },
         ],
         { cancelable: false }
       );
-      return;
     }
     if (isNaN(formData.visit_date))
-      return Alert.alert("Validation Error", "Please Add Valid Date", [
+      return Alert.alert("🔴 OOPS!", "Please Add Valid Date", [
         { text: "OK" },
       ]);
     console.log(formData);
@@ -425,6 +578,7 @@ const UpdateClientSiteVisitDetails = () => {
         setLoading,
         dispatch
       );
+      alert('Data Submitted');
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -474,7 +628,7 @@ const UpdateClientSiteVisitDetails = () => {
         possesion_date: new Date(),
         remark: "",
         site_location: "select",
-        residential_status: "tenent",
+        residential_status: "tenant",
         purpose: "",
       });
       setSearchVal("");
@@ -582,19 +736,6 @@ const UpdateClientSiteVisitDetails = () => {
               General
             </Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                editable={false}
-                value={formData.name}
-                onChangeText={(value) =>
-                  useChangeData("name", value, false, setFormData)
-                }
-                placeholder="Enter Your Name"
-                style={styles.inputText}
-              />
-            </View>
-
             <View style={[styles.inputGroup, { marginTop: 0, paddingTop: 0 }]}>
               <Text style={styles.label}>Visit Type</Text>
               <View style={styles.radioGroup}>
@@ -666,27 +807,45 @@ const UpdateClientSiteVisitDetails = () => {
               )}
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Customer Code/Mobile Number</Text>
-              <TextInput
-                editable
-                value={formData.customer_code}
-                onChangeText={(value) => {
-                  useChangeData("customer_code", value, true, setFormData);
-                }}
-                placeholder="Enter Customer Code/Mobile Number"
-                style={styles.inputText}
-                keyboardType="numeric"
-              />
-            </View>
-
-            
 
             {/* General Feild Ends */}
           </View>
 
           {!showClientData && (
-            <Button title="Search Client" onPress={handleSearchClient} />
+            <>
+
+<View style={styles.inputGroup}>
+              <Text style={styles.label}>Customer Code/Mobile Number</Text>
+              <TextInput
+                editable
+                value={customerCode}
+                onChangeText={(value) => {
+                  if(isNaN(value)) return;
+                  setCustomerCode(value);
+                  setFormData({ ...formData, customer_code: value });
+                  // useChangeData("customer_code", value, true, setFormData);
+                }}
+                placeholder="Enter Customer Code/Mobile Number"
+                style={styles.inputText}
+                keyboardType="numeric"
+                ref={(ref) => (inputRefs.current["customer_code"] = ref)}
+              />
+            </View>
+
+
+                <Pressable style={{
+                  padding: 10,
+                  backgroundColor: blue,
+                  borderRadius: 5,
+                  marginTop: 10,
+                }} onPress={handleSearchClient}>
+                  <Text style={{
+                    color: 'white',
+                    fontSize: 16,
+                    textAlign: 'center',
+                  }}>Search Client</Text>
+                </Pressable>
+              </>
           )}
           {showClientData && (
             <>
@@ -788,7 +947,7 @@ const UpdateClientSiteVisitDetails = () => {
                       style={styles.picker}
                     >
                       <Picker.Item label="Select" value="select" />
-                      {showSource.map((item) => {
+                      {showSource?.map((item) => {
                         return (
                           <Picker.Item key={item} label={item} value={item} />
                         );
@@ -825,6 +984,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter customer Name"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["customer_name"] = ref)}
                   />
                 </View>
 
@@ -838,6 +998,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter Address"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["address"] = ref)}
                   />
                 </View>
 
@@ -848,6 +1009,7 @@ const UpdateClientSiteVisitDetails = () => {
               style={styles.inputText}
               value={stateSearch}
               onChangeText={(val) => handleInputChange("stateSearch", val)}
+              ref={(ref) => (inputRefs.current["stateSearch"] = ref)}
             />
             {stateSearch && (
               <>
@@ -887,6 +1049,7 @@ const UpdateClientSiteVisitDetails = () => {
               style={styles.inputText}
               value={citySeach}
               onChangeText={(val) => handleInputChange("citySearch", val)}
+              ref={(ref) => (inputRefs.current["citySearch"] = ref)}
             />
             {citySeach && (
               <>
@@ -935,6 +1098,7 @@ const UpdateClientSiteVisitDetails = () => {
                     placeholder="Enter customer Contact Number"
                     style={styles.inputText}
                     keyboardType="numeric"
+                    ref={(ref) => (inputRefs.current["customer_contact"] = ref)}
                   />
                 </View>
 
@@ -981,6 +1145,7 @@ const UpdateClientSiteVisitDetails = () => {
                       placeholder="Enter customer Whatsapp Number"
                       style={styles.inputText}
                       keyboardType="numeric"
+                      ref={(ref) => (inputRefs.current["customer_whatsapp"] = ref)}
                     />
                   </View>
                 )}
@@ -991,10 +1156,11 @@ const UpdateClientSiteVisitDetails = () => {
                     editable
                     value={formData.email_id}
                     onChangeText={(value) =>
-                      useChangeData("email_id", value, false, setFormData)
+                      setFormData({ ...formData, email_id: value })
                     }
                     placeholder="Enter Email Id"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["email_id"] = ref)}
                   />
                 </View>
 
@@ -1018,6 +1184,7 @@ const UpdateClientSiteVisitDetails = () => {
                       value={formData.birth_date.toLocaleDateString()}
                       placeholder="Select Date"
                       editable={false}
+                      ref={(ref) => (inputRefs.current["birth_date"] = ref)}
                     />
                     <TouchableOpacity
                       onPress={() => setShowBirthDatePicker(true)}
@@ -1058,6 +1225,7 @@ const UpdateClientSiteVisitDetails = () => {
                       value={formData.marrige_anniversary.toLocaleDateString()}
                       placeholder="Select Date"
                       editable={false}
+                      ref={(ref) => (inputRefs.current["marrige_anniversary"] = ref)}
                     />
                     <TouchableOpacity
                       onPress={() => setShowMarriageDatePicker(true)}
@@ -1119,10 +1287,6 @@ const UpdateClientSiteVisitDetails = () => {
                                 />
                               );
                             })}
-                          {/* <Picker.Item label="2 BHK" value="2bhk" />
-                    <Picker.Item label="5 BHK" value="5bhk" />
-                    <Picker.Item label="4 BHK" value="4bhk" /> */}
-                          {/* <Picker.Item label="Hoardings" value="Hoardings" /> */}
                         </Picker>
                       </View>
 
@@ -1195,7 +1359,7 @@ const UpdateClientSiteVisitDetails = () => {
                       style={styles.picker}
                     >
                       <Picker.Item label="Owner" value="owner" />
-                      <Picker.Item label="Tenent" value="tenent" />
+                      <Picker.Item label="tenant" value="tenant" />
                     </Picker>
                   </View>
                 </View>
@@ -1212,6 +1376,7 @@ const UpdateClientSiteVisitDetails = () => {
                       placeholder="Enter Monthly Rent"
                       style={styles.inputText}
                       keyboardType="numeric"
+                      ref={(ref) => (inputRefs.current["monthly_rent"] = ref)}
                     />
                   </View>
                 )}
@@ -1246,6 +1411,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter Company Name"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["company"] = ref)}
                   />
                 </View>
 
@@ -1259,6 +1425,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter Department Name"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["department"] = ref)}
                   />
                 </View>
 
@@ -1277,6 +1444,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter Designation"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["designation"] = ref)}
                   />
                 </View>
 
@@ -1296,6 +1464,7 @@ const UpdateClientSiteVisitDetails = () => {
                     placeholder="Enter Gross Annual Income"
                     style={styles.inputText}
                     keyboardType="numeric"
+                    ref={(ref) => (inputRefs.current["gross_annual_income"] = ref)}
                   />
                 </View>
 
@@ -1305,15 +1474,11 @@ const UpdateClientSiteVisitDetails = () => {
                     editable
                     value={formData.official_email_id}
                     onChangeText={(value) =>
-                      useChangeData(
-                        "official_email_id",
-                        value,
-                        false,
-                        setFormData
-                      )
+                      setFormData({ ...formData, official_email_id: value })
                     }
                     placeholder="Enter Official Email Id"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["official_email_id"] = ref)}
                   />
                 </View>
 
@@ -1369,6 +1534,7 @@ const UpdateClientSiteVisitDetails = () => {
                     placeholder="Enter Budget"
                     style={styles.inputText}
                     keyboardType="numeric"
+                    ref={(ref) => (inputRefs.current["budget"] = ref)}
                   />
                 </View>
 
@@ -1413,11 +1579,12 @@ const UpdateClientSiteVisitDetails = () => {
               }
               placeholder="Enter Purpose"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["purpose"] = ref)}
             />
           </View>}
 
                 <View style={[styles.inputGroup, { marginTop: 0 }]}>
-                  <Text style={styles.label}>Remarks</Text>
+                  <Text style={styles.label}>Purpose</Text>
                   <TextInput
                     editable
                     value={formData.remark}
@@ -1426,6 +1593,7 @@ const UpdateClientSiteVisitDetails = () => {
                     }
                     placeholder="Enter Remarks"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["remark"] = ref)}
                   />
                 </View>
 
@@ -1450,10 +1618,11 @@ const UpdateClientSiteVisitDetails = () => {
                     editable
                     value={formData.instagram_id}
                     onChangeText={(value) =>
-                      useChangeData("instagram_id", value, false, setFormData)
+                      setFormData({ ...formData, instagram_id: value })
                     }
                     placeholder="Enter Instagram Id"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["instagram_id"] = ref)}
                   />
                 </View>
 
@@ -1463,10 +1632,11 @@ const UpdateClientSiteVisitDetails = () => {
                     editable
                     value={formData.facebook_id}
                     onChangeText={(value) =>
-                      useChangeData("facebook_id", value, false, setFormData)
+                      setFormData({ ...formData, facebook_id: value })
                     }
                     placeholder="Enter Facebook Id"
                     style={styles.inputText}
+                    ref={(ref) => (inputRefs.current["facebook_id"] = ref)}
                   />
                 </View>
 
@@ -1484,7 +1654,7 @@ const UpdateClientSiteVisitDetails = () => {
                 style={{
                   width: "100%",
                   height: 100,
-                  backgroundColor: "white",
+                  backgroundColor: '#F6F5F5',
                 }}
               ></View>
             </>
@@ -1498,7 +1668,7 @@ const UpdateClientSiteVisitDetails = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: '#F6F5F5',
     paddingHorizontal: 24,
     paddingVertical: 10,
     minHeight: height,

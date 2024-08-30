@@ -6,7 +6,7 @@ const Splash = ({ scaleAnim }) => {
     return (
         <View style={styles.container}>
             <Animated.Image
-                source={require('../assets/logo.png')}
+                source={require('../assets/finalFav.jpg')}
                 style={[styles.logo, { transform: [{ scale: scaleAnim }] }]}
             />
         </View>

@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -38,23 +38,24 @@ const CorpVisit = () => {
   const { corporate_list, corporate_type, members , showPopupDialog} = useSelector((state) => state.misc);
   const [loading, setLoading] = useState(false);
   const { user ,location} = useSelector((state) => state.user);
+  const inputRefs = useRef({});
   const dispatch = useDispatch();
   const [showKeyPresonTwo , setShowKeyPresonTwo] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({  
+    corporateType: "select",
+    corporate: "select", 
     name: user.user.first_name,
     location: "",
     keyPerson: "",
     mobileNumber: "",
-    corporateType: "select",
-    corporate: "select",
+    noOfPeopleMet: "",
+    DataCollected: "",
     firstGroupValue: null,
     secondGroupValue: null,
     date: new Date(),
     plannedDate: new Date(),
     image: null,
     reason: "",
-    noOfPeopleMet: "",
-    DataCollected: "",
     key_person_two: "",
     key_person_contact_two: "",
     teamMembers: [],
@@ -62,20 +63,20 @@ const CorpVisit = () => {
 
   useFocusEffect(useCallback(() => {
     setFormData({
+      corporateType: "select",
+      corporate: "select", 
       name: user.user.first_name,
       location: "",
       keyPerson: "",
       mobileNumber: "",
-      corporateType: "select",
-      corporate: "select",
+      noOfPeopleMet: "",
+      DataCollected: "",
       firstGroupValue: null,
       secondGroupValue: null,
       date: new Date(),
       plannedDate: new Date(),
       image: null,
       reason: "",
-      noOfPeopleMet: "",
-      DataCollected: "",
       key_person_two: "",
       key_person_contact_two: "",
       teamMembers: [],
@@ -120,107 +121,144 @@ const CorpVisit = () => {
 
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
+
+
       if (key === "reason" ) {
+        // console.log(formData['firstGroupValue'] , ' ========= ',formData["reason"]);
         if (formData['firstGroupValue'] === "NotPlanned" && formData["reason"] === "") {
+          if(formData['reason'].length < 150) return key;
           return true;
         }
         return false;
       }
 
-      if(key === 'corporateType' || key === 'corporate') return formData[key] === 'select';
-
-      if(key === 'mobileNumber'){
-        if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
-        return true;
-      }
-
-      if(key === 'key_person_contact_two') {
-        if(showKeyPresonTwo === false) return false;
-        if(formData[key].length !== 10) return 'Mobile Number';
-        if(formData[key][0] >= 6 && formData[key][0] <= 9) return false;
-        return true;
-      }
+     
 
       if(key === 'key_person_two') {
         if(showKeyPresonTwo === false) return false;
-        return !formData[key];
+        return formData[key].trim().length >= 4 ? false : key;
       }     
+
+      if(key === 'key_person_contact_two') {
+        const mob = formData[key].toString();
+        if(showKeyPresonTwo === false) return false;
+        if(mob.length !== 10) return 'Mobile Number';
+        if(mob[0] >= 6 && mob[0] <= 9) return false;
+        return true;
+      }
+      
+      if ( key === "teamMembers") {
+        const fileterd = formData[key].filter((member) => member !== "");
+        if(fileterd.length > 0 && formData["secondGroupValue"] === 'team'){
+          return false;
+        };
+        if (formData["secondGroupValue"] === "solo") {
+          return false;
+        }
+        return true;
+      }
+
+      if(typeof formData[key] === 'string'){
+        if(formData[key].trim() === ""){
+          return key;
+        }
+        else if(formData[key].length < 3){
+          return key;
+        }
+    }
+
+    
+
+    if(key === 'DataCollected'){
+      console.log(typeof formData[key]);
+      if(formData[key] >= 0) return false;
+      return true;
+    }
+     
+
+      if(key === 'corporateType' || key === 'corporate') return formData[key] === 'select';
+
+      if(key === 'mobileNumber'){
+        const mob = formData[key].toString();
+        console.log('hii 2' , mob.length , mob[0]);
+        if(mob.length !== 10) return 'Mobile Number';
+        if(mob[0] >= 6 && mob[0] <= 9) return false;
+        console.log('hii' , mob.length , mob[0]);
+        return true;
+      }
+
+     
+
+    
       return !formData[key];
     });
 
-    if (emptyField) {
 
-      if(emptyField === 'firstGroupValue'){
-        Alert.alert(
-          "Validation Error",
-          `Please select the Presentation Type.`,
-          [
-            {
-              text: "OK",
-              onPress: () => console.log(`Focus on ${emptyField} field`),
-            },
-          ],
-          { cancelable: false }
-        );
-      }
+    let alertFieldName = "";
 
-      if(emptyField === 'secondGroupValue'){
-        Alert.alert(
-          "Validation Error",
-          `Please select the Visit Type.`,
-          [
-            {
-              text: "OK",
-              onPress: () => console.log(`Focus on ${emptyField} field`),
-            },
-          ],
-          { cancelable: false }
-        );
-        return;
-      }
+    switch (emptyField) {
+      case "location":
+        alertFieldName = "Location";
+        break;
+      case "keyPerson":
+        alertFieldName = "Key Person Name";
+        break;
+      case "mobileNumber":
+        alertFieldName = "Mobile Number";
+        break;
+      case "corporateType":
+        alertFieldName = "Corporate Type";
+        break;
+      case "corporate":
+        alertFieldName = "Corporate Name";
+        break;
+      case "firstGroupValue":
+        alertFieldName = "Presentation";
+        break;
+      case "secondGroupValue":
+        alertFieldName = "Visit Type";
+        break;
+      case "plannedDate":
+        alertFieldName = "Planned Date";
+        break;
+      case "image":
+        alertFieldName = "Image";
+        break;
+      case "reason":
+        alertFieldName = "Reason";
+        break;
+      case "noOfPeopleMet":
+        alertFieldName = "Number of People Met";
+        break;
+      case "DataCollected":
+        alertFieldName = "Data Collected";
+        break;
+      case "key_person_two":
+        alertFieldName = "Second Key Person";
+        break;
+      case "key_person_contact_two":
+        alertFieldName = "Second Key Person Contact";
+        break;
+      case "teamMembers":
+        alertFieldName = "Team Members";
+        break;
+      default:
+        alertFieldName = false;
+    }
 
-      if(emptyField === 'mobileNumber' || emptyField === 'key_person_contact_two'){
-        Alert.alert(
-          "Validation Error",
-          `Please fill out valid Mobile Number.`,
-          [
-            {
-              text: "OK",
-              onPress: () => console.log(`Focus on ${emptyField} field`),
-            },
-          ],
-          { cancelable: false }
-        );
-        return;
-      }
-
-      if(emptyField === 'key_person_two'){
-        Alert.alert(
-          "Validation Error",
-          `Please fill out the Key Person Two field.`,
-          [
-            {
-              text: "OK",
-              onPress: () => console.log(`Focus on ${emptyField} field`),
-            },
-          ],
-          { cancelable: false }
-        );
-        return;
-      }
+    if (emptyField && alertFieldName) {
 
       Alert.alert(
-        "Validation Error",
-        `Please fill out the ${emptyField} field.`,
+        "🔴 OOPS!",
+        `Please Provide valid ${alertFieldName}.`,
         [
           {
             text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
-          },
-        ],
-        { cancelable: false }
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
+          }
+        ]
       );
+      
       return;
     }
     try {
@@ -260,39 +298,8 @@ const CorpVisit = () => {
         lat_long: lat_long,
       }
 
-      // console.log(data);
       await submitForm('Coporate-Visit-Form',data , user , setShowPopupDialog , setLoading , dispatch);
-
-      // const res = await axios.post(
-      //   "http://182.70.253.15:8000/api/Coporate-Visit-Form",
-      //   {
-      //     name : formData.name,
-      //     date : formatDate(formData.date),
-      //     corp_type : formData.corporateType,
-      //     corp_name : formData.corporate,
-      //     location : formData.location,
-      //     key_person : formData.keyPerson,
-      //     key_person_contact : formData.mobileNumber,
-      //     meet_person : formData.noOfPeopleMet,
-      //     image : formData.image,
-      //     data_collect : formData.DataCollected,
-      //     presentation : formData.firstGroupValue,
-      //     nxt_date : formatDate(formData.plannedDate),
-      //     reason : formData.reason,
-      //     visit_type : formData.secondGroupValue,
-      //     co_name : formData.teamMembers,
-      //   },
-      //   {
-      //     withCredentials: true,
-      //     headers: {
-      //       Authorization: `Bearer ${user.access}`,
-      //     },
-      //   }
-      // );
-      // setLoading(false);
-      // if(res.data.error) dispatch(setShowPopupDialog({title: "Error", message: res.data.error , workDone: false}));
-      // dispatch(setShowPopupDialog({title: "Success", message: "Form Filled SuccessFully." , workDone: true , to: 'Dashboard'}));
-      setFormData({
+    setFormData({
         name: user.user.first_name,
         location: "",
         keyPerson: "",
@@ -311,7 +318,6 @@ const CorpVisit = () => {
         key_person_contact_two: "",
         key_person_two: "",
       })
-      // navigate('Dashboard');
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -319,9 +325,7 @@ const CorpVisit = () => {
         dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
             return;
         }
-      // dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
-      // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
     }finally{
 
     }
@@ -346,54 +350,16 @@ const CorpVisit = () => {
           <Text style={styles.title}>Corporate Visit</Text>
           <View style={styles.separator}></View>
 
-          {/* <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={formData.name}
-              editable={false}
-              onChangeText={(value) => useChangeData("name", value , false , setFormData)}
-              placeholder="Enter Your Name"
-              style={styles.inputText}
-            />
-          </View> */}
-
-          {/* <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date</Text>
-            <View
-              style={[
-                styles.datePickerContainer,
-                {
-                  borderWidth: 1,
-                  borderColor: "black",
-                  alignItems: "center",
-                  paddingTop: 10,
-                  paddingBottom: 5,
-                  borderRadius: 5,
-                },
-              ]}
-            >
-              <TextInput
-                style={{ flexGrow: 1, paddingHorizontal: 10 }}
-                value={formData.date.toLocaleDateString()}
-                placeholder="Select Date"
-                editable={false}
-              />
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(false)}
-                style={styles.dateIcon}
-              >
-                <Icon name="date-range" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
-          </View> */}
-
+       
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Corporate Type</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.corporateType}
-                onValueChange={(itemValue) =>
-                  useChangeData("corporateType", itemValue , false , setFormData)
+                onValueChange={(itemValue) =>{
+                  setFormData({...formData , corporateType: itemValue});
+                  // useChangeData("corporateType", itemValue , false , setFormData)
+                }
                 }
                 style={styles.picker}
               >
@@ -430,6 +396,7 @@ const CorpVisit = () => {
               onChangeText={(value) => useChangeData("location", value , false , setFormData)}
               placeholder="Enter Location/Branch"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["location"] = ref)}
             />
           </View>
 
@@ -440,6 +407,7 @@ const CorpVisit = () => {
               onChangeText={(value) => useChangeData("keyPerson", value , false , setFormData)}
               placeholder="Enter Key Person Name "
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["keyPerson"] = ref)}
             />
           </View>
 
@@ -451,10 +419,23 @@ const CorpVisit = () => {
               onChangeText={(value) => useChangeData("mobileNumber", value , true , setFormData)}
               placeholder="Enter Mobile Number of Key Person"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["mobileNumber"] = ref)}
             />
           </View>
 
-          {!showKeyPresonTwo && <Button onPress={handleAddKeypersonPress} title="Add key person"/>}
+          {!showKeyPresonTwo && <Pressable style={{
+            padding: 10,
+            backgroundColor: blue,
+            borderRadius: 5,
+            marginTop: 10,
+          }} onPress={handleAddKeypersonPress}>
+            <Text style={{
+              color: 'white',
+              fontSize: 16,
+              textAlign: 'center',
+            }}>Add Key Person</Text>
+          </Pressable>
+          }
           {showKeyPresonTwo && (
               <>
                  <View style={styles.inputGroup}>
@@ -470,6 +451,7 @@ const CorpVisit = () => {
               onChangeText={(value) => useChangeData("key_person_two", value , false , setFormData)}
               placeholder="Enter Key Person Two Name"
               style={[styles.inputText , {width:"90%"}]}
+              ref={(ref) => (inputRefs.current["key_person_two"] = ref)}
             />
             <TouchableOpacity>
                 <Icon name="remove-circle-outline" size={24} color="red" onPress={() => {setShowKeyPresonTwo(false); setFormData({...formData , key_person_contact_two:'' , key_person_two:''})}}/>
@@ -485,6 +467,7 @@ const CorpVisit = () => {
               onChangeText={(value) => useChangeData("key_person_contact_two", value , true , setFormData)}
               placeholder="Enter Mobile Number of Key Person Two"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["key_person_contact_two"] = ref)}
               />
           </View>
               
@@ -502,6 +485,7 @@ const CorpVisit = () => {
               }
               placeholder="Enter No of People Met"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["noOfPeopleMet"] = ref)}
             />
           </View>
 
@@ -511,10 +495,11 @@ const CorpVisit = () => {
               keyboardType="numeric"
               value={formData.DataCollected}
               onChangeText={(value) =>
-                useChangeData("DataCollected", value , false , setFormData)
+                useChangeData("DataCollected", value , true , setFormData)
               }
               placeholder="Enter Data Collected"
               style={styles.inputText}
+              ref={(ref) => (inputRefs.current["DataCollected"] = ref)}
             />
           </View>
 
@@ -576,6 +561,7 @@ const CorpVisit = () => {
                   value={formData.plannedDate.toLocaleDateString()}
                   placeholder="Select Date"
                   editable={true}
+                  ref={(ref) => (inputRefs.current["plannedDate"] = ref)}
                 />
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
@@ -615,7 +601,9 @@ const CorpVisit = () => {
                 value={formData.reason}
                 onChangeText={(value) => useChangeData("reason", value , false , setFormData)}
                 placeholder="Enter Reason"
-                style={[styles.inputText , {height: 100 , textAlignVertical: "top"}]}
+                style={[styles.inputText , {height: 100 , textAlignVertical: "top" , padding: 10 }]}
+                multiline={true}
+                ref={(ref) => (inputRefs.current["reason"] = ref)}
               />
             </View>
           )}
@@ -738,7 +726,7 @@ const CorpVisit = () => {
           </TouchableOpacity>
         </View>
         <View
-          style={{ width: "100%", height: 100, backgroundColor: "white" }}
+          style={{ width: "100%", height: 100, backgroundColor: '#F6F5F5', }}
         ></View>
       </ScrollView>
     </SafeAreaView>
@@ -751,6 +739,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     paddingHorizontal: 24,
     paddingVertical: 10,
+    backgroundColor: '#F6F5F5',
   },
   title: {
     fontSize: 24,

@@ -26,13 +26,13 @@ const Add = () => {
         {/* <View style={styles.wave}></View> */}
       </View>
       <Pressable onPress={() => handleNavigation('HomeVisit')} style={[styles.secondaryButton, isAddOpen && styles.homeButtonOpen]}>
-        <Ionicons name='home-outline' size={24} color='#FFF' />
+        <Ionicons name='home-outline' size={24} color={blue} />
       </Pressable>
       <Pressable onPress={() => handleNavigation('CorpVisit')} style={[styles.secondaryButton, isAddOpen && styles.corpButtonOpen]}>
-        <Ionicons name='business-outline' size={24} color='#FFF' />
+        <Ionicons name='business-outline' size={24} color={blue} />
       </Pressable>
       <Pressable onPress={() => handleNavigation('SageMF')} style={[styles.secondaryButton, isAddOpen && styles.smfButtonOpen]}>
-        <Ionicons name='people-outline' size={24} color='#FFF' />
+        <Ionicons name='people-outline' size={24} color={blue} />
       </Pressable>
       <TouchableOpacity onPress={handlePress} style={[styles.button, isAddOpen && styles.buttonOpen]}>
         <FontAwesome5 name='plus' size={30} color='#FFF' />
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     // transform: [{ rotate: '0deg' }],
   },
   button: {
+    // backgroundColor: '#F6F5F5',
     backgroundColor: '#ddbf09',
     alignItems: 'center',
     justifyContent: 'center',
@@ -78,13 +79,14 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     position: 'absolute',
     bottom:25,
-    shadowColor: yellow,
-    shadowRadius: 5,
-    elevation: 5,
-    shadowOffset: { height: 10 },
-    shadowOpacity: 5,
-    borderWidth: 3,
-    borderColor: '#FFF',
+    // shadowColor: yellow,
+    // shadowRadius: 5,
+    // elevation: 5,
+    // shadowOffset: { height: 10 },
+    // shadowOpacity: 5,
+    borderWidth: 8,
+    borderColor: '#F6F5F5',
+    // borderColor:'blue',
     zIndex: 999,
     transition: 'transform',
     transitionDuration: '2s',
@@ -94,6 +96,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
     backgroundColor: '#003068',
     shadowColor: blue,
+    borderColor: '#F6F5F5',
     opacity: 1,
   },
   secondaryButton: {

@@ -25,7 +25,7 @@ const Dashboard = ({setUserLoggedIn}) => {
     // { id: 0, text_id: 'total_panding_FW', text: "Today's Pending Follow Up", number: 0, backgroundColor: '#FFD166', icon: 'people-outline' },
     // { id: 1, text_id: 'total_leads', text: 'Leads', number: 0,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
     { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png')},
-    { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra FollowUp', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
+    { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra Follow Up', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
     { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png')},
     { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png')},
     { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png')},
@@ -46,7 +46,7 @@ const Dashboard = ({setUserLoggedIn}) => {
         await getLocation();
         // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
-          const res = await axios.get('http://10.22.130.15:8000/api/Get-Data' , {
+          const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           withCredentials: true,
           headers:{
             Authorization: `Bearer ${user.access}`

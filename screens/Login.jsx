@@ -157,10 +157,10 @@ const Login = ({ user }) => {
             }}
           >
             <Image
-              source={require("../assets/logo.png")}
+              source={require("../assets/finalFav.png")}
               style={{
-                width: 150,
-                height: 150,
+                width: 180,
+                height: 180,
                 resizeMode: "contain",
                 marginBottom: 20,
               }}

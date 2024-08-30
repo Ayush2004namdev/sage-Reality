@@ -4,10 +4,10 @@
     "slug": "refactored",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/FinalIcon.png",
+    "icon": "./assets/finalFav.jpg",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/finalFav.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,14 +16,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/FinalIcon.png",
+        "foregroundImage": "./assets/finalFav.jpg",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ayushreact.refactored",
       "usesCleartextTraffic": true  
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/finalFav.png"
     }
   }
 }

@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Platform,
@@ -35,10 +35,27 @@ const Admission = () => {
     branch: "",
     Vertical: "select",
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      setFormData({
+        name: user.user.first_name,
+        date: new Date(),
+        fatherName: "",
+        studentName: "",
+        branch: "",
+        Vertical: "select",
+      })
+      setShowDatePicker(false);
+      setLoading(false);
+    },[])
+  )
+
   const {showPopupDialog} = useSelector((state) => state.misc);
   const dispatch = useDispatch();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {location} = useSelector((state) => state.user);
+  const inputRefs = useRef({});
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.date;
     setShowDatePicker(Platform.OS === "ios");
@@ -48,30 +65,65 @@ const Admission = () => {
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
       if(key === 'Vertical') return formData[key] === 'select';
-      return !formData[key]
+
+      if(typeof formData[key] === 'string'){
+        if(formData[key].trim().length < 4 ){
+          return key;
+        }
+    }
+
+      return !formData[key];
     });
 
-    if (emptyField) {
-      Alert.alert(
-        "Validation Error",
-        `Please fill out the ${emptyField} field.`,
+    let alertFieldName = "";
+
+  switch (emptyField) {
+    case "fatherName":
+      alertFieldName = "Father's Name";
+      break;
+    case "studentName":
+      alertFieldName = "Student's Name";
+      break;
+    case "branch":
+      alertFieldName = "Branch";
+      break;
+    case "Vertical":
+      alertFieldName = "Vertical";
+      break;
+    default:
+      alertFieldName = false;
+  }
+
+
+
+    if (emptyField && alertFieldName) {
+      if(!formatDate(formData.date)) return  Alert.alert(
+        "🔴 OOPS!",
+        `Please Enter a Valid Date.`,
         [
           {
             text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
+            onPress: () => console.log("OK Pressed"),
           },
-        ],
-        { cancelable: false }
+        ]
       );
-      if(!formatDate(formData.date)) return Alert.alert("Validation Error", "Please Enter Valid Date", [{ text: "OK" }]);
+
+
+      return Alert.alert(
+        "🔴 OOPS!",
+        `Please provide ${alertFieldName}. This field is Required.`,
+        [
+          {
+            text: "OK",
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
+          },
+        ]
+      );
+     
       return;
     }
     try {
       
-      // if(!location) {
-      //   const userLocation = await getLocation();
-      //   dispatch(setUserLocation(userLocation));
-      // }
 
       setLoading(true);
       const data = {
@@ -85,28 +137,6 @@ const Admission = () => {
       }
 
       await submitForm('Admission-Form' , data , user , setShowPopupDialog , setLoading , dispatch , location);
-      // const res = await axios.post(
-      //   `http://182.70.253.15:8000/api/Admission-Form`,
-      //   {
-      //     username: formData.name,
-      //     date: formatDate(formData.date),
-      //     f_name: formData.fatherName,
-      //     s_name: formData.studentName,
-      //     vertical: formData.Vertical,
-      //     branch_class: formData.branch,
-      //   },
-      //   {
-      //     withCredentials: "true",
-      //     headers: {
-      //       Authorization: `Bearer ${user.access}`,
-      //     },
-      //   }
-      // );
-      // setLoading(false);
-      // if(res.error || res.data.error) return new Error(res.error || res.data.error);
-      // console.log(res.data);
-      // dispatch(setShowPopupDialog({title: "Success", message: "Form filled Successfully.", workDone: true , to: 'Dashboard'}));
-      // Alert.alert("Success", "From filled Successfully.", [{ text: "OK" }]);
       setFormData({
         name: user.user.first_name,
         date: new Date(),
@@ -123,7 +153,6 @@ const Admission = () => {
         }
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong." , workDone: false , to: 'Admission'}));
       console.log(err);
-      // Alert.alert("Error", "Something went wrong.", [{ text: "OK" }]);
     }
   };
 
@@ -203,11 +232,12 @@ const Admission = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>Father's Name</Text>
             <TextInput
               value={formData.fatherName}
               onChangeText={(value) => useChangeData("fatherName", value , false , setFormData)}
               placeholder="Enter Father's Name"
+              ref={(ref) => inputRefs.current["fatherName"] = ref}
               style={styles.inputText}
             />
           </View>
@@ -218,6 +248,7 @@ const Admission = () => {
               value={formData.studentName}
               onChangeText={(value) => useChangeData("studentName", value , false , setFormData)}
               placeholder="Enter Student's Name"
+              ref={(ref) => inputRefs.current["studentName"] = ref}
               style={styles.inputText}
             />
           </View>
@@ -228,7 +259,7 @@ const Admission = () => {
               <Picker
                 selectedValue={formData.Vertical}
                 onValueChange={(itemValue) =>
-                  useChangeData("Vertical", itemValue , false , setFormData)
+                  setFormData({ ...formData, Vertical : itemValue })
                 }
                 style={styles.picker}
               >
@@ -248,6 +279,7 @@ const Admission = () => {
               value={formData.branch}
               onChangeText={(value) => useChangeData("branch", value , false , setFormData)}
               placeholder="Enter Branch/Class "
+              ref={(ref) => inputRefs.current["branch"] = ref}
               style={styles.inputText}
             />
           </View>
@@ -257,7 +289,7 @@ const Admission = () => {
           </TouchableOpacity>
         </View>
         <View
-          style={{ width: "100%", height: 100, backgroundColor: "white" }}
+          style={{ width: "100%", height: 100, backgroundColor: '#F6F5F5',}}
         ></View>
       </ScrollView>
     </SafeAreaView>
@@ -267,7 +299,7 @@ const Admission = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: '#F6F5F5',
     paddingHorizontal: 24,
     paddingVertical: 10,
   },

@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -33,7 +33,7 @@ const AddClientSiteVisitDetails = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { navigate } = useNavigation();
-  const [ showRentStatus , setShowRentStatus ] = useState([]);
+  const [ showRentStatus , setShowRentStatus ] = useState(false);
   const [showPurposeFeild , setShowPurposeFeild] = useState(false);
   const [changed, setChanged] = useState(false);
   const {source_list} = useSelector((state) => state.misc);
@@ -42,37 +42,37 @@ const AddClientSiteVisitDetails = () => {
 
 
   const [formData, setFormData] = useState({
-    visit_type: "direct",
+    visit_type: "",
+    member:'',
     name: user.user.first_name,
     source: "",
+    source_type: '', 
+    site_location:'select',
     customer_name: "",
-    member:'',
-    visit_date: new Date(),
     address: "",
-    monthly_rent: "",
+    state: "Select",
+    city: "Select",
     customer_contact: "",
     customer_whatsapp: "",
-    instagram_id: "",
     email_id: "",
-    facebook_id: "",
-    company: "",
-    gross_annual_income: "",
-    department: "",
-    designation: "",
     birth_date: new Date(),
     marrige_anniversary: new Date(),
-    budget: "",
-    official_email_id: "",
-    interest: "",
-    possesion_date: 'select',
-    remark: "",
-    city: "Select",
-    state: "Select",
     interested_location:[''],
-    source_type: '',
-    site_location:'select',
-    residential_status: 'tenent',
+    residential_status: 'owner',
+    monthly_rent: "",
+    company: "",
+    department: "",
+    designation: "",
+    visit_date: new Date(),
+    official_email_id: "",
+    gross_annual_income: "",
+    possesion_date: 'select',
+    budget: "",
+    interest: "",
     purpose:'',
+    remark: "",
+    facebook_id: "",
+    instagram_id: "",
   });
 
   // Separate state for each date picker visibility
@@ -87,6 +87,7 @@ const AddClientSiteVisitDetails = () => {
   const [showCityList, setShowCityList] = useState([]);
   const [searchVal, setSearchVal] = useState("");
   const [sameWhatsappNumber, setSameWhatsappNumber] = useState(false);
+  const inputRefs = useRef({});
   const [showSource , setShowSource] = useState(false);
 
   const onDateChange = (event, selectedDate) => {
@@ -111,7 +112,7 @@ const AddClientSiteVisitDetails = () => {
   const handleStateChange = async (itemValue) => {
     try{
      
-      const {data} = await axios.post('http://10.22.130.15:8000/api/Get-City-Data' , {
+      const {data} = await axios.post('http://182.70.253.15:8000/api/Get-City-Data' , {
         'stateId': itemValue[1]
       } , {
         withCredentials: true,
@@ -164,6 +165,9 @@ const AddClientSiteVisitDetails = () => {
     if(value === 'select') setShowSource([]);
     if(value === 'Walkin' || value === 'Google') setShowSource(false);
 
+
+
+
     // setShowSource(true);
   }
 
@@ -184,13 +188,14 @@ const AddClientSiteVisitDetails = () => {
   }
 
   const handleSubmit = async () => {
-    const emptyField = Object.keys(formData).find((key) => {
 
-      if(key === 'purpose' && showPurposeFeild){
+    const emptyField = Object.keys(formData).find((key) => {
+      // console.count('rin')
+      if(key === 'purpose'){
         if(formData[key] === '' && showPurposeFeild) return true;
         return false;
       } 
-
+      
       if(key === 'customer_whatsapp' && sameWhatsappNumber) return false;
       if(key === 'customer_whatsapp' && !sameWhatsappNumber){
         if(formData[key].length !== 10) return true;
@@ -198,66 +203,209 @@ const AddClientSiteVisitDetails = () => {
         if(formData[key][0] >=6 && formData[key][0] <=9) return false;
         return true; 
       }
-
-      if(key === 'customer_contact'){
-        if(formData[key].length !== 10) return true;
-        if(isNaN(formData[key])) return true;
-        if(formData[key][0] >=6 && formData[key][0] <=9) return false;
-        return true; 
-      }
-
+      
       if(key === 'monthly_rent'){
-        if(formData[key] === '' && showRentStatus === true) return true;
+        if(typeof formData[key] === 'string'){
+          if(formData[key].length < 4  && showRentStatus === true) return true;
+          return false;
+        }
+        else{
+          if(Number(formData[key]) < 1 && showRentStatus === true) return true;
+          return false;
+        }
+      }
+      
+      if(key === 'member' && formData.visit_type === 'direct') return false;
+      
+      if(key === 'source' && (formData.source === 'select' || formData.source === '')){
+        if( formData.source_type === 'NewsPaper' || formData.source_type === 'Social Media' || formData.source_type === 'Property Portals'  ) return true;
+        console.log('source',formData.source);
+        //  console.log('source type',formData.source_type);
         return false;
       }
+      
+      if(typeof formData[key] === 'string'){
+        if(formData[key].trim().length < 4 ){
+          return key;
+        }
+      }
+      if(key === 'customer_contact'){
+        const mob = formData[key].toString();
+        if(mob.length !== 10) return true;
+        // if(isNaN(formData[key])) return true;
+        if(mob[0] >=6 && mob[0] <=9) return false;
+        return true; 
+      }
+     
 
       if(key === 'email_id' || key === 'official_email_id'){
         if(formData[key].includes('@') && formData[key].includes('.')) return false;
         return true;
       }
 
-      if(key === 'interested_location') return formData[key].length < 1;
+      if(key === 'interested_location') {
+        if(formData[key].length === 0) return true;
+        let filtered = formData[key].filter((item) => item !== '' || item !== 'select');
+        // filtered = filtered.filter(item => item !== 'select');
+        // console.log('wnl slkfjg =======',filtered)
+        if(filtered.length > 0) return false;
+        return true;
+      }
+
+      if(key === 'interest'){
+        if(formData[key] === 'select') return true;
+      }
 
       
+      if(key === 'site_location' && formData.site_location === 'select') return true;
+
       // if(key === 'source' && formData.visit_type === 'direct') return false;
       
-      if(key === 'source' && (formData.source === 'select' || formData.source === '')){
-       if( formData.source_type === 'NewsPaper' || formData.source_type === 'Social Media' || formData.source_type === 'Property Portals'  ) return true;
-       console.log('source',formData.source);
-       console.log('source type',formData.source_type);
+      
+
+      if(key === 'state' ){
+        if(formData.state === 'Select') return true;
         return false;
       }
 
-      if(key === 'member' && formData.visit_type === 'direct') return false;
+      if(key === 'city' ){
+        if(formData.city === 'Select') return true;
+        return false;
+      }
+    
 
       return !formData[key]
     });
 
-    if (emptyField) {
-      console.log(emptyField);
-      Alert.alert(
-        "Validation Error",
-        `Enter Valid ${emptyField}.`,
+   
+
+    let alertFieldName = "";
+
+  switch (emptyField) {
+    case "source":
+      alertFieldName = "Source";
+      break;
+    case "customer_name":
+      alertFieldName = "Customer Name";
+      break;
+    case "member":
+      alertFieldName = "Lead Owner Name";
+      break;
+    case "address":
+      alertFieldName = "Address";
+      break;
+    case "monthly_rent":
+      alertFieldName = "Monthly Rent";
+      break;
+    case "customer_contact":
+      alertFieldName = "Customer Contact";
+      break;
+    case "customer_whatsapp":
+      alertFieldName = "Customer WhatsApp";
+      break;
+    case "instagram_id":
+      alertFieldName = "Instagram ID";
+      break;
+    case "email_id":
+      alertFieldName = "Email ID";
+      break;
+    case "facebook_id":
+      alertFieldName = "Facebook ID";
+      break;
+    case "company":
+      alertFieldName = "Company";
+      break;
+    case "gross_annual_income":
+      alertFieldName = "Gross Annual Income";
+      break;
+    case "department":
+      alertFieldName = "Department";
+      break;
+    case "designation":
+      alertFieldName = "Designation";
+      break;
+    case "birth_date":
+      alertFieldName = "Birth Date";
+      break;
+    case "marrige_anniversary":
+      alertFieldName = "Marriage Anniversary";
+      break;
+    case "budget":
+      alertFieldName = "Budget";
+      break;
+    case "official_email_id":
+      alertFieldName = "Official Email ID";
+      break;
+    case "interest":
+      alertFieldName = "Interested Accomodation";
+      break;
+    case "possesion_date":
+      alertFieldName = "Possession Date";
+      break;
+    case "remark":
+      alertFieldName = "Remark";
+      break;
+    case "city":
+      alertFieldName = "City";
+      break;
+    case "state":
+      alertFieldName = "State";
+      break;
+    case "interested_location":
+      alertFieldName = "Interested Location";
+      break;
+    case "source_type":
+      alertFieldName = "Source Type";
+      break;
+    case "site_location":
+      alertFieldName = "Site Location";
+      break;
+    case "residential_status":
+      alertFieldName = "Residential Status";
+      break;
+    case "purpose":
+      alertFieldName = "Purpose";
+      break;
+    case "visit_type":
+      alertFieldName = "Visit Type";
+      break;
+    default:
+      alertFieldName = false;
+  }
+
+
+    if (emptyField && alertFieldName) {
+
+       Alert.alert(
+        "🔴 OOPS!",
+        `Please provide ${alertFieldName}. This field is Required.`,
         [
           {
             text: "OK",
-            onPress: () => console.log(`Focus on ${emptyField} field`),
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
           },
         ],
         { cancelable: false }
       );
+
       return;
     }
     if (isNaN(formData.visit_date))
-      return Alert.alert("Validation Error", "Please Add Valid Date", [
-        { text: "OK" },
-      ]);
-    // console.log(formData);
+      return Alert.alert(
+        "🔴 OOPS!",
+        `Please enter a valid date`,
+        [
+          {
+            text: "OK",
+            onPress: () => inputRefs?.current[emptyField]?.focus(),
+          },
+        ],
+        { cancelable: false }
+      );
     try {
     if(!location) {
 
-      // let { status } = await Location.requestForegroundPermissionsAsync();
-      // if (status !== "granted") return;
+   
       setLoading(true);
       const userLocation = await getLocation();
       setLoading(false);
@@ -329,6 +477,7 @@ const AddClientSiteVisitDetails = () => {
         setLoading,
         dispatch
       );
+      // alert('Data Submitted');
       setLoading(false);
     } catch (e) {
 
@@ -482,18 +631,6 @@ const AddClientSiteVisitDetails = () => {
               General
             </Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                editable={false}
-                value={formData.name}
-                onChangeText={(value) =>
-                  useChangeData("name", value, false, setFormData)
-                }
-                placeholder="Enter Your Name"
-                style={styles.inputText}
-              />
-            </View>
 
             <View style={[styles.inputGroup, { marginTop: 0, paddingTop: 0 }]}>
               <Text style={styles.label}>Visit Type</Text>
@@ -589,6 +726,7 @@ const AddClientSiteVisitDetails = () => {
                   value={formData.visit_date.toLocaleDateString()}
                   placeholder="Select Date"
                   editable={false}
+                  ref={(ref) => (inputRefs.current["visit_date"] = ref)}
                 />
                 <TouchableOpacity
                   onPress={() => setShowVisitDatePicker(true)}
@@ -703,6 +841,7 @@ const AddClientSiteVisitDetails = () => {
                 }
                 placeholder="Enter Customer Name"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["customer_name"] = ref}
               />
             </View>
 
@@ -716,6 +855,7 @@ const AddClientSiteVisitDetails = () => {
                 }
                 placeholder="Enter Address"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["address"] = ref}
               />
             </View>
 
@@ -730,6 +870,7 @@ const AddClientSiteVisitDetails = () => {
               style={styles.inputText}
               value={stateSearch}
               onChangeText={(val) => handleInputChange("stateSearch", val)}
+              ref={(ref) => inputRefs.current["state"] = ref}
             />
             {stateSearch && (
               <>
@@ -769,6 +910,7 @@ const AddClientSiteVisitDetails = () => {
               style={styles.inputText}
               value={citySeach}
               onChangeText={(val) => handleInputChange("citySearch", val)}
+              ref={(ref) => inputRefs.current["city"] = ref}
             />
             {citySeach && (
               <>
@@ -815,6 +957,7 @@ const AddClientSiteVisitDetails = () => {
                 placeholder="Enter Customer Contact Number"
                 style={styles.inputText}
                 keyboardType="numeric"
+                ref={(ref) => inputRefs.current["customer_contact"] = ref}
               />
             </View>
 
@@ -850,6 +993,7 @@ const AddClientSiteVisitDetails = () => {
                   placeholder="Enter customer Whatsapp Number"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => inputRefs.current["customer_whatsapp"] = ref}
                 />
               </View>
             )}
@@ -860,10 +1004,11 @@ const AddClientSiteVisitDetails = () => {
                 editable
                 value={formData.email_id}
                 onChangeText={(value) =>
-                  useChangeData("email_id", value, false, setFormData)
+                  setFormData({ ...formData, email_id: value })
                 }
                 placeholder="Enter Email Id"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["email_id"] = ref}
               />
             </View>
 
@@ -887,6 +1032,7 @@ const AddClientSiteVisitDetails = () => {
                   value={formData.birth_date.toLocaleDateString()}
                   placeholder="Select Date"
                   editable={false}
+                  ref={(ref) => inputRefs.current["birth_date"] = ref}
                 />
                 <TouchableOpacity
                   onPress={() => setShowBirthDatePicker(true)}
@@ -926,6 +1072,7 @@ const AddClientSiteVisitDetails = () => {
                   value={formData.marrige_anniversary.toLocaleDateString()}
                   placeholder="Select Date"
                   editable={false}
+                  ref={(ref) => inputRefs.current["marrige_anniversary"] = ref}
                 />
                 <TouchableOpacity
                   onPress={() => setShowMarriageDatePicker(true)}
@@ -1051,6 +1198,7 @@ const AddClientSiteVisitDetails = () => {
                 placeholder="Enter Monthly Rent"
                 style={styles.inputText}
                 keyboardType="numeric"
+                ref={(ref) => inputRefs.current["monthly_rent"] = ref}
               />
             </View>}
 
@@ -1085,6 +1233,7 @@ const AddClientSiteVisitDetails = () => {
                 }
                 placeholder="Enter Company Name"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["company"] = ref}
               />
             </View>
 
@@ -1098,6 +1247,7 @@ const AddClientSiteVisitDetails = () => {
                 }
                 placeholder="Enter Department Name"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["department"] = ref}
               />
             </View>
 
@@ -1116,6 +1266,7 @@ const AddClientSiteVisitDetails = () => {
                 }
                 placeholder="Enter Designation"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["designation"] = ref}
               />
             </View>
 
@@ -1130,6 +1281,7 @@ const AddClientSiteVisitDetails = () => {
                 placeholder="Enter Gross Annual Income"
                 style={styles.inputText}
                 keyboardType="numeric"
+                ref={(ref) => inputRefs.current["gross_annual_income"] = ref}
               />
             </View>
 
@@ -1139,10 +1291,11 @@ const AddClientSiteVisitDetails = () => {
                 editable
                 value={formData.official_email_id}
                 onChangeText={(value) =>
-                  useChangeData("official_email_id", value, false, setFormData)
+                 setFormData({...formData , official_email_id: value})
                 }
                 placeholder="Enter Official Email Id"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["official_email_id"] = ref}
               />
             </View>
 
@@ -1189,11 +1342,12 @@ const AddClientSiteVisitDetails = () => {
                 editable={true}
                 value={formData.budget}
                 onChangeText={(value) =>
-                  useChangeData("budget", value, true, setFormData)
+                  useChangeData("budget", value, false, setFormData)
                 }
                 placeholder="Enter Budget"
                 style={styles.inputText}
                 keyboardType="numeric"
+                ref={(ref) => inputRefs.current["budget"] = ref}
               />
             </View>
 
@@ -1234,6 +1388,7 @@ const AddClientSiteVisitDetails = () => {
               }
               placeholder="Enter Purpose"
               style={styles.inputText}
+              ref={(ref) => inputRefs.current["purpose"] = ref}
             />
           </View>}
 
@@ -1247,6 +1402,7 @@ const AddClientSiteVisitDetails = () => {
               }
               placeholder="Enter Remarks"
               style={styles.inputText}
+              ref={(ref) => inputRefs.current["remark"] = ref}
             />
           </View>
             
@@ -1272,10 +1428,11 @@ const AddClientSiteVisitDetails = () => {
                 editable
                 value={formData.instagram_id}
                 onChangeText={(value) =>
-                  useChangeData("instagram_id", value, false, setFormData)
+                 setFormData({...formData , instagram_id: value})
                 }
                 placeholder="Enter Instagram Id"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["instagram_id"] = ref}
               />
             </View>
 
@@ -1285,10 +1442,11 @@ const AddClientSiteVisitDetails = () => {
                 editable
                 value={formData.facebook_id}
                 onChangeText={(value) =>
-                  useChangeData("facebook_id", value, false, setFormData)
+                  setFormData({...formData , facebook_id: value})
                 }
                 placeholder="Enter Facebook Id"
                 style={styles.inputText}
+                ref={(ref) => inputRefs.current["facebook_id"] = ref}
               />
             </View>
 
@@ -1306,7 +1464,7 @@ const AddClientSiteVisitDetails = () => {
             style={{
               width: "100%",
               height: 100,
-              backgroundColor: "white",
+              backgroundColor: '#F6F5F5',
             }}
           ></View>
         </View>
@@ -1318,7 +1476,8 @@ const AddClientSiteVisitDetails = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: '#F6F5F5',
+    // backgroundColor: "white",
     paddingHorizontal: 24,
     paddingVertical: 10,
   },

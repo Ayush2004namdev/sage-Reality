@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useRef, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-navigation";
@@ -10,15 +10,15 @@ import DialogComponent from "../components/DialogComponent";
 import Loading from "../components/Loading";
 import { blue } from "../constants";
 import useChangeData from "../hooks/useChangeData";
-import { formatDate, getLocation } from "../lib/features";
+import { formatDate } from "../lib/features";
 import { submitForm } from "../lib/helper";
 import { setShowPopupDialog } from "../redux/slices/misc";
-import { setUserLocation } from "../redux/slices/user";
 const Event = () => {
   const {navigate} = useNavigation();
   const {user,location} = useSelector((state) => state.user);
   const {event_type_list , showPopupDialog} = useSelector((state) => state.misc);
   const [loading , setLoading] = useState(false);
+  const inputRefs = useRef({});
   const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         name:user.user.first_name ,
@@ -30,6 +30,22 @@ const Event = () => {
         numberOfAttendiees:'',
         numberOfLeads:'',
       });
+
+      useFocusEffect(
+        useCallback(() => {
+          setFormData({
+            name:user.user.first_name ,
+            eventType:'select',
+            eventName:'',
+            startDate: new Date(),
+            endDate: new Date(),
+            eventDetails:'',
+            numberOfAttendiees:'',
+            numberOfLeads:'',
+          })
+          setLoading(false);
+        },[])
+      )
     
       const [showEndDatePicker, setShowEndDatePicker] = useState(false);
       const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -45,18 +61,80 @@ const Event = () => {
         setShowEndDatePicker(Platform.OS === 'ios');
         setFormData({ ...formData, endDate: currentDate });
       };
- 
+
       const handleSubmit = async () => {
-        const emptyField = Object.keys(formData).find(key => !formData[key]);
+        const emptyField = Object.keys(formData).find(key => {
+          
+         
+
+          if(typeof formData[key] === 'string'){
+            if(formData[key].trim().length < 4 ){
+              return key;
+            }
+        }
+
+
+        if(key === 'eventDetails'){
+            if(formData[key].length <= 100){
+                return key;
+              }
+            }
+
+        if(key === 'eventType' && formData[key] === 'select') {return key}
+        
+        if(key === 'numberOfAttendiees' && isNaN(formData[key])) {
+          return key;
+        }
+        if(key === 'numberOfAttendiees' && formData[key] < 1) {
+          return key;
+        }
+
+        if(key === 'numberOfLeads' && formData[key] >=0) {
+          console.log('=====' ,typeof formData[key]);
+          return false;
+        }
+
+         return !formData[key]}
+        );
     
-        if (emptyField) {
+        let alertFieldName = "";
+
+        switch (emptyField) {
+          case "eventType":
+            alertFieldName = "Event Type";
+            break;
+          case "eventName":
+            alertFieldName = "Event Name";
+            break;
+          case "startDate":
+            alertFieldName = "Start Date";
+            break;
+          case "endDate":
+            alertFieldName = "End Date";
+            break;
+          case "eventDetails":
+            alertFieldName = "Event Details";
+            break;
+          case "numberOfAttendiees":
+            alertFieldName = "Number of Attendees";
+            break;
+          case "numberOfLeads":
+            alertFieldName = "Number of Leads";
+            break;
+          default:
+            alertFieldName = false;
+        }
+
+        if (emptyField && alertFieldName) {
           Alert.alert(
-            "Validation Error",
-            `Please fill out the ${emptyField} field.`,
+            "🔴 OOPS!",
+            `Please Provide valid ${alertFieldName}. `,
             [
-              { text: "OK", onPress: () => console.log(`Focus on ${emptyField} field`) },
-            ],
-            { cancelable: false }
+              {
+                text: "OK",
+                onPress: () => inputRefs?.current[emptyField]?.focus(),
+              }
+            ]
           );
           return;
         }
@@ -124,8 +202,7 @@ const Event = () => {
     
       const currentDate = new Date();
       const oneDayAfter = new Date(currentDate);
-      oneDayAfter.setDate(currentDate.getDate());
-     
+      oneDayAfter.setMonth(currentDate.getMonth() + 1);
     
       return (
         <SafeAreaView>
@@ -144,26 +221,13 @@ const Event = () => {
             <View style={styles.container}>
               <Text style={styles.title}>Event Form</Text>
               <View style={styles.separator}></View>
-              {/* <Text style={styles.caption}>Feed Your Event Details.</Text> */}
-    
-              {/* <View style={styles.inputGroup}>
-                <Text style={styles.label}>Name</Text>
-                <TextInput
-                  value={formData.name}
-                  editable={false}
-                  onChangeText={value => useChangeData('name', value , false , setFormData)}
-                  placeholder="Enter Your Name"
-                  style={styles.inputText}
-                />
-              </View> */}
-
             
               <View style={styles.inputGroup}>
             <Text style={styles.label}>Select Event Type</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.eventType}
-                onValueChange={(itemValue) => useChangeData('eventType', itemValue , false , setFormData)}
+                onValueChange={(itemValue) => setFormData({ ...formData, eventType: itemValue }) }
                 style={styles.picker}
               >
                 <Picker.Item label="Select" value="select" />
@@ -181,6 +245,7 @@ const Event = () => {
                   onChangeText={value => useChangeData('eventName', value , false , setFormData)}
                   placeholder="Enter Event Name"
                   style={styles.inputText}
+                  ref={ref => inputRefs.current['eventName'] = ref}
                 />
               </View>
 
@@ -192,6 +257,7 @@ const Event = () => {
                     value={formData.startDate.toLocaleDateString()}
                     placeholder="Select Date"
                     editable={false}
+                    ref={ref => inputRefs.current['startDate'] = ref}
                   />
                   <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateIcon}>
                     <Icon name="date-range" size={24} color="black" />
@@ -202,6 +268,7 @@ const Event = () => {
                       mode="date"
                       display="default"
                       maximumDate={oneDayAfter}
+                      minimumDate={currentDate}
                       onChange={onStartDateChange}
                     />
                   )}
@@ -225,6 +292,7 @@ const Event = () => {
                       value={formData.endDate}
                       mode="date"
                       display="default"
+                      minimumDate={currentDate}
                       maximumDate={oneDayAfter}
                       onChange={onEndDateChange}
                     />
@@ -236,12 +304,24 @@ const Event = () => {
     
     
               <View style={styles.inputGroup}>
+              <View style={{
+                display:'flex',
+                flexDirection:'row',
+                justifyContent:'space-between',
+                alignItems:'center',
+              }}>
                 <Text style={styles.label}>Event Details</Text>
+                <Text style={{
+                  color: formData.eventDetails.length > 100 ? 'green' : 'red'
+                }}>{formData.eventDetails.length}/100</Text>
+                </View>
                 <TextInput
                   value={formData.eventDetails}
                   onChangeText={value => useChangeData('eventDetails', value , false , setFormData)}
                   placeholder="Enter Event Details"
-                  style={styles.inputText}
+                  style={[styles.inputText , {minHeight: 100 , textAlignVertical:'top'}]}
+                  ref={ref => inputRefs.current['eventDetails'] = ref}
+                  multiline={true}
                 />
               </View>
               
@@ -253,6 +333,7 @@ const Event = () => {
                   placeholder="Enter Number of Attendees"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={ref => inputRefs.current['numberOfAttendiees'] = ref}
                 />
               </View>
 
@@ -264,6 +345,7 @@ const Event = () => {
                   placeholder="Enter Number of Leads"
                   style={styles.inputText}
                     keyboardType="numeric"
+                    ref={ref => inputRefs.current['numberOfLeads'] = ref}
                 />
               </View>
     
@@ -272,7 +354,7 @@ const Event = () => {
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ width: "100%", height: 100, backgroundColor: "white" }}></View>
+            <View style={{ width: "100%", height: 100,backgroundColor: '#F6F5F5' }}></View>
           </ScrollView>
         </SafeAreaView>
       );
@@ -281,7 +363,7 @@ const Event = () => {
     const styles = StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: "white",
+        backgroundColor: '#F6F5F5',
         paddingHorizontal: 24,
         paddingVertical: 10,
       },

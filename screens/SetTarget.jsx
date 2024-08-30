@@ -1,7 +1,7 @@
 import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +20,8 @@ const SetTarget = () => {
     const [loading , setLoading] = useState(false);
     const {navigate} = useNavigation();
     const [changed , setChanged] = useState(false);
+    const inputRefs = useRef({});
+
     const dataTemplate = {
       bookingTarget:'',
       followUpTarget:'',
@@ -56,14 +58,52 @@ const SetTarget = () => {
     
     
       const handleSubmit = async () => {
-        const emptyField = Object.keys(formData).find(key => !formData[key]);
+        const emptyField = Object.keys(formData).find(key => {
+          if(formData[key] === '') return key;
+          if(formData[key] >= 0) return false;
+          return key;
+        });
         
-        if (emptyField) {
+        let alertFieldName = "";
+
+  switch (emptyField) {
+    case "bookingTarget":
+      alertFieldName = "Booking Target";
+      break;
+    case "followUpTarget":
+      alertFieldName = "Follow-Up Target";
+      break;
+    case "SMFollowUpTarget":
+      alertFieldName = "SM Follow-Up Target";
+      break;
+    case "corporateTarget":
+      alertFieldName = "Corporate Target";
+      break;
+    case "homeVisitTarget":
+      alertFieldName = "Home Visit Target";
+      break;
+    case "siteVisitTarget":
+      alertFieldName = "Site Visit Target";
+      break;
+    case "admissionTarget":
+      alertFieldName = "Admission Target";
+      break;
+    case "ipPatientTarget":
+      alertFieldName = "IP Patient Target";
+      break;
+    default:
+      alertFieldName = false;
+  }
+
+        if (emptyField && alertFieldName) {
           Alert.alert(
-            "Validation Error",
-            `Please fill out the ${emptyField} field.`,
+            "🔴 OOPS!",
+            `Please provide ${alertFieldName}.`,
             [
-              { text: "OK", onPress: () => console.log(`Focus on ${emptyField} field`) },
+              { 
+                text: "OK",
+                onPress: () => inputRefs?.current[emptyField]?.focus()
+              },
             ],
             { cancelable: false }
           );
@@ -112,11 +152,6 @@ const SetTarget = () => {
           if(isNaN(formData.month)) return Alert.alert("Validation Error", "Please Select Month", [{ text: "OK" }]);
           try{
 
-            // if(!location) {
-            //   const userLocation = await getLocation();
-            //   dispatch(setUserLocation(userLocation));
-            // }
-
             setLoading(true);
             const data = {
               month:getMonth(formData.month),
@@ -132,28 +167,7 @@ const SetTarget = () => {
               location: location
             }
             await submitForm(`Set-Target/${user.user.first_name}`, data , user , setShowPopupDialog , setLoading , dispatch);
-            // const res = await axios.post(`http://182.70.253.15:8000/api/Set-Target/${user.user.first_name}`,{
-            //   month:getMonth(formData.month),
-            //   year:formData.year,
-            //   booking:formData.bookingTarget,
-            //   followup:formData.followUpTarget,
-            //   corporate_visit:formData.corporateTarget,
-            //   home_visit:formData.homeVisitTarget,
-            //   sm_followup:formData.SMFollowUpTarget,
-            //   site_visit:formData.siteVisitTarget,
-            //   admission:formData.admissionTarget,
-            //   ip:formData.ipPatientTarget
-            // } , {
-            //   withCredentials: true,
-            //   headers:{
-            //     Authorization: `Bearer ${user.access}`
-            //   }
-            // })
-            // setLoading(false);
-            // if(res?.data?.error) return dispatch(setShowPopupDialog({title: "Error", message: res.data.error, workDone: false}));
-            // dispatch(setShowPopupDialog({title: "Success", message: "Saved Successfully", workDone: true , to: 'Dashboard'}));
-          // Alert.alert("Success", "Saved Successfully", [{ text: "OK" }]);
-          
+           
           }catch(err){
             setLoading(false);
             if(err?.message === 'Location request failed due to unsatisfied device settings'){
@@ -163,7 +177,6 @@ const SetTarget = () => {
               }
             console.log({err});
             dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong", workDone: false}));
-            // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
           }
         }
         dispatch(toggleUpdate());
@@ -254,6 +267,7 @@ const SetTarget = () => {
                   onChangeText={value => useChangeData('name', value , true , setFormData)}
                   placeholder="Enter Your Name"
                   style={styles.inputText}
+                  ref={(ref) => inputRefs.current['name'] = ref}
                 />
               </View>
 
@@ -305,6 +319,19 @@ const SetTarget = () => {
                   placeholder="Enter Booking Target"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => inputRefs.current['bookingTarget'] = ref}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Follow Up</Text>
+                <TextInput
+                  value={formData.followUpTarget.toString()}
+                  onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
+                  placeholder="Enter Follow Up Target"
+                  style={styles.inputText}
+                  keyboardType="numeric"
+                  ref={(ref) => inputRefs.current['followUpTarget'] = ref}
                 />
               </View>
 
@@ -316,6 +343,7 @@ const SetTarget = () => {
                   placeholder="Enter Sage Mitra F/W Target"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => inputRefs.current['SMFollowUpTarget'] = ref}
                 />
               </View>
     
@@ -327,19 +355,11 @@ const SetTarget = () => {
                   placeholder="Enter Coporate Target"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => inputRefs.current['corporateTarget'] = ref}
                 />
               </View>
     
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Follow Up</Text>
-                <TextInput
-                  value={formData.followUpTarget.toString()}
-                  onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
-                  placeholder="Enter Follow Up Target"
-                  style={styles.inputText}
-                  keyboardType="numeric"
-                />
-              </View>
+              
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Home Visit</Text>
@@ -348,6 +368,7 @@ const SetTarget = () => {
                   onChangeText={value => useChangeData('homeVisitTarget', value , true , setFormData)}
                   placeholder="Enter Home Visit Target"
                   style={styles.inputText}
+                  ref={(ref) => inputRefs.current['homeVisitTarget'] = ref}
                   keyboardType="numeric"
                 />
               </View>
@@ -360,6 +381,7 @@ const SetTarget = () => {
                   value={formData.siteVisitTarget.toString()}
                   onChangeText={value => useChangeData('siteVisitTarget', value ,true , setFormData)}
                   placeholder="Enter Site Visit Target"
+                  ref={(ref) => inputRefs.current['siteVisitTarget'] = ref}
                   style={styles.inputText}
                   keyboardType="numeric"
                 />
@@ -372,6 +394,7 @@ const SetTarget = () => {
                   onChangeText={value => useChangeData('admissionTarget', value , true , setFormData)}
                   placeholder="Enter Admission Target"
                   style={styles.inputText}
+                  ref={(ref) => inputRefs.current['admissionTarget'] = ref}
                   keyboardType="numeric"
                 />
             </View>
@@ -384,6 +407,7 @@ const SetTarget = () => {
                   placeholder="Enter IP Patient Target"
                   style={styles.inputText}
                   keyboardType="numeric"
+                  ref={(ref) => inputRefs.current['ipPatientTarget'] = ref}
                 />
               </View>
     
@@ -392,7 +416,7 @@ const SetTarget = () => {
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ width: "100%", height: 100, backgroundColor: "white" }}></View>
+            <View style={{ width: "100%", height: 100, backgroundColor: '#F6F5F5', }}></View>
           </ScrollView>
         </SafeAreaView>
       );
@@ -401,7 +425,7 @@ const SetTarget = () => {
     const styles = StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: "white",
+        backgroundColor: '#F6F5F5',
         paddingHorizontal: 24,
         paddingVertical: 10,
       },

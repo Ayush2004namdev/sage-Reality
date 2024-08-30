@@ -24,6 +24,8 @@ const SiteVisit = () => {
             }
         },[])
     )
+
+
     useEffect(() => {
         
         console.log('');
@@ -95,8 +97,8 @@ const SiteVisit = () => {
             </View>
         )}
 
-        {addClientSiteVisit && <AddClientSiteVisitDetails />}
-        {updateClientSiteVisit && <UpdateClientSiteVisitDetails />}
+        {addClientSiteVisit && <AddClientSiteVisitDetails setAddClientSiteVisit={setAddClientSiteVisit} setUpdateClientSiteVisit={setUpdateClientSiteVisit} />}
+        {updateClientSiteVisit && <UpdateClientSiteVisitDetails setAddClientSiteVisit={setAddClientSiteVisit} setUpdateClientSiteVisit={setUpdateClientSiteVisit}/>}
 
 
     </View>

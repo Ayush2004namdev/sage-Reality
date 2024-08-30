@@ -34,7 +34,8 @@ const TabNavigator = () => (
           paddingTop: 10,
           height: 60,
           position: 'absolute',
-          borderRadius:20
+          borderTopRightRadius: 20,
+          borderTopLeftRadius: 20
         },
         tabBarLabel: '',
         headerShown:false,

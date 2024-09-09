@@ -111,7 +111,7 @@ const Admission = () => {
 
       return Alert.alert(
         "🔴 OOPS!",
-        `Please provide ${alertFieldName}. This field is Required.`,
+        `Please provide ${alertFieldName}.`,
         [
           {
             text: "OK",

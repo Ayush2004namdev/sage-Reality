@@ -43,7 +43,6 @@ const Dashboard = ({setUserLoggedIn}) => {
     // setLoading(false);
     const getData = async () => {
       try{
-        await getLocation();
         // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
@@ -53,9 +52,12 @@ const Dashboard = ({setUserLoggedIn}) => {
           }
         })
         // console.log(res.data.source);
-        console.log(res.data.states_location);
-        // console.log(res.data.interested_localities);
+        // console.log(res.data.interested_localities)c;
         dispatch(setAllDropdownData(res.data))
+        const loc = await getLocation();
+        if(loc){
+          dispatch(setUserLocation(loc));
+        }
       }
       catch(err){
         if(err?.message === 'Location request failed due to unsatisfied device settings'){
@@ -137,13 +139,14 @@ const Dashboard = ({setUserLoggedIn}) => {
               height:'40%',
               width:'100%',
             }}>
-              <Image source={card.icon} style={{width:55 , height:55 }} />
+              <Image source={card.icon} style={(card.id === 3 || card.id === 5) ? {width:58 , height:58 } : {width:70 , height:70}} />
               <Text style={{
-                fontSize:16,
+                fontSize:14,
                 textAlign:'center',
-                fontFamily:'sans-serif',
+                // fontFamily:'sans-serif',
                 fontWeight:'bold',
-                // marginTop:-8,
+                marginTop:-4,
+                paddingHorizontal:10,
                 width:'100%',
                 color:blue,
               }}>{card.text}</Text>
@@ -152,7 +155,7 @@ const Dashboard = ({setUserLoggedIn}) => {
 
                 width:'100%',
                 height:'55%',
-                marginTop:10,
+                marginTop: 20,
                 paddingTop:18,
                 paddingBottom:10                    
               }}>

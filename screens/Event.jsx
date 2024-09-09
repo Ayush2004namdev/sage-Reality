@@ -101,10 +101,10 @@ const Event = () => {
 
         switch (emptyField) {
           case "eventType":
-            alertFieldName = "Event Type";
+            alertFieldName = "Type of Event";
             break;
           case "eventName":
-            alertFieldName = "Event Name";
+            alertFieldName = "Name of Event";
             break;
           case "startDate":
             alertFieldName = "Start Date";
@@ -128,7 +128,7 @@ const Event = () => {
         if (emptyField && alertFieldName) {
           Alert.alert(
             "🔴 OOPS!",
-            `Please Provide valid ${alertFieldName}. `,
+            `Please Provide ${alertFieldName}. `,
             [
               {
                 text: "OK",
@@ -223,7 +223,7 @@ const Event = () => {
               <View style={styles.separator}></View>
             
               <View style={styles.inputGroup}>
-            <Text style={styles.label}>Select Event Type</Text>
+            <Text style={styles.label}>Event Type</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.eventType}

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-community/blur": "^4.4.1",
     "@react-native-community/datetimepicker": "^8.0.1",
     "@react-native-picker/picker": "^2.7.5",
     "@react-native-voice/voice": "^3.2.4",
@@ -39,7 +40,8 @@
     "react-native-virtualized-view": "^1.0.0",
     "react-navigation": "^4.4.4",
     "react-redux": "^9.1.2",
-    "victory-native": "^41.0.2"
+    "victory-native": "^41.0.2",
+    "expo-blur": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

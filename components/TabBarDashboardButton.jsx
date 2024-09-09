@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, Pressable } from 'react-native';
+import { Image, Pressable, Text } from 'react-native';
 
 const TabBarDashboardButton = (r) => {
     const {navigate} = useNavigation();
@@ -8,12 +8,18 @@ const TabBarDashboardButton = (r) => {
     <Pressable onPress={() => navigate('Dashboard')} style={{
         position:'absolute',
         bottom:5,
-        left:20
+        left:10,
+        display:'flex',
+        alignItems:'center',
     }}>
       <Image source={require('../assets/DashboardIco.png')} style={{
-        width: 45,
-        height: 45,
+        width: 35,
+        height: 35,
       }} />
+      <Text style={{
+        color:'white',
+        fontSize:10,
+      }}>Dashboard</Text>
     </Pressable>
   )
 }

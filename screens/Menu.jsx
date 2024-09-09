@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Dimensions, Pressable, StyleSheet } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import BottomDrawer from '../components/BottomDrawer';
 import { setIsMenuOpen } from '../redux/slices/misc';
@@ -32,7 +32,18 @@ const Menu = () => {
         </Pressable>
       )}
       <Pressable onPress={handleMenuOnPress} style={styles.menuIcon}>
-        <Ionicons name="grid-outline" size={30} color="white" />
+        <Image source={require('../assets/MenuHam.png')} style={{
+          height:24,
+          width:27,
+          paddingHorizontal:10,
+        }} />
+        {/* <Ionicons name="menu" style={{
+          marginBottom:0,
+        }} size={30} color="white" /> */}
+        <Text style={{
+          color: 'white',
+          fontSize: 10,
+        }}>Menu</Text>
       </Pressable>
     </>
   );
@@ -48,11 +59,13 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     position: 'absolute',
-    bottom: 7,
+    bottom: -3,
     right: 10,
     padding: 10,
     borderRadius: 50,
-    zIndex: 10,
+    zIndex:1,
+    display:'flex',
+    alignItems:'center',
   },
   drawerContainer: {
     position: 'absolute',

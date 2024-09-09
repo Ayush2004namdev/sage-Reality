@@ -22,6 +22,81 @@ const SetTarget = () => {
     const [changed , setChanged] = useState(false);
     const inputRefs = useRef({});
 
+    useFocusEffect(
+      useCallback(() => {
+        const getData = async () => {
+          console.log('');
+          setLoading(true);
+          try{
+              const res = await axios.get(`http://182.70.253.15:8000/api/Get-Target/${user.user.first_name}` ,{
+                withCredentials: true,
+                headers:{
+                  'Authorization': `Bearer ${user.access}`
+                }
+              })
+              console.log({'f':res.data});
+              if(res?.data?.error){
+                throw new Error(res.data.error);
+              }
+              if(!res?.data) return;
+              res?.data?.forEach((target) => {
+                switch(target.Target_id){
+                  case 1 :
+                      dataTemplate.bookingTarget = target.target;
+                      break;
+                  case 3 :
+                      dataTemplate.followUpTarget = target.target;
+                      break;
+                  case 2 :
+                      dataTemplate.corporateTarget = target.target;
+                      break;
+                  case 4 :
+                      dataTemplate.homeVisitTarget = target.target;
+                      break;
+                  case 5 :
+                      dataTemplate.SMFollowUpTarget = target.target;
+                      break;
+                  case 6 :
+                      dataTemplate.siteVisitTarget = target.target;
+                      break;
+                  case 7 :
+                      dataTemplate.admissionTarget = target.target;
+                      break;
+                  case 8 :
+                      dataTemplate.ipPatientTarget = target.target;
+                      break;
+                  default:
+                      break;  
+                 }
+              })
+              
+             setFormData(prev => ({ name: user.user.first_name,
+              month:new Date().getMonth(),
+              year:new Date().getFullYear(),...dataTemplate}));
+
+          }
+          catch(err){
+            Alert.alert(
+              "🔴 OOPS!",
+              `${err.message || 'Something Went Wrong'} .`,
+              [
+                { 
+                  text: "OK",
+                  // onPress: () => inputRefs?.current[emptyField]?.focus()
+                },
+              ],
+              { cancelable: false }
+            );
+            console.log({'err':err.message})
+          }
+          finally{
+            setLoading(false);
+          }
+        }
+        getData();
+      },[changed])
+    )
+
     const dataTemplate = {
       bookingTarget:'',
       followUpTarget:'',
@@ -55,13 +130,24 @@ const SetTarget = () => {
       };
     
     
+      console.log({formData});
     
     
       const handleSubmit = async () => {
-        const emptyField = Object.keys(formData).find(key => {
-          if(formData[key] === '') return key;
-          if(formData[key] >= 0) return false;
-          return key;
+        // console.log('ji');
+        // console.log({formData});
+        const emptyField = Object.keys(formData).find((key) => {
+          if(key === 'month' || key === 'year') return false;
+          if(typeof formData[key] === 'string'){
+            if (formData[key].trim().length === 0) {
+              return key;
+            }
+          }
+          else{
+            if (formData[key].toString().trim().length === 0) {
+              return key;
+            }
+          }          
         });
         
         let alertFieldName = "";
@@ -94,7 +180,6 @@ const SetTarget = () => {
     default:
       alertFieldName = false;
   }
-
         if (emptyField && alertFieldName) {
           Alert.alert(
             "🔴 OOPS!",
@@ -167,7 +252,7 @@ const SetTarget = () => {
               location: location
             }
             await submitForm(`Set-Target/${user.user.first_name}`, data , user , setShowPopupDialog , setLoading , dispatch);
-           
+          //  setLoading(false);
           }catch(err){
             setLoading(false);
             if(err?.message === 'Location request failed due to unsatisfied device settings'){
@@ -183,62 +268,7 @@ const SetTarget = () => {
         setChanged(!changed);
       };
 
-      useFocusEffect(
-        useCallback(() => {
-          const getData = async () => {
-            console.log('');
-            try{
-                const res = await axios.get(`http://182.70.253.15:8000/api/Get-Target/${user.user.first_name}` ,{
-                  withCredentials: true,
-                  headers:{
-                    'Authorization': `Bearer ${user.access}`
-                  }
-                })
-                // console.log({'f':res.data});
-                if(!res?.data) return;
-                res?.data?.forEach((target) => {
-                  switch(target.Target_id){
-                    case 1 :
-                        dataTemplate.bookingTarget = target.target;
-                        break;
-                    case 3 :
-                        dataTemplate.followUpTarget = target.target;
-                        break;
-                    case 2 :
-                        dataTemplate.corporateTarget = target.target;
-                        break;
-                    case 4 :
-                        dataTemplate.homeVisitTarget = target.target;
-                        break;
-                    case 5 :
-                        dataTemplate.SMFollowUpTarget = target.target;
-                        break;
-                    case 6 :
-                        dataTemplate.siteVisitTarget = target.target;
-                        break;
-                    case 7 :
-                        dataTemplate.admissionTarget = target.target;
-                        break;
-                    case 8 :
-                        dataTemplate.ipPatientTarget = target.target;
-                        break;
-                    default:
-                        break;  
-                   }
-                })
-                
-               setFormData(prev => ({ name: user.user.first_name,
-                month:new Date().getMonth(),
-                year:new Date().getFullYear(),...dataTemplate}));
-
-            }
-            catch(err){
-              console.log({err})
-            }
-          }
-          getData();
-        },[changed])
-      )
+      
     
       return (
         <SafeAreaView>
@@ -258,18 +288,6 @@ const SetTarget = () => {
               <Text style={styles.title}>Set Monthly Target</Text>
               <View style={styles.separator}></View>
               {/* <Text style={styles.caption}>Feed Your Monthly Target.</Text> */}
-    
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Name</Text>
-                <TextInput
-                  editable={false}
-                  value={formData.name}
-                  onChangeText={value => useChangeData('name', value , true , setFormData)}
-                  placeholder="Enter Your Name"
-                  style={styles.inputText}
-                  ref={(ref) => inputRefs.current['name'] = ref}
-                />
-              </View>
 
               <View style={styles.inputGroup}>
             <Text style={styles.label}>Select Month</Text>
@@ -278,6 +296,7 @@ const SetTarget = () => {
                 selectedValue={formData.month}
                 onValueChange={(itemValue) => useChangeData('month', itemValue , true , setFormData)}
                 style={styles.picker}
+                enabled={false}
               >
                 <Picker.Item label='January' value={0} />
                 <Picker.Item label='February' value={1} />
@@ -324,7 +343,7 @@ const SetTarget = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Follow Up</Text>
+                <Text style={styles.label}>Follow-Up</Text>
                 <TextInput
                   value={formData.followUpTarget.toString()}
                   onChangeText={value => useChangeData('followUpTarget', value , true , setFormData)}
@@ -336,11 +355,11 @@ const SetTarget = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Sage Mitra F/W</Text>
+                <Text style={styles.label}>Sage Mitra Follow Up</Text>
                 <TextInput
                   value={formData.SMFollowUpTarget.toString()}
                   onChangeText={value => useChangeData('SMFollowUpTarget', value , true , setFormData)}
-                  placeholder="Enter Sage Mitra F/W Target"
+                  placeholder="Enter Sage Mitra Follow Up Target"
                   style={styles.inputText}
                   keyboardType="numeric"
                   ref={(ref) => inputRefs.current['SMFollowUpTarget'] = ref}
@@ -400,7 +419,7 @@ const SetTarget = () => {
             </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>IP Patient</Text>
+                <Text style={styles.label}>IP-Patient</Text>
                 <TextInput
                   value={formData.ipPatientTarget.toString()}
                   onChangeText={value => useChangeData('ipPatientTarget', value , true , setFormData)}

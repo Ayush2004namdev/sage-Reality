@@ -52,7 +52,7 @@ const BottomDrawer = ({ isVisible, onClose }) => {
         <Pressable onPress={(e) => e.stopPropagation()}>
           {menuItems.map((item, index) => (
             <TouchableOpacity key={index} style={styles.menuItem} onPress={() => { navigation.navigate(item.route); onClose(); }}>
-              <Image source={item.icon} style={{ width: 28, height: 28 }} />
+              <Image source={item.icon} style={{ width: 36, height: 36 }} />
               <Text style={styles.menuText}>{item.name}</Text>
               <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
                 <Image source={require('../assets/ArrowIcon.png')} style={{ width: 24, height: 24 }} />
@@ -60,7 +60,7 @@ const BottomDrawer = ({ isVisible, onClose }) => {
             </TouchableOpacity>
           ))}
           <TouchableOpacity style={styles.menuItem} onPress={handleLogOut}>
-            <Image source={require('../assets/Logout.png')} style={{ width: 24, height: 24 }} />
+            <Image source={require('../assets/Logout.png')} style={{ width: 36, height: 36 }} />
             <Text style={styles.menuText}>Logout</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -97,20 +97,20 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
   menuText: {
     marginLeft: 15,
-    fontSize: 18,
+    fontSize: 15,    
   },
   closeButton: {
     marginTop: 20,
     alignItems: 'center',
   },
   closeButtonText: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#007BFF',
   },
 });

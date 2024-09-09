@@ -44,8 +44,8 @@ const HomeVisit = () => {
     location: "",
     date: new Date(),
     image: null,
-    teamMembers: [],
     visit_type: "",
+    teamMembers: [],
   });
 
   const [showTeamSelect, setShowTeamSelect] = useState(false);
@@ -63,8 +63,8 @@ const HomeVisit = () => {
         location: "",
         date: new Date(),
         image: null,
-        teamMembers: [],
         visit_type: "",
+        teamMembers: [],
       })
     },[])
   )
@@ -103,7 +103,7 @@ const HomeVisit = () => {
         // console.log(res.data);
       }
       else{
-        Alert.alert("Alert" , "No data found" , [{text: "OK"}]);
+        Alert.alert("Alert" , "No Previous Home Visit Found" , [{text: "OK"}]);
       }
       setIsLoading(false)
     } catch (err) {
@@ -173,7 +173,7 @@ const HomeVisit = () => {
       
 
       if(key === "remark"){
-        if(formData[key].length < 150) return key;
+        if(formData[key].length < 100) return key;
       }
 
       return !formData[key];
@@ -198,7 +198,7 @@ const HomeVisit = () => {
       alertFieldName = "Date";
       break;
     case "image":
-      alertFieldName = "Image";
+      alertFieldName = "Home Visit Pic";
       break;
     case "teamMembers":
       alertFieldName = "Team Members";
@@ -228,7 +228,7 @@ const HomeVisit = () => {
         if (emptyField === "remark")
           return Alert.alert(
             "🔴 OOPS!",
-            `Please enter atleast 150 characters.`,
+            `Please enter atleast 100 characters.`,
             [
               {
                 text: "OK",
@@ -240,7 +240,7 @@ const HomeVisit = () => {
           if (emptyField === "image")
             return Alert.alert(
               "🔴 OOPS!",
-              "Please provide an image.",
+              "Please provide a Home Visit Pic.",
               [
                 {
                 text: "OK",
@@ -421,8 +421,8 @@ const HomeVisit = () => {
               }}>
                 <Text style={styles.label}>Remark</Text>
                 <Text style={{
-                  color: formData.remark.length > 150 ? 'green' : 'red'
-                }}>{formData.remark.length}/150</Text>
+                  color: formData.remark.length > 100 ? 'green' : 'red'
+                }}>{formData.remark.length}/100</Text>
                 </View>
            
             <TextInput

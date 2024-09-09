@@ -30,6 +30,7 @@ const SageMitraFollowUp = () => {
   const [searchVal, setSearchVal] = useState("");
   const [showAddSageMitra, setShowAddSageMitra] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
+  const [wordLimit , setWordLimit] = useState(100);
   const inputRefs = useRef({});
 
   const { sage_mitra_list, showPopupDialog } = useSelector(
@@ -44,14 +45,14 @@ const SageMitraFollowUp = () => {
   };
 
   const [formData, setFormData] = useState({
+    sageMitra: "",
+    mobileNumber: "",
     new_sm_name: "",
     new_sm_contact: "",
     name: user.user.first_name,
     date: new Date(),
-    mobileNumber: "",
     noOfLeads: "",
     leadDetails: "",
-    sageMitra: "",
    
   });
 
@@ -60,28 +61,28 @@ const SageMitraFollowUp = () => {
     useCallback(() => {
       console.log("");
       setFormData({
+        sageMitra: "",
+        mobileNumber: "",
         new_sm_name: "",
         new_sm_contact: "",
         name: user.user.first_name,
         date: new Date(),
-        mobileNumber: "",
         noOfLeads: "",
         leadDetails: "",
-        sageMitra: "",
       });
       setSearchVal("");
       setMobileNumber("");
       setLoading(false);
       return () => {
         setFormData({
+          sageMitra: "",
+          mobileNumber: "",
           new_sm_name: "",
           new_sm_contact: "",
           name: user.user.first_name,
           date: new Date(),
-          mobileNumber: "",
           noOfLeads: "",
           leadDetails: "",
-          sageMitra: "",
         });
         setSearchVal("");
         setMobileNumber("");
@@ -133,28 +134,32 @@ const SageMitraFollowUp = () => {
     const emptyField = Object.keys(formData).find((key) => 
       {
 
-        console.log(key , formData[key]);
-
-      if (key === "new_sm_contact" || key === "new_sm_name") {
-        if (formData.sageMitra === "Others") {
-          console.log(key,formData[key]); 
-
-          if(key === 'new_sm_contact'){
-            const mob = formData[key].toString();
-            if(mob.length !== 10 || mob[0]<6) return key;
+        if(key === 'noOfLeads'){
+          if(formData[key].toString().trim().length <= 0) return key;
+          if(Number(formData[key]) < 0) return key;
+          return false;
+        }
+        
+        if (key === "new_sm_contact" || key === "new_sm_name") {
+          if (formData.sageMitra === "Others") {
+            console.log(key,formData[key]); 
+            
+            if(key === 'new_sm_contact'){
+              const mob = formData[key].toString();
+              if(mob.length !== 10 || mob[0]<6) return key;
           } 
           if(key === 'new_sm_name' && formData[key].length < 3) return key;
-
+          
           return false;
         }
         return false;
       }
-
+      
       if(key === 'sageMitra' && formData[key] === 'Others') return false;
 
       if(key === 'mobileNumber') return false;
 
-      if(key === 'leadDetails' && formData[key].length < 150) return key;
+      if(key === 'leadDetails' && formData[key].length < wordLimit) return key;
 
       return !formData[key];
     });
@@ -174,7 +179,7 @@ const SageMitraFollowUp = () => {
       alertFieldName = "Lead Details";
       break;
     case "sageMitra":
-      alertFieldName = "Sage Mitra";
+      alertFieldName = "Sage Mitra Name";
       break;
     case "new_sm_name":
       alertFieldName = "New Sage Mitra Name";
@@ -192,7 +197,7 @@ const SageMitraFollowUp = () => {
       if(emptyField === 'leadDetails'){
         return Alert.alert(
           "🔴 OOPS!",
-          `Please Provide atleast 150 characters.`,
+          `Please Provide atleast 100 characters.`,
           [
             {
               text: "OK",
@@ -280,7 +285,7 @@ const SageMitraFollowUp = () => {
           <View style={styles.separator}></View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Select Sage Mitra</Text>
+            <Text style={styles.label}>Sage Mitra</Text>
             <TextInput
               placeholder="Enter SAGE Mitra Name"
               style={styles.inputText}
@@ -383,13 +388,20 @@ const SageMitraFollowUp = () => {
 
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>No Of leads</Text>
+            <Text style={styles.label}>Number Of Leads</Text>
             <TextInput
               value={formData.noOfLeads}
-              onChangeText={(value) =>
+              onChangeText={(value) =>{
+                console.log(typeof value);
                 useChangeData("noOfLeads", value, true, setFormData)
+                if(Number(value) <= 0){
+                  setWordLimit(50);
+                }else{
+                  setWordLimit(100);
+                }
+            }
               }
-              placeholder="No of leads shared in this follow up"
+              placeholder="Number of Leads shared in this follow up"
               style={styles.inputText}
               keyboardType="numeric"
               ref={(ref) => (inputRefs.current["noOfLeads"] = ref)}
@@ -403,10 +415,10 @@ const SageMitraFollowUp = () => {
                 justifyContent:'space-between',
                 alignItems:'center',
               }}>
-                 <Text style={styles.label}>Lead Details</Text>
+                 <Text style={styles.label}>Follow Up Details</Text>
                 <Text style={{
-                  color: formData.leadDetails.length > 150 ? 'green' : 'red'
-                }}>{formData.leadDetails.length}/150</Text>
+                  color: formData.leadDetails.length > wordLimit ? 'green' : 'red'
+                }}>{formData.leadDetails.length}/{wordLimit}</Text>
                 </View>
            
             <TextInput

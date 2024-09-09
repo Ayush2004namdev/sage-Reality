@@ -86,7 +86,7 @@ const IPDone = () => {
     if (emptyField && alertFieldName) {
       return Alert.alert(
         "🔴 OOPS!",
-        `Please provide valid ${alertFieldName}`,
+        `Please provide ${alertFieldName}`,
         [
           { 
             text: "OK",

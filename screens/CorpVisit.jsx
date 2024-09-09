@@ -35,12 +35,14 @@ const CorpVisit = () => {
   const [showPlannedDatePicker, setShowPlannedDatePicker] = useState(false);
   const [showReasonTextInput, setShowReasonTextInput] = useState(false);
   const [showTeamSelect, setShowTeamSelect] = useState(false);
+  const [corporateList , setCorporateList] = useState([]);
   const { corporate_list, corporate_type, members , showPopupDialog} = useSelector((state) => state.misc);
   const [loading, setLoading] = useState(false);
   const { user ,location} = useSelector((state) => state.user);
   const inputRefs = useRef({});
   const dispatch = useDispatch();
   const [showKeyPresonTwo , setShowKeyPresonTwo] = useState(false);
+  const [showNumberOfAttendees , setShowNumberOfAttendees] = useState(false);
   const [formData, setFormData] = useState({  
     corporateType: "select",
     corporate: "select", 
@@ -48,6 +50,8 @@ const CorpVisit = () => {
     location: "",
     keyPerson: "",
     mobileNumber: "",
+    key_person_two: "",
+    key_person_contact_two: "",
     noOfPeopleMet: "",
     DataCollected: "",
     firstGroupValue: null,
@@ -56,8 +60,7 @@ const CorpVisit = () => {
     plannedDate: new Date(),
     image: null,
     reason: "",
-    key_person_two: "",
-    key_person_contact_two: "",
+    number_of_attendees: "",
     teamMembers: [],
   });
 
@@ -69,6 +72,8 @@ const CorpVisit = () => {
       location: "",
       keyPerson: "",
       mobileNumber: "",
+      key_person_two: "",
+      key_person_contact_two: "",
       noOfPeopleMet: "",
       DataCollected: "",
       firstGroupValue: null,
@@ -77,8 +82,7 @@ const CorpVisit = () => {
       plannedDate: new Date(),
       image: null,
       reason: "",
-      key_person_two: "",
-      key_person_contact_two: "",
+      number_of_attendees: "",
       teamMembers: [],
     })
     setShowKeyPresonTwo(false);
@@ -86,6 +90,8 @@ const CorpVisit = () => {
     setShowPlannedDatePicker(false);
     setShowDatePicker(false);
     setShowTeamSelect(false);
+    setShowNumberOfAttendees(false);
+    
   },[]))
 
   const onPlannedDateChange = (event, selectedDate) => {
@@ -118,15 +124,22 @@ const CorpVisit = () => {
   const handleAddKeypersonPress = () => {
       setShowKeyPresonTwo(true);
   }
-
+  
   const handleSubmit = async () => {
+
+    console.log({formData});
     const emptyField = Object.keys(formData).find((key) => {
 
+      if(key === 'number_of_attendees'){
+        if(!showNumberOfAttendees) return false;
+        if(formData.number_of_attendees.toString().trim() === "") return key;
+        if(formData.number_of_attendees < 5) return key;
+        return false;
+      }
 
       if (key === "reason" ) {
-        // console.log(formData['firstGroupValue'] , ' ========= ',formData["reason"]);
         if (formData['firstGroupValue'] === "NotPlanned" && formData["reason"] === "") {
-          if(formData['reason'].length < 150) return key;
+          if(formData['reason'].length < 50) return key;
           return true;
         }
         return false;
@@ -158,6 +171,11 @@ const CorpVisit = () => {
         return true;
       }
 
+      // if(key === 'number_of_attendees'){
+      //   console.log(formData[key]);
+      //   console.log(typeof formData[key]);
+      // }
+
       if(typeof formData[key] === 'string'){
         if(formData[key].trim() === ""){
           return key;
@@ -175,7 +193,11 @@ const CorpVisit = () => {
       return true;
     }
      
-
+      if(key === 'corporate'){
+        if(corporateList.length === 0) return false;
+        if(formData[key] === 'select') return key;
+        return false;
+      }
       if(key === 'corporateType' || key === 'corporate') return formData[key] === 'select';
 
       if(key === 'mobileNumber'){
@@ -207,7 +229,7 @@ const CorpVisit = () => {
         alertFieldName = "Mobile Number";
         break;
       case "corporateType":
-        alertFieldName = "Corporate Type";
+        alertFieldName = "Type of Corporate";
         break;
       case "corporate":
         alertFieldName = "Corporate Name";
@@ -222,7 +244,7 @@ const CorpVisit = () => {
         alertFieldName = "Planned Date";
         break;
       case "image":
-        alertFieldName = "Image";
+        alertFieldName = "Corporate Visit Pic";
         break;
       case "reason":
         alertFieldName = "Reason";
@@ -242,15 +264,43 @@ const CorpVisit = () => {
       case "teamMembers":
         alertFieldName = "Team Members";
         break;
+      case "number_of_attendees":
+        alertFieldName = "Number of Attendees";
+        break;
       default:
-        alertFieldName = false;
+        alertFieldName = 'All Details';
     }
 
     if (emptyField && alertFieldName) {
 
+      if(emptyField === 'number_of_attendees'){
+        return Alert.alert(
+          "🔴 OOPS!",
+          `Number of Attendees should be greater than 5.`,
+          [
+            {
+              text: "OK",
+              onPress: () => inputRefs?.current[emptyField]?.focus(),
+            }
+          ]
+        );
+      }
+
+      if(alertFieldName === 'All Details'){
+        return Alert.alert(
+          "🔴 OOPS!",
+          `Please Provide ${alertFieldName === 'mobileNumber' ? 'valid ' : ''}${alertFieldName}.`,
+          [
+            {
+              text: "OK",
+              // onPress: () => inputRefs?.current[emptyField]?.focus(),
+            }
+          ]
+        );
+      }
       Alert.alert(
         "🔴 OOPS!",
-        `Please Provide valid ${alertFieldName}.`,
+        `Please Provide ${alertFieldName === 'mobileNumber' ? 'valid ' : ''}${alertFieldName}.`,
         [
           {
             text: "OK",
@@ -282,8 +332,8 @@ const CorpVisit = () => {
       const data = {
         name : formData.name,
         date : formatDate(formData.date),
-        corp_type : formData.corporateType,
-        corp_name : formData.corporate,
+        corp_type : formData.corporateType[0],
+        corp_name : formData.corporate[0],
         location : formData.location,
         key_person : formData.keyPerson,
         key_person_contact : formData.mobileNumber,
@@ -296,27 +346,29 @@ const CorpVisit = () => {
         visit_type : formData.secondGroupValue,
         co_name : formData.teamMembers,
         lat_long: lat_long,
+        num_attend: formData.number_of_attendees,
       }
 
       await submitForm('Coporate-Visit-Form',data , user , setShowPopupDialog , setLoading , dispatch);
     setFormData({
-        name: user.user.first_name,
-        location: "",
-        keyPerson: "",
-        mobileNumber: "",
-        corporateType: "select",
-        corporate: "select",
-        firstGroupValue: null,
-        secondGroupValue: null,
-        date: new Date(),
-        plannedDate: new Date(),
-        image: null,
-        reason: "",
-        noOfPeopleMet: "",
-        DataCollected: "",
-        teamMembers: [],
-        key_person_contact_two: "",
-        key_person_two: "",
+      corporateType: "select",
+    corporate: "select", 
+    name: user.user.first_name,
+    location: "",
+    keyPerson: "",
+    mobileNumber: "",
+    key_person_two: "",
+    key_person_contact_two: "",
+    noOfPeopleMet: "",
+    DataCollected: "",
+    firstGroupValue: null,
+    secondGroupValue: null,
+    date: new Date(),
+    plannedDate: new Date(),
+    image: null,
+    reason: "",
+    number_of_attendees: "",
+    teamMembers: [],
       })
     } catch (err) {
       console.log(err);
@@ -327,9 +379,26 @@ const CorpVisit = () => {
         }
       dispatch(setShowPopupDialog({title: "Error", message: "Something went wrong" , workDone: false}));
     }finally{
-
+      setLoading(false);
     }
   };
+
+  const handleCorporateListChange = (itemValue) => {
+    if(itemValue === 'select'){
+      setFormData({...formData , corporateType: itemValue});
+      setCorporateList([]);
+      return;
+      }
+    console.log(itemValue[1]);
+    // console.log(corporate_list);
+    const filtered = corporate_list.filter((item) => item[1].toString() === itemValue[1].toString());
+    console.log(filtered);
+    setCorporateList(filtered);
+  }
+
+  const currentDate = new Date();
+  const oneDayAfter = new Date(currentDate);
+  oneDayAfter.setMonth(currentDate.getMonth() + 1);
 
 
   return (
@@ -349,14 +418,13 @@ const CorpVisit = () => {
         <View style={styles.container}>
           <Text style={styles.title}>Corporate Visit</Text>
           <View style={styles.separator}></View>
-
-       
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Corporate Type</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.corporateType}
                 onValueChange={(itemValue) =>{
+                  handleCorporateListChange(itemValue);
                   setFormData({...formData , corporateType: itemValue});
                   // useChangeData("corporateType", itemValue , false , setFormData)
                 }
@@ -365,7 +433,7 @@ const CorpVisit = () => {
               >
                 <Picker.Item label="Select" value="select" />
                 {corporate_type.map((item, index) => (
-                  <Picker.Item label={item} value={item} key={index} />
+                  <Picker.Item label={item[0]} value={item} key={index} />
                 ))}
               </Picker>
             </View>
@@ -376,14 +444,15 @@ const CorpVisit = () => {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.corporate}
-                onValueChange={(itemValue) =>
-                  useChangeData("corporate", itemValue , false , setFormData)
+                onValueChange={(itemValue) => {
+                  setFormData({...formData , corporate: itemValue})
                 }
+              }
                 style={styles.picker}
               >
                 <Picker.Item label="Select" value="select" />
-                {corporate_list.map((item, index) => (
-                  <Picker.Item label={item} value={item} key={index} />
+                {corporateList.map((item, index) => (
+                  <Picker.Item label={item[0]} value={item} key={index} />
                 ))}
               </Picker>
             </View>
@@ -439,7 +508,7 @@ const CorpVisit = () => {
           {showKeyPresonTwo && (
               <>
                  <View style={styles.inputGroup}>
-            <Text style={styles.label}>Key Person Two</Text>
+            <Text style={styles.label}>Second Key Person</Text>
             <View style={{
             display:'flex',
             flexDirection:'row',
@@ -449,7 +518,7 @@ const CorpVisit = () => {
             <TextInput
               value={formData.key_person_two}
               onChangeText={(value) => useChangeData("key_person_two", value , false , setFormData)}
-              placeholder="Enter Key Person Two Name"
+              placeholder="Enter Second Key Person Name"
               style={[styles.inputText , {width:"90%"}]}
               ref={(ref) => (inputRefs.current["key_person_two"] = ref)}
             />
@@ -465,7 +534,7 @@ const CorpVisit = () => {
               keyboardType="numeric"
               value={formData.key_person_contact_two}
               onChangeText={(value) => useChangeData("key_person_contact_two", value , true , setFormData)}
-              placeholder="Enter Mobile Number of Key Person Two"
+              placeholder="Enter Mobile Number of Second Key Person"
               style={styles.inputText}
               ref={(ref) => (inputRefs.current["key_person_contact_two"] = ref)}
               />
@@ -476,14 +545,14 @@ const CorpVisit = () => {
 
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>No of People Met</Text>
+            <Text style={styles.label}>Number of People Met</Text>
             <TextInput
               keyboardType="numeric"
               value={formData.noOfPeopleMet}
               onChangeText={(value) =>
                 useChangeData("noOfPeopleMet", value , true , setFormData)
               }
-              placeholder="Enter No of People Met"
+              placeholder="Enter Number of People Met"
               style={styles.inputText}
               ref={(ref) => (inputRefs.current["noOfPeopleMet"] = ref)}
             />
@@ -510,12 +579,15 @@ const CorpVisit = () => {
                 onValueChange={(value) => {
                   useChangeData("firstGroupValue", value , false , setFormData);
                   if (value === "Planned") {
+                    setShowNumberOfAttendees(false)
                     setShowPlannedDatePicker(true);
                     setShowReasonTextInput(false);
                   } else if (value === "NotPlanned") {
+                    setShowNumberOfAttendees(false)
                     setShowReasonTextInput(true);
                     setShowPlannedDatePicker(false);
                   } else {
+                    setShowNumberOfAttendees(true)
                     setShowPlannedDatePicker(false);
                     setShowReasonTextInput(false);
                   }
@@ -560,7 +632,7 @@ const CorpVisit = () => {
                   style={{ flexGrow: 1, paddingHorizontal: 10 }}
                   value={formData.plannedDate.toLocaleDateString()}
                   placeholder="Select Date"
-                  editable={true}
+                  editable={false}
                   ref={(ref) => (inputRefs.current["plannedDate"] = ref)}
                 />
                 <TouchableOpacity
@@ -573,7 +645,8 @@ const CorpVisit = () => {
                   <DateTimePicker
                     value={formData.plannedDate}
                     mode="date"
-                    minimumDate={new Date()}
+                    maximumDate={oneDayAfter}
+                    minimumDate={currentDate}
                     display="default"
                     onChange={onPlannedDateChange}
                   />
@@ -594,8 +667,8 @@ const CorpVisit = () => {
               }}>
                 <Text style={styles.label}>Reason</Text>
                 <Text style={{
-                  color: formData.reason.length > 150 ? 'green' : 'red'
-                }}>{formData.reason.length}/150</Text>
+                  color: formData.reason.length > 50 ? 'green' : 'red'
+                }}>{formData.reason.length}/50</Text>
                 </View>
               <TextInput
                 value={formData.reason}
@@ -606,6 +679,22 @@ const CorpVisit = () => {
                 ref={(ref) => (inputRefs.current["reason"] = ref)}
               />
             </View>
+          )}
+
+          {showNumberOfAttendees && (
+             <View style={styles.inputGroup}>
+             <Text style={styles.label}>Number of Attendees</Text>
+             <TextInput
+               keyboardType="numeric"
+               value={formData.number_of_attendees}
+               onChangeText={(value) =>
+                 useChangeData("number_of_attendees", value , true , setFormData)
+               }
+               placeholder="Enter Number of Attendees"
+               style={styles.inputText}
+               ref={(ref) => (inputRefs.current["number_of_attendees"] = ref)}
+             />
+           </View>
           )}
 
           <Pressable

@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "S.R. Tracker",
+    "name": "SR Tracker",
     "slug": "refactored",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/finalFav.jpg",
+    "icon": "./assets/SRLogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/finalFav.jpg",
+      "image": "./assets/finalFav.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,14 +16,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/finalFav.jpg",
+        "foregroundImage": "./assets/SRLogo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ayushreact.refactored",
       "usesCleartextTraffic": true  
     },
     "web": {
-      "favicon": "./assets/finalFav.png"
+      "favicon": "./assets/SRLogo.png"
     }
   }
 }

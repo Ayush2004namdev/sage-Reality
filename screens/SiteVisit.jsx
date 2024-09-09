@@ -54,7 +54,7 @@ const SiteVisit = () => {
                 width: width,
                 height: height,
                 position: 'absolute',
-                backgroundColor: 'rgba(0,0,0,0.01)',
+                backgroundColor: '#F6F5F5',
                 zIndex: 9999,
                 top: 0,
                 left: 0,
@@ -70,12 +70,14 @@ const SiteVisit = () => {
                     height: 'auto',
                     display: 'flex',
                     flexDirection: 'column',
+                    position:'relative',
+                    top:-40,
                 }}>
                     <Text style={{textAlign:'center' , fontSize:15 , marginBottom:20}}>Site Visit</Text>
                     <View style={{ display:'flex', alignItems:'center', flexDirection:'row', justifyContent:'space-between' }}>
                         <TouchableOpacity style={{
                             color:'white',
-                            backgroundColor:'#007FFF',
+                            backgroundColor:blue,
                             paddingHorizontal: 20,
                             paddingVertical:10,
                             borderRadius: 10,
@@ -85,7 +87,7 @@ const SiteVisit = () => {
                         </TouchableOpacity>
                         <TouchableOpacity style={{
                             color:'white',
-                            backgroundColor:'#007FFF',
+                            backgroundColor:blue,
                             paddingHorizontal: 20,
                             paddingVertical:10,
                             borderRadius: 10,

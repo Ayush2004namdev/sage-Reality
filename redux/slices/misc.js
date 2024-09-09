@@ -51,7 +51,10 @@ const miscSlice = createSlice({
     },
     setCityLocation : (state,action) => {
       state.city_location = action.payload;
-    }
+    },
+    setCorporateList: (state, action) => {
+      state.corporate_list = action.payload;
+    },
   },
 
 });
@@ -64,6 +67,7 @@ export const {
   setShowPopupDialog,
   setLogoutPopup,
   setNewSageMitra,
-  setCityLocation
+  setCityLocation,
+  setCorporateList,
 } = miscSlice.actions;
 export default miscSlice.reducer;

@@ -48,6 +48,7 @@ const UpdateClientSiteVisitDetails = () => {
   const [loading, setLoading] = useState(false);
   const [stateShowenList, setStateShowenList] = useState([]);
   const [citySeach, setCitySearch] = useState('');
+  const [showMeritalStatus, setShowMeritalStatus] = useState(false);
   const [showCityList, setShowCityList] = useState([]);
   const [stateSearch, setStateSearch] = useState('');
   const [showPurposeFeild , setShowPurposeFeild] = useState(false);
@@ -59,36 +60,39 @@ const UpdateClientSiteVisitDetails = () => {
   const [formData, setFormData] = useState({
     visit_type: "direct",
     name: user.user.first_name,
-    source: "",
-    customer_name: "",
     member: "",
+    site_location: ["select"],
     visit_date: new Date(),
+    source: "",
+    source_type: "",
+    customer_name: "",
     address: "",
-    monthly_rent: "",
+    state: "Select",
+    city: "Select",
     customer_contact: "",
     customer_whatsapp: "",
-    instagram_id: "",
+    occupation: "slect",
     email_id: "",
-    facebook_id: "",
+    birth_date: new Date(),
+    merital_status: 'single',
+    marrige_anniversary: new Date(),
+    interested_location: [""],
+    residential_status: "owner",
+    monthly_rent: "",
     company: "",
-    gross_annual_income: "",
     department: "",
     designation: "",
-    birth_date: new Date(),
-    marrige_anniversary: new Date(),
-    budget: "",
     official_email_id: "",
-    interest: "",
     possesion_date: "select",
+    budget: "",
+    interest: "",
+    purpose:'',
     remark: "",
-    city: "Select",
-    state: "Select",
-    interested_location: ["select"],
-    source_type: "",
+    gross_annual_income: "",
+    instagram_id: "",
+    facebook_id: "",
     customer_code: "",
-    site_location: ["select"],
-    residential_status: "tenant",
-    purpose:''
+    business_type:"",
   });
 
   // Separate state for each date picker visibility
@@ -104,6 +108,7 @@ const UpdateClientSiteVisitDetails = () => {
   const [showClientData, setShowClientData] = useState(false);
   const inputRefs = useRef({});
   const [customerCode, setCustomerCode] = useState("");
+  const [showProfessionalDetails , setShowProfessionalDetails] = useState('');
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.visit_date;
@@ -163,51 +168,56 @@ const UpdateClientSiteVisitDetails = () => {
       }
 
       console.log(data?.Interest);
-      const interestedLocations = data?.Interest?.split(",").filter(
-        (item) => item !== ""
-      );
-      const test = interestedLocations?.length > 0 ? [...interestedLocations] : ["select"];
+      const interestedLocations = data?.Interest;
+      const validJsonString = interestedLocations.replace(/'/g, '"');
+      const loc = JSON.parse(validJsonString);
+
+      // const test = interestedLocations?.length > 0 ? [...interestedLocations] : ["select"];
       if (data?.Customer_Contact_number) {
         const dataTemplate = {
           visit_type: data?.visit_type || "direct",
           name: data?.sales_name || user.user.first_name,
           source: data?.source || "",
-          customer_name: data?.Customer_name || "",
+          source_type: data?.source_type || "",
           member: data?.reference || "",
           visit_date:
-            (data?.Visit_Date && new Date(data?.Visit_Date)) || new Date(),
+          (data?.Visit_Date && new Date(data?.Visit_Date)) || new Date(),
+          customer_name: data?.Customer_name || "",
           address: data?.Address || "",
+          state: data?.state || "Select",
+          city: data?.city || "Select",
           monthly_rent: data?.Monthly_rent || "",
           customer_contact: data?.Customer_Contact_number || "",
           customer_whatsapp: data?.Customer_Whatspp_number || "",
-          instagram_id: data?.Instagram || "",
           email_id: data?.Email_id || "",
-          facebook_id: data?.Facebook_id || "",
-          company: data?.Company || "",
-          gross_annual_income: data?.Gross_Income || "",
-          department: data?.Department || "",
-          designation: data?.Designation || "",
           birth_date: (data?.DOB && new Date(data?.DOB)) || new Date(),
+         
+          merital_status: data?.marital_status || 'single',
           marrige_anniversary:
             (data?.marriage_anniversary &&
               new Date(data?.marriage_anniversary)) ||
             new Date(),
           budget: data?.Budget || "",
-          official_email_id: data?.official_mail || "",
+          company: data?.Company || "",
+          designation: data?.Designation || "",
+          gross_annual_income: data?.Gross_Income || "",
           interest: data?.accommodation || "",
+          remark: data?.Remark || "",
+          official_email_id: data?.official_mail || "",
+          department: data?.Department || "",
+          instagram_id: data?.Instagram || "",
+          facebook_id: data?.Facebook_id || "",
           possesion_date: data?.Expected_possession || "select",
-          remark: data?.purpose || "",
-          city: data?.city || "Select",
-          state: data?.state || "Select",
           interested_location:
-            interestedLocations?.length > 0
-              ? [...interestedLocations]
+            loc?.length > 0
+              ? [...loc]
               : ["select"],
-          source_type: data?.source_type || "",
           customer_code:  "",
-          residential_status: data?.residential_status || "tenant",
+          residential_status: data?.residential_status || "owner",
           purpose: data?.purpose || "",
           site_location: data?.site_location || "select",
+          occupation: data?.occupation_type || "select",
+          business_type: data?.business_type || "",
         };
 
         if(data?.access_id){
@@ -217,6 +227,14 @@ const UpdateClientSiteVisitDetails = () => {
         }
         if(data?.customer_contact === data?.customer_whatsapp){
           setSameWhatsappNumber(true);
+        }
+
+        if(data?.residential_status === 'tenant'){
+          setShowRentStatus(true);
+        }
+        console.log(data?.occupation_type)
+        if(data?.occupation_type !== 'select' && data?.occupation_type){
+          setShowProfessionalDetails(data?.occupation_type);
         }
 
         if(data?.state){
@@ -243,11 +261,12 @@ const UpdateClientSiteVisitDetails = () => {
     } catch (e) {
       setLoading(false);
       console.log({ error: e });
-      return Alert.alert("🔴", "Something went wrong", [
+      return Alert.alert("🔴OOPS", "Something went wrong", [
         { text: "OK" },
       ]);
     }
   };
+
 
   const onSourceChange = (value) => {
     if (value === "select") return;
@@ -289,6 +308,13 @@ const UpdateClientSiteVisitDetails = () => {
     setFormData({ ...formData, interested_location: updatedLocations });
   };
 
+  const onOccupationChange = (value) => {
+    if(value === 'select') return;
+    
+    setShowProfessionalDetails(value);
+  }
+
+
   const handleStateChange = async (itemValue) => {
     try{
      
@@ -308,15 +334,37 @@ const UpdateClientSiteVisitDetails = () => {
   }
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
-      // console.count('rin')
+      if(key === 'occupation'){
+        console.log(formData[key]);
+        if(formData[key] === 'select' || formData[key] === 'Select'){
+           return key;
+          }
+        return false;
+      }
+
+      if(key === 'interested_location'){
+        let filter = formData[key].filter((item) => item !== 'select').filter((item) => item !== '');
+        if(filter.length > 0) return false;
+        return true;
+      }
+
+
+      if(key === 'company' || key === 'department' || key === 'designation' || key === 'gross_annual_income' || key === 'official_email_id' || key === 'instagram_id' || key === 'facebook_id' || key === 'business_type' || key === 'email_id') return false;
+
+      if(key === 'birth_date' || key === 'marrige_anniversary' || key === 'instagram_id' || key === 'facebook_id') return false;
+
       if(key === 'purpose'){
         if(formData[key] === '' && showPurposeFeild) return true;
         return false;
       } 
-      
+
+      if(key === 'possesion_date' ){ 
+        if(formData[key] === 'select')return true;
+        return false;
+      }
       if(key === 'customer_whatsapp' && sameWhatsappNumber) return false;
       if(key === 'customer_whatsapp' && !sameWhatsappNumber){
-        if(formData[key].length !== 10) return true;
+        if(formData[key].length !== 10) return true;          
         if(formData[key].length === 10 && isNaN(formData[key])) return true;
         if(formData[key][0] >=6 && formData[key][0] <=9) return false;
         return true; 
@@ -337,7 +385,6 @@ const UpdateClientSiteVisitDetails = () => {
       
       if(key === 'source' && (formData.source === 'select' || formData.source === '')){
         if( formData.source_type === 'NewsPaper' || formData.source_type === 'Social Media' || formData.source_type === 'Property Portals'  ) return true;
-        console.log('source',formData.source);
         //  console.log('source type',formData.source_type);
         return false;
       }
@@ -364,8 +411,6 @@ const UpdateClientSiteVisitDetails = () => {
       if(key === 'interested_location') {
         if(formData[key].length === 0) return true;
         let filtered = formData[key].filter((item) => item !== '' || item !== 'select');
-        // filtered = filtered.filter(item => item !== 'select');
-        // console.log('wnl slkfjg =======',filtered)
         if(filtered.length > 0) return false;
         return true;
       }
@@ -376,10 +421,6 @@ const UpdateClientSiteVisitDetails = () => {
 
       
       if(key === 'site_location' && formData.site_location === 'select') return true;
-
-      // if(key === 'source' && formData.visit_type === 'direct') return false;
-      
-      
 
       if(key === 'state' ){
         if(formData.state === 'Select') return true;
@@ -453,10 +494,10 @@ const UpdateClientSiteVisitDetails = () => {
       alertFieldName = "Official Email ID";
       break;
     case "interest":
-      alertFieldName = "Interest";
+      alertFieldName = "Interested Accomodation";
       break;
     case "possesion_date":
-      alertFieldName = "Possession Date";
+      alertFieldName = "Expected Possession";
       break;
     case "remark":
       alertFieldName = "Remark";
@@ -468,13 +509,10 @@ const UpdateClientSiteVisitDetails = () => {
       alertFieldName = "State";
       break;
     case "interested_location":
-      alertFieldName = "Interested Location";
+      alertFieldName = "Type of Interested Location";
       break;
     case "source_type":
       alertFieldName = "Source Type";
-      break;
-    case "customer_code":
-      alertFieldName = "Customer Code";
       break;
     case "site_location":
       alertFieldName = "Site Location";
@@ -484,6 +522,15 @@ const UpdateClientSiteVisitDetails = () => {
       break;
     case "purpose":
       alertFieldName = "Purpose";
+      break;
+    case "visit_type":
+      alertFieldName = "Visit Type";
+      break;
+    case "merital_status":
+      alertFieldName = "Marital status";
+      break;
+    case "occupation":
+      alertFieldName = "Type of Occupation";
       break;
     default:
       alertFieldName = false;
@@ -567,6 +614,9 @@ const UpdateClientSiteVisitDetails = () => {
         siteLocation: formData.site_location,
         purpose:formData.purpose,
         residential_status: formData.residential_status,
+        marital_status: formData.merital_status,
+        occupation_type: formData.occupation,
+        business_type: formData.business_type,
       };
 
       // console.log(data.siteLocation);
@@ -578,7 +628,7 @@ const UpdateClientSiteVisitDetails = () => {
         setLoading,
         dispatch
       );
-      alert('Data Submitted');
+      // alert('Data Submitted');
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -605,31 +655,41 @@ const UpdateClientSiteVisitDetails = () => {
       setLoading(false);
       console.log(e);
       setFormData({
-        visit_type: "direct_visit",
+        visit_type: "direct",
         name: user.user.first_name,
-        customer_name: "",
+        member: "",
+        site_location: ["select"],
         visit_date: new Date(),
-        monthly_rent: "",
+        source: "",
+        source_type: "",
+        customer_name: "",
         address: "",
+        state: "Select",
+        city: "Select",
         customer_contact: "",
         customer_whatsapp: "",
-        instagram_id: "",
+        occupation: "slect",
         email_id: "",
-        facebook_id: "",
+        birth_date: new Date(),
+        merital_status: 'single',
+        marrige_anniversary: new Date(),
+        interested_location: [""],
+        residential_status: "tenant",
+        monthly_rent: "",
         company: "",
-        gross_annual_income: "",
         department: "",
         designation: "",
-        birth_date: new Date(),
-        marrige_anniversary: new Date(),
-        budget: "",
         official_email_id: "",
+        possesion_date: "select",
+        budget: "",
         interest: "",
-        possesion_date: new Date(),
+        purpose:'',
         remark: "",
-        site_location: "select",
-        residential_status: "tenant",
-        purpose: "",
+        gross_annual_income: "",
+        instagram_id: "",
+        facebook_id: "",
+        customer_code: "",
+        business_type:"",
       });
       setSearchVal("");
     }
@@ -737,7 +797,7 @@ const UpdateClientSiteVisitDetails = () => {
             </Text>
 
             <View style={[styles.inputGroup, { marginTop: 0, paddingTop: 0 }]}>
-              <Text style={styles.label}>Visit Type</Text>
+              <Text style={styles.label}>Visit Type <Text style={styles.requierdFeilds}>*</Text></Text>
               <View style={styles.radioGroup}>
                 <RadioButton.Group
                   onValueChange={(value) => {
@@ -815,7 +875,7 @@ const UpdateClientSiteVisitDetails = () => {
             <>
 
 <View style={styles.inputGroup}>
-              <Text style={styles.label}>Customer Code/Mobile Number</Text>
+              <Text style={styles.label}>Customer Code/Mobile Number <Text style={styles.requierdFeilds}>*</Text></Text>
               <TextInput
                 editable
                 value={customerCode}
@@ -851,7 +911,7 @@ const UpdateClientSiteVisitDetails = () => {
             <>
 
 <View style={styles.inputGroup}>
-              <Text style={styles.label}>Site Location</Text>
+              <Text style={styles.label}>Site Location <Text style={styles.requierdFeilds}>*</Text></Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={formData.site_location}
@@ -874,7 +934,7 @@ const UpdateClientSiteVisitDetails = () => {
             </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Visit Date</Text>
+                <Text style={styles.label}>Visit Date <Text style={styles.requierdFeilds}>*</Text></Text>
                 <View
                   style={[
                     styles.datePickerContainer,
@@ -914,7 +974,7 @@ const UpdateClientSiteVisitDetails = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Source Type</Text>
+                <Text style={styles.label}>Source Type <Text style={styles.requierdFeilds}>*</Text></Text>
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={formData.source_type}
@@ -926,7 +986,7 @@ const UpdateClientSiteVisitDetails = () => {
                     <Picker.Item label="Social Media" value="Social Media" />
                     <Picker.Item label="Hoardings" value="Hoardings" />
                     <Picker.Item label="Google" value="Google" />
-                    <Picker.Item label="Walk In" value="Walk In" />
+                    <Picker.Item label="Walk-In" value="Walk In" />
                     <Picker.Item
                       label="Property Portals"
                       value="Property Portals"
@@ -966,11 +1026,11 @@ const UpdateClientSiteVisitDetails = () => {
                     borderBottomWidth: 0.2,
                   }}
                 >
-                  customer Details
+                  Customer Details
                 </Text>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>customer Name</Text>
+                  <Text style={styles.label}>Customer Name <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable
                     value={formData.customer_name.toUpperCase()}
@@ -989,7 +1049,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Address</Text>
+                  <Text style={styles.label}>Address <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable
                     value={formData.address}
@@ -1003,7 +1063,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-            <Text style={styles.label}>State</Text>
+            <Text style={styles.label}>State <Text style={styles.requierdFeilds}>*</Text></Text>
             <TextInput
               placeholder="State"
               style={styles.inputText}
@@ -1043,7 +1103,7 @@ const UpdateClientSiteVisitDetails = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>City</Text>
+            <Text style={styles.label}>City <Text style={styles.requierdFeilds}>*</Text></Text>
             <TextInput
               placeholder="City"
               style={styles.inputText}
@@ -1083,7 +1143,7 @@ const UpdateClientSiteVisitDetails = () => {
           </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Contact Number Of customer</Text>
+                  <Text style={styles.label}>Contact Number Of Customer <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable={true}
                     value={formData.customer_contact}
@@ -1128,7 +1188,7 @@ const UpdateClientSiteVisitDetails = () => {
 
                 {!sameWhatsappNumber && (
                   <View style={[styles.inputGroup, { marginTop: 5 }]}>
-                    <Text style={styles.label}>Customer Whatsapp Number</Text>
+                    <Text style={styles.label}>Customer Whatsapp Number <Text style={styles.requierdFeilds}>*</Text></Text>
                     <TextInput
                       editable={true}
                       value={formData.customer_whatsapp}
@@ -1151,7 +1211,7 @@ const UpdateClientSiteVisitDetails = () => {
                 )}
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Email Id</Text>
+                  <Text style={styles.label}>Email Id <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable
                     value={formData.email_id}
@@ -1205,8 +1265,28 @@ const UpdateClientSiteVisitDetails = () => {
                   </View>
                 </View>
 
+
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Marriage Anniversary</Text>
+            <Text style={styles.label}>Marital Status <Text style={styles.requierdFeilds}>*</Text></Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={formData.merital_status}
+                onValueChange={(itemValue) =>
+                {
+                  useChangeData("merital_status", itemValue, false, setFormData)
+                  itemValue !== 'single' ? setShowMeritalStatus(true) : setShowMeritalStatus(false);
+                }
+                }
+                style={styles.picker}
+              >
+                <Picker.Item label="Single" value="single" />
+                <Picker.Item label="Married" value="married" />
+              </Picker>
+            </View>
+          </View>
+
+                {showMeritalStatus && <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Marriage Anniversary </Text>
                   <View
                     style={[
                       styles.datePickerContainer,
@@ -1244,10 +1324,10 @@ const UpdateClientSiteVisitDetails = () => {
                       />
                     )}
                   </View>
-                </View>
+                </View>}
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Interested Locations</Text>
+                  <Text style={styles.label}>Interested Locations <Text style={styles.requierdFeilds}>*</Text></Text>
                   {console.log(formData.interested_location)}
                   {formData.interested_location.map((item, index) => (
                     <View
@@ -1341,7 +1421,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Residentail Status</Text>
+                  <Text style={styles.label}>Residential Status <Text style={styles.requierdFeilds}>*</Text></Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={formData.residential_status}
@@ -1359,14 +1439,14 @@ const UpdateClientSiteVisitDetails = () => {
                       style={styles.picker}
                     >
                       <Picker.Item label="Owner" value="owner" />
-                      <Picker.Item label="tenant" value="tenant" />
+                      <Picker.Item label="Tenant" value="tenant" />
                     </Picker>
                   </View>
                 </View>
 
                 {showRentStatus && (
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Monthly Rent</Text>
+                    <Text style={styles.label}>Monthly Rent <Text style={styles.requierdFeilds}>*</Text></Text>
                     <TextInput
                       editable={true}
                       value={formData.monthly_rent}
@@ -1397,90 +1477,249 @@ const UpdateClientSiteVisitDetails = () => {
                 </Text>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Company</Text>
-                  <TextInput
-                    editable
-                    value={formData.company.toUpperCase()}
-                    onChangeText={(value) =>
-                      useChangeData(
-                        "company",
-                        value.toUpperCase(),
-                        false,
-                        setFormData
-                      )
-                    }
-                    placeholder="Enter Company Name"
-                    style={styles.inputText}
-                    ref={(ref) => (inputRefs.current["company"] = ref)}
-                  />
-                </View>
+            <Text style={styles.label}>Occupation Type <Text style={styles.requierdFeilds}>*</Text></Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={formData.occupation}
+                onValueChange={(itemValue) =>{
+                  onOccupationChange(itemValue)
+                  if(itemValue === 'select') setShowProfessionalDetails('');
+                  setFormData({...formData , occupation: itemValue});
+                }
+                }
+                style={styles.picker}
+              >
+                <Picker.Item label="Select" value="select" />
+                <Picker.Item label="Government Sector" value="Government Sector" />
+                <Picker.Item label="Private Sector" value="Private Sector" />
+                <Picker.Item label="Semi-Government Sector" value="Semi-Government Sector" />
+                <Picker.Item label="Business" value="Business" />
+                <Picker.Item label="Self Employed" value="Self Employed" />
+                <Picker.Item label="Farmer" value="Farmer" />
+                <Picker.Item label="Retired" value="Retired" />
+                <Picker.Item label="Home Maker" value="Home Maker" />
+                <Picker.Item label="Student" value="Student" />
+              </Picker>
+            </View>
+          </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Department</Text>
-                  <TextInput
-                    editable
-                    value={formData.department}
-                    onChangeText={(value) =>
-                      useChangeData("department", value, false, setFormData)
-                    }
-                    placeholder="Enter Department Name"
-                    style={styles.inputText}
-                    ref={(ref) => (inputRefs.current["department"] = ref)}
-                  />
-                </View>
+            {(showProfessionalDetails === 'Government Sector' || showProfessionalDetails === 'Private Sector' || showProfessionalDetails === 'Semi-Government Sector') && (
+              <View>
+                  <View style={styles.inputGroup}>
+              <Text style={styles.label}>{ showProfessionalDetails === 'Government Sector'? 'Department' : 'Company'}</Text>
+              <TextInput
+                editable
+                value={formData.company.toUpperCase()}
+                onChangeText={(value) =>
+                  useChangeData(
+                    "company",
+                    value.toUpperCase(),
+                    false,
+                    setFormData
+                  )
+                }
+                placeholder={"Enter" + showProfessionalDetails === 'Government Sector'? 'Department' : 'Company' + "Name"}
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["company"] = ref}
+              />
+            </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Designation</Text>
-                  <TextInput
-                    editable
-                    value={formData.designation.toUpperCase()}
-                    onChangeText={(value) =>
-                      useChangeData(
-                        "designation",
-                        value.toUpperCase(),
-                        false,
-                        setFormData
-                      )
-                    }
-                    placeholder="Enter Designation"
-                    style={styles.inputText}
-                    ref={(ref) => (inputRefs.current["designation"] = ref)}
-                  />
-                </View>
+           {showProfessionalDetails  !== 'Government Sector' && <View style={styles.inputGroup}>
+              <Text style={styles.label}>Department</Text>
+              <TextInput
+                editable
+                value={formData.department}
+                onChangeText={(value) =>
+                  useChangeData("department", value, false, setFormData)
+                }
+                placeholder="Enter Department Name"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["department"] = ref}
+              />
+            </View>}
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Gross Annual Income</Text>
-                  <TextInput
-                    editable
-                    value={formData.gross_annual_income}
-                    onChangeText={(value) =>
-                      useChangeData(
-                        "gross_annual_income",
-                        value,
-                        true,
-                        setFormData
-                      )
-                    }
-                    placeholder="Enter Gross Annual Income"
-                    style={styles.inputText}
-                    keyboardType="numeric"
-                    ref={(ref) => (inputRefs.current["gross_annual_income"] = ref)}
-                  />
-                </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Designation</Text>
+              <TextInput
+                editable
+                value={formData.designation.toUpperCase()}
+                onChangeText={(value) =>
+                  useChangeData(
+                    "designation",
+                    value.toUpperCase(),
+                    false,
+                    setFormData
+                  )
+                }
+                placeholder="Enter Designation"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["designation"] = ref}
+              />
+            </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Official Email Id</Text>
-                  <TextInput
-                    editable
-                    value={formData.official_email_id}
-                    onChangeText={(value) =>
-                      setFormData({ ...formData, official_email_id: value })
-                    }
-                    placeholder="Enter Official Email Id"
-                    style={styles.inputText}
-                    ref={(ref) => (inputRefs.current["official_email_id"] = ref)}
-                  />
-                </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Gross Annual Income</Text>
+              <TextInput
+                editable
+                value={formData.gross_annual_income}
+                onChangeText={(value) =>
+                  useChangeData("gross_annual_income", value, true, setFormData)
+                }
+                placeholder="Enter Gross Annual Income"
+                style={styles.inputText}
+                keyboardType="numeric"
+                ref={(ref) => inputRefs.current["gross_annual_income"] = ref}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Official Email Id</Text>
+              <TextInput
+                editable
+                value={formData.official_email_id}
+                onChangeText={(value) =>
+                 setFormData({...formData , official_email_id: value})
+                }
+                placeholder="Enter Official Email Id"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["official_email_id"] = ref}
+              />
+            </View>
+
+              </View>
+            )}
+
+
+                {/* <Picker.Item label="business" value="business" />
+                <Picker.Item label="Self Employed" value="Self Employed" />
+                <Picker.Item label="Farmer" value="Farmer" />
+                <Picker.Item label="Home Maker" value="Home Maker" /> */}
+
+
+          {(showProfessionalDetails === 'Business' || showProfessionalDetails === 'Self Employed') && (
+              <View>
+                  
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Business Type</Text>
+              <TextInput
+                editable
+                value={formData.business_type.toUpperCase()}
+                onChangeText={(value) =>
+                  useChangeData(
+                    "buissness_type",
+                    value.toUpperCase(),
+                    false,
+                    setFormData
+                  )
+                }
+                placeholder="Enter Business Type"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["company"] = ref}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Firm Name(If Any)</Text>
+              <TextInput
+                editable
+                value={formData.company.toUpperCase()}
+                onChangeText={(value) =>
+                  useChangeData(
+                    "company",
+                    value.toUpperCase(),
+                    false,
+                    setFormData
+                  )
+                }
+                placeholder="Enter Firm Name"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["company"] = ref}
+              />
+            </View>
+
+            {/* <View style={styles.inputGroup}>
+              <Text style={styles.label}>Department</Text>
+              <TextInput
+                editable
+                value={formData.department}
+                onChangeText={(value) =>
+                  useChangeData("department", value, false, setFormData)
+                }
+                placeholder="Enter Department Name"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["department"] = ref}
+              />
+            </View> */}
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Designation</Text>
+              <TextInput
+                editable
+                value={formData.designation.toUpperCase()}
+                onChangeText={(value) =>
+                  useChangeData(
+                    "designation",
+                    value.toUpperCase(),
+                    false,
+                    setFormData
+                  )
+                }
+                placeholder="Enter Designation"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["designation"] = ref}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Gross Annual Income</Text>
+              <TextInput
+                editable
+                value={formData.gross_annual_income}
+                onChangeText={(value) =>
+                  useChangeData("gross_annual_income", value, true, setFormData)
+                }
+                placeholder="Enter Gross Annual Income"
+                style={styles.inputText}
+                keyboardType="numeric"
+                ref={(ref) => inputRefs.current["gross_annual_income"] = ref}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Official Email Id</Text>
+              <TextInput
+                editable
+                value={formData.official_email_id}
+                onChangeText={(value) =>
+                 setFormData({...formData , official_email_id: value})
+                }
+                placeholder="Enter Official Email Id"
+                style={styles.inputText}
+                ref={(ref) => inputRefs.current["official_email_id"] = ref}
+              />
+            </View>
+
+              </View>
+            )}
+
+
+            {showProfessionalDetails === 'Farmer' && (
+               <View style={styles.inputGroup}>
+               <Text style={styles.label}>Gross Annual Income</Text>
+               <TextInput
+                 editable
+                 value={formData.gross_annual_income}
+                 onChangeText={(value) =>
+                   useChangeData("gross_annual_income", value, true, setFormData)
+                 }
+                 placeholder="Enter Gross Annual Income"
+                 style={styles.inputText}
+                 keyboardType="numeric"
+                 ref={(ref) => inputRefs.current["gross_annual_income"] = ref}
+               />
+             </View>
+            )}
+
 
                 {/* Professional Details Feilds ends */}
               </View>
@@ -1498,7 +1737,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </Text>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Expected Possesion</Text>
+                  <Text style={styles.label}>Expected Possesion <Text style={styles.requierdFeilds}>*</Text></Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={formData.possesion_date}
@@ -1524,7 +1763,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Budget</Text>
+                  <Text style={styles.label}>Budget <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable={true}
                     value={formData.budget}
@@ -1539,7 +1778,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Interested Accommodation</Text>
+                  <Text style={styles.label}>Interested Accommodation <Text style={styles.requierdFeilds}>*</Text></Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={formData.interest}
@@ -1558,8 +1797,8 @@ const UpdateClientSiteVisitDetails = () => {
                       }}
                       style={styles.picker}
                     >
-                      <Picker.Item label="Select" value="select" />
-                      <Picker.Item label="Appartment" value="apartment" />
+                       <Picker.Item label="Select" value="select" />
+                      <Picker.Item label="Appartment" value="appartment" />
                       <Picker.Item label="Bunglow" value="bunglow" />
                       <Picker.Item label="Commercial" value="commercial" />
                       <Picker.Item label="Flat" value="flat" />
@@ -1570,7 +1809,7 @@ const UpdateClientSiteVisitDetails = () => {
                 </View>
 
                 { showPurposeFeild && <View style={[styles.inputGroup , {marginTop:0}]}>
-            <Text style={styles.label}>Purpose</Text>
+            <Text style={styles.label}>Purpose <Text style={styles.requierdFeilds}>*</Text></Text>
             <TextInput
               editable
               value={formData.purpose}
@@ -1584,7 +1823,7 @@ const UpdateClientSiteVisitDetails = () => {
           </View>}
 
                 <View style={[styles.inputGroup, { marginTop: 0 }]}>
-                  <Text style={styles.label}>Purpose</Text>
+                  <Text style={styles.label}>Remark <Text style={styles.requierdFeilds}>*</Text></Text>
                   <TextInput
                     editable
                     value={formData.remark}
@@ -1763,6 +2002,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginVertical: 5,
   },
+  requierdFeilds: {
+    color: 'red',           
+    fontWeight: 'bold',     
+    fontSize: 16,           
+    marginLeft: 2,          
+  }
 });
 
 export default UpdateClientSiteVisitDetails;

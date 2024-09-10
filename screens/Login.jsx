@@ -35,7 +35,10 @@ const Login = ({ user }) => {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("http://182.70.253.15:8000/api/Login", {
+      const res = await axios.post(
+        "http://182.70.253.15:8000/api/Login"
+        // "http://10.22.130.15:8000/api/Login"
+        , {
         username,
         password,
       });

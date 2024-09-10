@@ -70,11 +70,14 @@ const HomeVisit = () => {
   )
 
 
+
   const handleSearchUserData = async (value) => {
+
     try {
       setIsLoading(true);
       const res = await axios.post(
         "http://182.70.253.15:8000/api/Get-Site-Visit-Data",
+        // "http://10.22.130.15:8000/api/Get-Site-Visit-Data",
         { home_contact: value },
         {
           withCredentials: true,
@@ -83,30 +86,77 @@ const HomeVisit = () => {
           },
         }
       );
-      console.log(res.data.data);
+      // console.log(res.data.data);
       if (res?.data?.data) {
-
+        // console.log('colfello',res.data?.data?.co_fellow?.length)
         const teamMembers =  res?.data?.data?.co_fellow?.split(",");
-        const dataTemplate = {
-          name: res.data.data.name,
-          customerName: res.data.data.C_name,
-          customerContact: res.data.data.C_ph,
-          remark: res.data.data.detail,
-          location: res.data.data.Visit_location,
-          date: new Date(res.data.data.date),
-          image:null,
-          teamMembers: teamMembers?.length > 0 ? [...teamMembers] : [],
-          visit_type: res.data.data.visit_type,
+        console.log(res.data.data.name);
+        if(formData.name === res.data.data.name){
+          const dataTemplate = {
+            name: user.user.first_name,
+            customerName: res.data.data.C_name,
+            customerContact: res.data.data.C_ph,
+            remark: "",
+            location: res.data.data.Visit_location,
+            date: new Date(),
+            image:null,
+            teamMembers: teamMembers?.length > 0 ? [...teamMembers] : [],
+            visit_type: res.data.data.visit_type,
+            prevRemark : res?.data?.data?.detail
+          }
+          if(teamMembers?.length>0) setShowTeamSelect(true);
+          console.log(dataTemplate);
+          setFormData(dataTemplate);
+        }else{
+          const dataTemplate = {
+            // name: res.data.data.name,
+            name: user.user.first_name,
+            customerName: res.data.data.C_name,
+            customerContact: res.data.data.C_ph,
+            remark: "",
+            location: res.data.data.Visit_location,
+            date: new Date(),
+            image:null,
+            prevUser:res.data.data.name,
+            prevTeamMembers : teamMembers?.length > 0 ? [...teamMembers] : [],
+            teamMembers: [],
+            visit_type: '',
+            prevRemark : res?.data?.data?.detail,
+            prevMembers :res.data?.data?.co_fellow
+          }
+          // console.log(dataTemplate);
+          // if(teamMembers?.length>0) setShowTeamSelect(true);
+          setFormData(dataTemplate);
         }
-        if(teamMembers?.length>0) setShowTeamSelect(true);
-        setFormData(dataTemplate);
         // console.log(res.data);
       }
       else{
+        setFormData({
+          name: user.user.first_name,
+        customerName: "",
+        customerContact: Number(value),
+        remark: "",
+        location: "",
+        date: new Date(),
+        image: null,
+        visit_type: "",
+        teamMembers: [],
+        })
         Alert.alert("Alert" , "No Previous Home Visit Found" , [{text: "OK"}]);
       }
       setIsLoading(false)
     } catch (err) {
+      setFormData({
+        name: user.user.first_name,
+        customerName: "",
+        customerContact: Number(value),
+        remark: "",
+        location: "",
+        date: new Date(),
+        image: null,
+        visit_type: "",
+        teamMembers: [],
+      })
       if(err.message === 'Network Error'){
         Alert.alert("🔴 OOPS" , "Something went Wrong" , [{text: "OK"}]);
       }
@@ -134,7 +184,7 @@ const HomeVisit = () => {
   };
 
 
-  console.log(formData.teamMembers);
+  // console.log(formData.teamMembers);
 
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
@@ -154,12 +204,15 @@ const HomeVisit = () => {
 
       
       if (key === "customerContact") {
+        console.log('=fakjs',formData[key]);
         const mob = formData[key].toString();
         if (mob.length !== 10) return "customerContact";
         if (mob[0] >= 6 && mob[0] <= 9) return false;
         return true;
-      }
 
+      }
+      
+      if(key === 'prevUser' || key === 'prevTeamMembers' || key === 'teamMembers') return false;
 
       // console.log(key,formData[key]);
       if(typeof key === 'string'){
@@ -268,7 +321,7 @@ const HomeVisit = () => {
     try {
       if (!location) {
         const userLocation = await getLocation();
-        console.log({ userLocation });
+        // console.log({ userLocation });
         if (!userLocation) {
           dispatch(logout());
           dispatch(setIsMenuOpen(false));
@@ -321,9 +374,7 @@ const HomeVisit = () => {
         visit_type: "",
       });
       setIsLoading(false);
-      // navigate('Dashboard');
     } catch (err) {
-      // Alert.alert("Error", "Something went wrong", [{ text: "OK" }]);
       setIsLoading(false);
       if (
         err?.message ===
@@ -381,6 +432,25 @@ const HomeVisit = () => {
             />
           </View> */}
 
+            
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Customer Contact Number</Text>
+            <TextInput
+              keyboardType="numeric"
+              value={formData.customerContact}
+              onChangeText={(value) => {
+                useChangeData("customerContact", value, true, setFormData);    
+                if (value.length == 10) {
+                  handleSearchUserData(value);
+                }
+              }}
+              placeholder="Enter Customer Contact Number"
+              style={styles.inputText}
+              ref={(ref) => (inputRefs.current["customerContact"] = ref)}
+            />
+          </View>
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}> Customer Name</Text>
             <TextInput
@@ -394,23 +464,19 @@ const HomeVisit = () => {
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Customer Contact Number</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={formData.customerContact}
-              onChangeText={(value) => {
-                if (value.length == 10) {
-                  handleSearchUserData(value);
-                }
-                useChangeData("customerContact", value, true, setFormData);
-              }}
-              placeholder="Enter Customer Contact Number"
-              style={styles.inputText}
-              ref={(ref) => (inputRefs.current["customerContact"] = ref)}
-            />
-          </View>
+          {formData?.prevUser && (
+               <View style={styles.inputGroup}>
+               <Text style={[styles.label,{marginBottom:-10}]}>Last Visit Done By</Text>
+               <Text style={styles.label}>{formData?.prevMembers?.length > 0 ? '' + formData.prevUser + ' \nTeam : ' + formData?.prevMembers  : formData.prevUser}</Text>
+             </View>
+            )}
 
+          {formData?.prevRemark && (
+               <View style={styles.inputGroup}>
+               <Text style={styles.label}>Last Visit's Conversation</Text>
+               <Text style={styles.label}>{formData.prevRemark}</Text>
+             </View>
+            )}
 
           <View style={styles.inputGroup}>
           <View style={{

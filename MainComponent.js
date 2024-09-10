@@ -1,26 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useRef, useEffect, useState } from 'react';
-import { Provider, useSelector } from 'react-redux';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, SafeAreaView } from 'react-native';
+import { useSelector } from 'react-redux';
 import Add from './components/AddButton';
-import store from './redux/store';
-import CorpVisit from './screens/CorpVisit';
-import Dashboard from './screens/Dashboard';
-import Menu from './screens/Menu';
-import SageMitraFollowUp from './screens/SageMitraFollowUp';
-import { Animated, Easing, SafeAreaView, StatusBar } from 'react-native';
 import Header from './components/Header';
 import Splash from './components/Splash';
-import { blue } from './constants';
-import IPDone from './screens/IPDone';
-import SetTarget from './screens/SetTarget';
-import HomeVisit from './screens/HomeVisit';
-import Event from './screens/Event';
-import Admission from './screens/Admission';
 import TabBarDashboardButton from './components/TabBarDashboardButton';
+import { blue } from './constants';
+import store from './redux/store';
+import Admission from './screens/Admission';
+import CorpVisit from './screens/CorpVisit';
+import Dashboard from './screens/Dashboard';
+import Details from './screens/Details';
+import Event from './screens/Event';
+import HomeVisit from './screens/HomeVisit';
+import IPDone from './screens/IPDone';
 import Login from './screens/Login'; // Import the Login component
-import { login } from './redux/slices/user';
+import Menu from './screens/Menu';
+import SageMitraFollowUp from './screens/SageMitraFollowUp';
+import SetTarget from './screens/SetTarget';
 import SiteVisit from './screens/SiteVisit';
 
 const Tab = createBottomTabNavigator();
@@ -76,6 +76,14 @@ const TabNavigator = () => (
         tabBarVisible: false,
       }}
       component={SageMitraFollowUp}
+    />
+    <Tab.Screen
+      name='Details'
+      options={{
+        tabBarButton: () => null,
+        tabBarVisible: false,
+      }}
+      component={Details}
     />
     <Tab.Screen
         name='ClientSiteVisit'

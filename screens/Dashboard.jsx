@@ -1,7 +1,7 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DialogComponent from '../components/DialogComponent';
 import Loader from '../components/Loading';
@@ -45,7 +45,10 @@ const Dashboard = ({setUserLoggedIn}) => {
       try{
         // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
-          const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
+          const res = await axios.get(
+            'http://182.70.253.15:8000/api/Get-Data'
+            // 'http://10.22.130.15:8000/api/Get-Da7ta'
+             , {
           withCredentials: true,
           headers:{
             Authorization: `Bearer ${user.access}`
@@ -76,7 +79,9 @@ const Dashboard = ({setUserLoggedIn}) => {
       // dispatch(setUserLocation(false));
       setCardData([]);
       // console.log('===============');
-      axios.get(`http://182.70.253.15:8000/api/Dashboard/${user.user.first_name}` ,{
+      axios.get(
+        `http://182.70.253.15:8000/api/Dashboard/${user.user.first_name}` ,{
+        // `http://10.22.130.15:8000/api/Dashboard/${user.user.first_name}` ,{
         withCredentials: true,
         headers:{
           'Authorization': `Bearer ${user.access}`
@@ -130,7 +135,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           <View style={styles.devider}>
     
           {cardData?.length>0  && cardData.map((card) => (
-            <View key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]}>
+            <Pressable key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]} >
             <View style={{
               display:'flex',
               flexDirection:'column',
@@ -195,7 +200,7 @@ const Dashboard = ({setUserLoggedIn}) => {
                   }}>Achieved</Text>
                 </View>
               </View> 
-           </View>
+           </Pressable>
           ))}
           </View>
           {/* <Test/> */}

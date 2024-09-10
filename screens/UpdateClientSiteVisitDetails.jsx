@@ -164,24 +164,22 @@ const UpdateClientSiteVisitDetails = () => {
       if (!data) {
         Alert.alert("Error", "No Data Found", [{ text: "OK" }]);
         setLoading(false);
-        return;
+        return;o
       }
 
-      console.log(data?.Interest);
       const interestedLocations = data?.Interest;
-      const validJsonString = interestedLocations.replace(/'/g, '"');
+      const validJsonString = interestedLocations?.replace(/'/g, '"');
       const loc = JSON.parse(validJsonString);
 
       // const test = interestedLocations?.length > 0 ? [...interestedLocations] : ["select"];
       if (data?.Customer_Contact_number) {
         const dataTemplate = {
           visit_type: data?.visit_type || "direct",
-          name: data?.sales_name || user.user.first_name,
+          name: user.user.first_name,
           source: data?.source || "",
           source_type: data?.source_type || "",
           member: data?.reference || "",
-          visit_date:
-          (data?.Visit_Date && new Date(data?.Visit_Date)) || new Date(),
+          visit_date : new Date(),
           customer_name: data?.Customer_name || "",
           address: data?.Address || "",
           state: data?.state || "Select",
@@ -232,7 +230,6 @@ const UpdateClientSiteVisitDetails = () => {
         if(data?.residential_status === 'tenant'){
           setShowRentStatus(true);
         }
-        console.log(data?.occupation_type)
         if(data?.occupation_type !== 'select' && data?.occupation_type){
           setShowProfessionalDetails(data?.occupation_type);
         }
@@ -335,7 +332,6 @@ const UpdateClientSiteVisitDetails = () => {
   const handleSubmit = async () => {
     const emptyField = Object.keys(formData).find((key) => {
       if(key === 'occupation'){
-        console.log(formData[key]);
         if(formData[key] === 'select' || formData[key] === 'Select'){
            return key;
           }
@@ -385,7 +381,6 @@ const UpdateClientSiteVisitDetails = () => {
       
       if(key === 'source' && (formData.source === 'select' || formData.source === '')){
         if( formData.source_type === 'NewsPaper' || formData.source_type === 'Social Media' || formData.source_type === 'Property Portals'  ) return true;
-        //  console.log('source type',formData.source_type);
         return false;
       }
       
@@ -553,8 +548,6 @@ const UpdateClientSiteVisitDetails = () => {
       return Alert.alert("🔴 OOPS!", "Please Add Valid Date", [
         { text: "OK" },
       ]);
-    console.log(formData);
-    // const isLocationEnabled = await Location.hasServicesEnabledAsync();
     try {
       if (!location) {
         setLoading(true);
@@ -570,7 +563,6 @@ const UpdateClientSiteVisitDetails = () => {
         dispatch(setUserLocation(userLocation));
         return;
       }
-      // console.log(location);
       const lat_long = [
         location?.coords?.latitude,
         location?.coords?.longitude,
@@ -619,7 +611,6 @@ const UpdateClientSiteVisitDetails = () => {
         business_type: formData.business_type,
       };
 
-      // console.log(data.siteLocation);
       await submitForm(
         "Site-Visit",
         data,
@@ -628,7 +619,6 @@ const UpdateClientSiteVisitDetails = () => {
         setLoading,
         dispatch
       );
-      // alert('Data Submitted');
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -708,7 +698,6 @@ const UpdateClientSiteVisitDetails = () => {
     }
 
     if(key === 'city'){
-      console.log(value);
       setFormData({...formData , city: value});
       setCitySearch(value);
       setShowCityList([]);
@@ -716,7 +705,6 @@ const UpdateClientSiteVisitDetails = () => {
     }
 
     if(key === 'state'){
-      console.log(value);
       setFormData({...formData , state: value[0]});
       handleStateChange(value);
       setStateSearch(value[0]);
@@ -744,7 +732,6 @@ const UpdateClientSiteVisitDetails = () => {
       });
 
       setShowenList(filteredList);
-      // console.log(members);
       return;
     }
 
@@ -1193,7 +1180,6 @@ const UpdateClientSiteVisitDetails = () => {
                       editable={true}
                       value={formData.customer_whatsapp}
                       onChangeText={(value) => {
-                        console.log(value);
 
                         useChangeData(
                           "customer_whatsapp",
@@ -1328,7 +1314,6 @@ const UpdateClientSiteVisitDetails = () => {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Interested Locations <Text style={styles.requierdFeilds}>*</Text></Text>
-                  {console.log(formData.interested_location)}
                   {formData.interested_location.map((item, index) => (
                     <View
                       key={item}
@@ -1341,7 +1326,6 @@ const UpdateClientSiteVisitDetails = () => {
                         // backgroundColor:'red',
                       }}
                     >
-                      {/* {console.log({item})} */}
                       <View
                         style={[
                           styles.pickerContainer,
@@ -1751,13 +1735,10 @@ const UpdateClientSiteVisitDetails = () => {
                       }
                       style={styles.picker}
                     >
-                      <Picker.Item label="Select" value="select" />
-                      <Picker.Item
-                        label="Ready To Move"
-                        value="ready to move"
-                      />
-                      <Picker.Item label="Within 6 Months" value="6 months" />
-                      <Picker.Item label="Not in Hurry" value="not in hurry" />
+                       <Picker.Item label="Select" value="select" />
+                <Picker.Item label="Ready To Move" value="ready to move" />
+                <Picker.Item label="Within 6 Months" value="within 6 months" />
+                <Picker.Item label="Not in Hurry" value="Not in Hurry" />
                     </Picker>
                   </View>
                 </View>

@@ -24,14 +24,14 @@ const Dashboard = ({setUserLoggedIn}) => {
   const cardTemplate = [
     // { id: 0, text_id: 'total_panding_FW', text: "Today's Pending Follow Up", number: 0, backgroundColor: '#FFD166', icon: 'people-outline' },
     // { id: 1, text_id: 'total_leads', text: 'Leads', number: 0,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
-    { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png')},
-    { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra Follow Up', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png')},
-    { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png')},
-    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png')},
-    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png')},
-    { id: null, text_id: 'total_event', text: 'Event', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png') },
-    { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png')},
-    { id: 8, text_id: 'total_ip', text: 'IP', number: 0,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png')},
+    { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png') },
+    { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra Follow Up', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png'),to:'SageMitraFollowUpDetails'},
+    { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png') , to:'CorpVisitDetails'},
+    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png') , to:"HomeVisitDetils"},
+    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png'), to:"SiteVisitDetils"},
+    { id: null, text_id: 'total_event', text: 'Event', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png'), to:"EventsDetails" },
+    { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png') , to:"TotalAdmissionDetails"},
+    { id: 8, text_id: 'total_ip', text: 'IP', number: 0,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png') , to:"IpDetails"},
   ];
 
 
@@ -135,7 +135,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           <View style={styles.devider}>
     
           {cardData?.length>0  && cardData.map((card) => (
-            <Pressable key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]} >
+            <Pressable key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]} onPress={() => navigate('Details', {data:card.text})}>
             <View style={{
               display:'flex',
               flexDirection:'column',

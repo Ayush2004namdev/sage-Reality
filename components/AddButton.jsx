@@ -10,7 +10,6 @@ import { BlurView } from 'expo-blur';
 const {height,width} = Dimensions.get('screen');
 
 const Add = () => {
-  console.log(height);
   const navigator = useNavigation();
   
   const {isAddOpen } = useSelector((state) => state.misc);

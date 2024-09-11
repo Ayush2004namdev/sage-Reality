@@ -98,7 +98,6 @@ const AddClientSiteVisitDetails = () => {
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 2);
-    // console.log(currentDate < yesterday || currentDate > today);
     if (currentDate < yesterday || currentDate > today) {
     setShowVisitDatePicker(false);
     return Alert.alert(
@@ -202,7 +201,6 @@ const AddClientSiteVisitDetails = () => {
       }
 
       if(key === 'occupation'){
-        console.log(formData[key]);
         if(formData[key] === 'select' || formData[key] === 'Select'){
            return key;
           }
@@ -403,7 +401,6 @@ const AddClientSiteVisitDetails = () => {
       alertFieldName = false;
   }
 
-  console.log('emptyField');
 
     if (emptyField && alertFieldName) {
 
@@ -501,7 +498,6 @@ const AddClientSiteVisitDetails = () => {
     // console.log( 'source type',data.sourceType);
     // console.log('accomodation',data.accommodation);
     // console.log('data source',data.source);
-    console.log('json data',data);
 
       await submitForm(
         "Site-Visit",
@@ -513,14 +509,11 @@ const AddClientSiteVisitDetails = () => {
       );
       setLoading(false);
     } catch (e) {
-      console.log(e , '1')
       setLoading(false);
-      console.log(e.message);
       if(e?.message === 'Location request failed due to unsatisfied device settings'){
         dispatch(setShowPopupDialog({title: "Location Access Denied", message: "Please allow the location access for the application" , workDone: false}));
         return;
       }
-      console.log(e , '2')
       dispatch(
         setShowPopupDialog({
           title: "Error",
@@ -529,8 +522,6 @@ const AddClientSiteVisitDetails = () => {
         })
       );
       setLoading(false);
-      console.log(e , '3')
-      console.log(e);
       setFormData({
         visit_type: "",
         name: user.user.first_name,
@@ -890,7 +881,6 @@ const AddClientSiteVisitDetails = () => {
               />
             </View>
 
-            {/* {console.log(formData.state)} */}
 
             
 
@@ -1154,7 +1144,6 @@ const AddClientSiteVisitDetails = () => {
                   alignItems:'center',
                   // backgroundColor:'red',
                 }}>
-                {/* {console.log({item})} */}
                 <View style={[styles.pickerContainer , {width:'90%' , height:'80%'}]}>
                   <Picker
                     selectedValue={item}

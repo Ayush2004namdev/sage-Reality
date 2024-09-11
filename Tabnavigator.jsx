@@ -14,6 +14,9 @@ import Menu from './screens/Menu';
 import SageMitraFollowUp from './screens/SageMitraFollowUp';
 import SetTarget from './screens/SetTarget';
 import SiteVisit from './screens/SiteVisit';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import SageMitraFollowUpDetails from './components/SageMitraFollowUpDetails';
+import CorpVisitDetails from './components/CorpVisitDetails';
 
 const Tab = createBottomTabNavigator();
 
@@ -69,6 +72,22 @@ const TabNavigator = () => (
           tabBarVisible: false,
         }}
         component={SageMitraFollowUp}
+      />
+      <Tab.Screen
+        name='SageMitraFollowUpDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={SageMitraFollowUpDetails}
+      />
+      <Tab.Screen
+        name='CorporateVisitDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={CorpVisitDetails}
       />
       <Tab.Screen
         name='Details'

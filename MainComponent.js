@@ -1,156 +1,56 @@
-import { Ionicons } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, SafeAreaView } from 'react-native';
-import { useSelector } from 'react-redux';
-import Add from './components/AddButton';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Animated, Easing, SafeAreaView, AppState, TouchableWithoutFeedback, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import Header from './components/Header';
 import Splash from './components/Splash';
-import TabBarDashboardButton from './components/TabBarDashboardButton';
-import { blue } from './constants';
 import store from './redux/store';
-import Admission from './screens/Admission';
-import CorpVisit from './screens/CorpVisit';
-import Dashboard from './screens/Dashboard';
-import Details from './screens/Details';
-import Event from './screens/Event';
-import HomeVisit from './screens/HomeVisit';
-import IPDone from './screens/IPDone';
-import Login from './screens/Login'; // Import the Login component
-import Menu from './screens/Menu';
-import SageMitraFollowUp from './screens/SageMitraFollowUp';
-import SetTarget from './screens/SetTarget';
-import SiteVisit from './screens/SiteVisit';
+import Login from './screens/Login';
+import TabNavigator from './Tabnavigator';
+import { login, logout } from './redux/slices/user';
 
-const Tab = createBottomTabNavigator();
-
-const TabNavigator = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => {
-      return {
-        tabBarStyle: {
-          backgroundColor: blue,
-          paddingTop: 10,
-          height: 60,
-          position: 'absolute',
-          borderTopRightRadius: 20,
-          borderTopLeftRadius: 20
-        },
-        tabBarLabel: '',
-        headerShown:false,
-        tabBarActiveTintColor: 'yellow',
-        tabBarInactiveTintColor: 'white',
-        tabBarIcon: ({ focused, size }) => {
-          let icon;
-          if (route.name === 'Dashboard') {
-            icon = focused ? 'home' : 'home-outline';
-          }
-          if (route.name === 'Menu') {
-            icon = focused ? 'grid' : 'grid-outline';
-          }
-
-          return <Ionicons name={icon} size={size} color={'black'} />;
-        },
-      };
-    }}
-  >
-    <Tab.Screen
-      name='Dashboard'
-      options={{
-        tabBarButton: (props) => <TabBarDashboardButton {...props} />,
-      }}
-      component={Dashboard}
-    />
-    <Tab.Screen
-      name='Add'
-      component={Dashboard}
-      options={{
-        tabBarButton: (props) => <Add {...props} />,
-      }}
-    />
-    <Tab.Screen
-      name='SageMF'
-      options={{
-        tabBarButton: () => null,
-        tabBarVisible: false,
-      }}
-      component={SageMitraFollowUp}
-    />
-    <Tab.Screen
-      name='Details'
-      options={{
-        tabBarButton: () => null,
-        tabBarVisible: false,
-      }}
-      component={Details}
-    />
-    <Tab.Screen
-        name='ClientSiteVisit'
-      options={{
-        tabBarButton: () => null,
-        tabBarVisible: false,
-      }}
-      component={SiteVisit}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='IpDone'
-      component={IPDone}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='SetMonthlyTarget'
-      component={SetTarget}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='HomeVisit'
-      component={HomeVisit}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='Event'
-      component={Event}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='Admission'
-      component={Admission}
-    />
-    <Tab.Screen
-      options={{
-        tabBarButton: () => null,
-      }}
-      name='CorpVisit'
-      component={CorpVisit}
-    />
-    <Tab.Screen
-      name='Menu'
-      component={Menu}
-      options={{
-        tabBarButton: (props) => <Menu {...props} />,
-      }}
-    />
-  </Tab.Navigator>
-);
+const INACTIVITY_TIMEOUT = 48 * 60 * 60 * 1000; // 48 hours
 
 const MainComp = () => {
   const [isLoading, setIsLoading] = useState(true);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const [userLoggedIn , setUserLoggedIn] = useState(null); 
+  const [userLoggedIn, setUserLoggedIn] = useState(null);
+  const [inactiveTimer, setInactiveTimer] = useState(null);
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
+
+  // Store session in AsyncStorage
+  const storeSession = async (userData) => {
+    const sessionData = {
+      ...userData,
+      sessionExpiry: Date.now() + INACTIVITY_TIMEOUT, 
+    };
+    await AsyncStorage.setItem('userSession', JSON.stringify(sessionData));
+  };
+
+  // Get session from AsyncStorage
+  const getSession = async () => {
+    try {
+      const sessionData = await AsyncStorage.getItem('userSession');
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        if (Date.now() > parsedData.sessionExpiry) {
+          dispatch(logout()); 
+        } else {
+          dispatch(logout()); 
+          // dispatch(login(parsedData))
+          // setUserLoggedIn(parsedData);
+          // resetInactivityTimer(); 
+        }
+      }
+    } catch (error) {
+      console.error('Error retrieving session:', error);
+    }
+  };
 
   useEffect(() => {
+    // Zoom animations for splash screen
     const zoomInOut = () => {
       Animated.loop(
         Animated.sequence([
@@ -185,34 +85,65 @@ const MainComp = () => {
 
     const timer = setTimeout(() => {
       zoomInFull();
+      getSession(); // Check session on app load
     }, 4000);
 
     return () => clearTimeout(timer);
   }, [scaleAnim]);
 
-  const {user} = useSelector((state) => state.user);
+  const resetInactivityTimer = useCallback(() => {
+    if (inactiveTimer) clearTimeout(inactiveTimer);
+
+    const newTimer = setTimeout(() => {
+      dispatch(logout());
+      AsyncStorage.removeItem('userSession'); // Clear session if inactive
+    }, INACTIVITY_TIMEOUT);
+
+    setInactiveTimer(newTimer);
+  }, [inactiveTimer, dispatch]);
+
+  // Listen for app state changes to reset inactivity timer
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        resetInactivityTimer();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [resetInactivityTimer]);
+
+  // Store user session when logged in
+  useEffect(() => {
+    if (user?.access) {
+      storeSession(user); // Store session in AsyncStorage
+      resetInactivityTimer();
+    }
+  }, [user]);
+
+  // Render initial screen based on session status
   const renderInitialScreen = (store) => {
-    if (!user?.access){
-      return <Login user={user.user} dispatch={store.dispatch} setUserLoggedIn={setUserLoggedIn}/>; 
+    if (!user?.access) {
+      return <Login user={user.user} dispatch={store.dispatch} setUserLoggedIn={setUserLoggedIn} />;
     } else {
       return (
-        <>
-        <SafeAreaView style={{
-          flex:1,
-        }}>
-          <Header />
-          <TabNavigator/>
+        <SafeAreaView style={{ flex: 1 }}>
+          <TouchableWithoutFeedback onPress={resetInactivityTimer}>
+            <View style={{ flex: 1 }}>
+              <Header />
+              <TabNavigator />
+            </View>
+          </TouchableWithoutFeedback>
         </SafeAreaView>
-        </>
       );
     }
   };
 
-  return isLoading ? (
-    <Splash scaleAnim={scaleAnim} />
-  ) : (
-      <NavigationContainer>{renderInitialScreen(store)}</NavigationContainer>
-  );
+  return isLoading ? <Splash scaleAnim={scaleAnim} /> : <NavigationContainer>{renderInitialScreen(store)}</NavigationContainer>;
 };
 
 export default MainComp;

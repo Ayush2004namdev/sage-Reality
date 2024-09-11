@@ -7,7 +7,6 @@ const statusBarHeight = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight || 
 const Header = () => {
 
   const {user} = useSelector(state => state.user);
-  console.log(user.user.first_name);
 
   return (
     <>

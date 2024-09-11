@@ -9,7 +9,7 @@ import TabSelection from '../components/TabSelection'
 
 const { height } = Dimensions.get('window');
 
-const Details = ({ route }) => {
+const HomeVisitDetails = ({ route }) => {
     const { data } = route.params;
     const { user } = useSelector((state) => state.user);
     const [loading, setLoading] = useState(true);
@@ -184,4 +184,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Details;
+export default HomeVisitDetails;

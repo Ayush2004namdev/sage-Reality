@@ -5,7 +5,7 @@ import { blue } from '../constants';
 
 const { width } = Dimensions.get('window');
 
-const TabSelection = ({ selection, handleSetSelection }) => {
+const TabSelection = ({ selection, handleSetSelection,totalCount,todayCount=0 }) => {
   return (
     <View style={styles.tabContainer}>
       <Pressable
@@ -16,7 +16,7 @@ const TabSelection = ({ selection, handleSetSelection }) => {
         onPress={() => handleSetSelection('today')}
       >
         <Text style={[styles.tabText, selection === 'today' && styles.activeTabText]}>
-          Today
+          Today <Text>({todayCount})</Text>
         </Text>
       </Pressable>
       <Pressable
@@ -27,7 +27,7 @@ const TabSelection = ({ selection, handleSetSelection }) => {
         onPress={() => handleSetSelection('all')}
       >
         <Text style={[styles.tabText, selection === 'all' && styles.activeTabText]}>
-          All
+        All <Text>({totalCount})</Text>
         </Text>
       </Pressable>
     </View>

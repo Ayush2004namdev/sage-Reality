@@ -1,14 +1,14 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DialogComponent from '../components/DialogComponent';
 import Loader from '../components/Loading';
 import LogoutPopUp from '../components/LogoutPopUp';
 import { blue } from '../constants';
 import { setAllDropdownData, setShowPopupDialog } from '../redux/slices/misc';
-import { setUserLocation } from '../redux/slices/user';
+import { logout, setUserLocation } from '../redux/slices/user';
 import { getLocation } from '../lib/features';
 // import Test from '../components/TestTemplate';
 
@@ -26,11 +26,11 @@ const Dashboard = ({setUserLoggedIn}) => {
     // { id: 1, text_id: 'total_leads', text: 'Leads', number: 0,  backgroundColor: '#06D6A0' , icon:require('../assets/Leads.png')},
     { id: 3, text_id: 'total_followUP', text: 'Follow Up', number: 0,  backgroundColor: '#073B4C' , icon:require('../assets/FollowU.png') },
     { id: 5, text_id: 'total_SM_FW', text: 'Sage Mitra Follow Up', number: 0,  backgroundColor: '#F4A261' , icon:require('../assets/SAGEMF.png'),to:'SageMitraFollowUpDetails'},
-    { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png') , to:'CorpVisitDetails'},
-    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png') , to:"HomeVisitDetils"},
-    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png'), to:"SiteVisitDetils"},
+    { id: 2, text_id: 'total_corp_visit', text: 'Corporate Visit', number: 10,  backgroundColor: '#118AB2' ,icon:require('../assets/CorpVisit.png') , to:'CorporateVisitDetails'},
+    { id: 4, text_id: 'total_home_visit', text: 'Home Visit', number: 0,  backgroundColor: '#A7C957' , icon:require('../assets/HomeVisit.png') , to:"HomeVisitDetails"},
+    { id: 6, text_id: 'total_site_visit', text: 'Site Visit', number: 0,  backgroundColor: '#2A9D8F' , icon:require('../assets/SiteVisit.png'), to:"SiteVisitDetails"},
     { id: null, text_id: 'total_event', text: 'Event', number: 0, backgroundColor: '#EF476F',icon:require('../assets/Events.png'), to:"EventsDetails" },
-    { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png') , to:"TotalAdmissionDetails"},
+    { id: 7, text_id: 'total_admission', text: 'Admission', number: 0,  backgroundColor: '#E76F51' , icon:require('../assets/Admission.png') , to:"AdmissionDetails"},
     { id: 8, text_id: 'total_ip', text: 'IP', number: 0,  backgroundColor: '#E9C46A' ,icon:require('../assets/IP.png') , to:"IpDetails"},
   ];
 
@@ -47,7 +47,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           // const res = await axios.get('http://182.70.253.15:8000/api/Get-Data' , {
           const res = await axios.get(
             'http://182.70.253.15:8000/api/Get-Data'
-            // 'http://10.22.130.15:8000/api/Get-Da7ta'
+            // 'http://10.22.130.15:8000/api/Get-Data'
              , {
           withCredentials: true,
           headers:{
@@ -107,7 +107,12 @@ const Dashboard = ({setUserLoggedIn}) => {
       
         setCardData(cardTemplate);
         setLoading(false);
-      }).catch((err) => console.log({err}));
+      }).catch((err) => {
+        console.log(err);
+        Alert.alert("🔴OOPS" , "Session Expression. Please Login Again" , [{text:"OK", 
+          onPress : () => {dispatch(logout())}
+        }] )
+      });
     },[user , update])
   )
 
@@ -135,7 +140,7 @@ const Dashboard = ({setUserLoggedIn}) => {
           <View style={styles.devider}>
     
           {cardData?.length>0  && cardData.map((card) => (
-            <Pressable key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]} onPress={() => navigate('Details', {data:card.text})}>
+            <Pressable key={card.id} className='topContainer' style={[styles.innerContainer , {backgroundColor:'white' , flexDirection:'column' , height:150}]} onPress={() => card.to ? navigate(card.to, {data:card}) :''}>
             <View style={{
               display:'flex',
               flexDirection:'column',

@@ -1,71 +1,61 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable,ScrollView, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import Loader from '../components/Loading';
 import { Ionicons } from '@expo/vector-icons'; // or 'react-native-vector-icons/Ionicons'
 import { blue } from '../constants';
 import TabSelection from '../components/TabSelection'
+import { useFocusEffect } from '@react-navigation/native';
 
-const { height } = Dimensions.get('window');
 
 const HomeVisitDetails = ({ route }) => {
     const { data } = route.params;
     const { user } = useSelector((state) => state.user);
     const [loading, setLoading] = useState(true);
+    const [todaysDone,setTodaysDone] = useState(0);
     const [selection , setSelection] = useState('today');
     const [showMoreMap, setShowMoreMap] = useState({}); // State to store visibility for each item
-    const [filledData, setFilledData] = useState([
-        {
-          C_name: "Ayush",
-          C_ph: "9718153660",
-          Visit_location: "Tesy",
-          co_fellow: null,
-          date: "2024-09-10",
-          detail: "Hsjsjs dkdvs kdvd di dncod choc cbckc c kvhx xkbx dkcux dkuf dbdnxj xnvkvm ck bc ckxjc xnic cjcicb cnv",
-          id: 314,
-          images: "HomeVisit/test_class_datetime.date_tesy_14-22-08.jpeg",
-          lat_long: "[23.2270133, 77.4367576]",
-          name: "test",
-          revisit: "1",
-          visit_type: "solo"
-        },
-        {
-          C_name: "Ayush",
-          C_ph: "9718153660",
-          Visit_location: "Tesy",
-          co_fellow: "Ashish Patil,Devendra Joshi,Faizal Ahmad",
-          date: "2024-09-10",
-          detail: "Tejsid xmxjbdncnx c j bx xnchx cbuxvs sjvs dnchxus dbjvdnf ncjcbc ckx x ncjxbc bch xb dud dbjd dndb dn",
-          id: 317,
-          images: "HomeVisit/test_class_datetime.date_tesy_14-37-13.jpeg",
-          lat_long: "[23.2270217, 77.4367627]",
-          name: "test",
-          revisit: "2",
-          visit_type: "team"
+    const [filledData, setFilledData] = useState([]);
+
+      useFocusEffect(useCallback(() => {
+        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/home`;
+        try{
+            axios.get(url).then((res) => setTodaysDone(res?.data?.count)).catch(err => console.log(err));
+        }catch(err){
+            setFilledData([]);
+            console.log({err});
+            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
         }
-      ]);
+        setSelection('today');
+        setShowMoreMap({});
+      },[data]))
 
     useEffect(() => {
         const fetchData = async () => {
-            // setLoading(true);
+            setLoading(true);
             try {
-                let url = `http://10.22.130.15:8000/api/Forms-Data/${user.user.first_name}/home`;
+                let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/home`;
                 if(selection === 'all'){
                     url+=`?date=${selection}`
                 }
                 const res = await axios.get(url);
-                // setFilledData(res.data.data);
-                console.log('========',res.data);
+                setFilledData(res.data.data);
+                console.log('====hiihihihihiihihihih====',res.data);
             } catch (err) {
-                console.log(err);
+                setFilledData([]);
+                console.log({err});
+                Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
             } finally {
-                setLoading(false);
+                setTimeout(() => {
+                    setLoading(false);
+                    setShowMoreMap({});
+                },500)
             }
         };
 
         fetchData();
-    }, [data]);
+    }, [data,selection]);
 
     // Function to toggle the visibility of each item
     const toggleShowMore = (id) => {
@@ -75,17 +65,28 @@ const HomeVisitDetails = ({ route }) => {
         }));
     };
 
-    const handleSetSelection = (event) => {
-        setSelection(event);
-    }
+    // console.log(filledData)
 
     return loading ? <Loader/> : (
-        <View style={styles.container}>
-            <TabSelection selection={selection} handleSetSelection={setSelection}/>
+        <ScrollView style={{
+            paddingBottom:20,
+            marginBottom:30,
+            backgroundColor: '#F6F5F5',
+        }} nestedScrollEnabled={true}>
+            <Text style={{
+                width:'100%',
+                textAlign:'center',
+                paddingVertical:5,
+                fontSize:20,
+                marginTop:10
+            }}>{data?.text}'s Details</Text>
+        <Pressable style={styles.container}>
+            <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
             {filledData && filledData.map((item) => {
-                const isExpanded = showMoreMap[item.id];
+                const isExpanded = showMoreMap[item.C_ph];
+                // console.log(item.)
                 return (
-                    <View key={item.id} style={styles.card}>
+                    <Pressable key={item.C_ph} style={styles.card}>
                         <View style={styles.header}>
                             <Text style={[styles.textStyle , styles.textHeadings]}>{item.C_name}</Text>
                             <Text style={styles.textStyle}>{item.date}</Text>
@@ -93,29 +94,51 @@ const HomeVisitDetails = ({ route }) => {
                         <View style={styles.infoRow}>
                             <Text style={[styles.textStyle , styles.textHeadings]}>{item.C_ph}</Text>
                         </View>
-                        <Text style={[styles.textStyle , styles.textHeadings]}>Location: {item.Visit_location}</Text>
-
-                        {isExpanded && (
-                            <View style={styles.moreContent}>
+                       {(item?.record[0] && item?.record[0]?.Visit_location) && <Text style={[styles.textStyle , styles.textHeadings]}>Address: {item?.record[0]?.Visit_location}</Text>} 
+                       
+                        {/* {item?.record?.map((rec,index) => {
+                            return (
+                                <View key={index} style={styles.moreContent}>
                                 <Text style={[styles.textStyle , styles.textHeadings , {marginBottom:0}]}>Remark</Text>
-                                <Text style={[styles.textStyle , {marginTop:0}]}>{item.detail}</Text>
-                                <Text style={[styles.textStyle]}>Visit Type: {item.visit_type}</Text>
-                                {item.co_fellow && <Text style={[styles.textStyle]}>Team Members: {item.co_fellow}</Text>}
+                                <Text style={[styles.textStyle , {marginTop:0}]}>{rec.detail}</Text>
+                                <Text style={[styles.textStyle]}>Visit Type: {rec.visit_type}</Text>
+                                {rec.co_fellow && <Text style={[styles.textStyle]}>Team Members: {rec.co_fellow}</Text>}
                             </View>
+                            )
+                        })} */}
+                        
+                        {isExpanded && (
+                            <>
+                                {item?.record?.map((rec,index) => {
+                                    // console.log(index);
+                            return (
+                                <View key={index} style={styles.moreContent}>
+                                    <View style={styles.header}>
+                                        <Text style={[styles.textStyle , styles.textHeadings]}>Conversation {item?.record?.length - index}</Text>
+                                        <Text style={styles.textStyle}>({rec.date})</Text>
+                                    </View>
+                                <Text style={[styles.textStyle , {marginTop:0}]}>{rec.detail}</Text>
+                                <Text style={[styles.textStyle]}>Visit Type: {rec.visit_type}</Text>
+                                {rec.co_fellow && <Text style={[styles.textStyle]}>Team Members: {rec.co_fellow}</Text>}
+                            </View>
+                            )
+                        })}
+                            </>
                         )}
 
-                        <TouchableOpacity style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
+                        <Pressable style={styles.toggleButton} onPress={() => toggleShowMore(item.C_ph)}>
                             <Text style={styles.toggleText}>{isExpanded ? 'Less' : 'More'}</Text>
                             <Ionicons 
                                 name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'} 
                                 size={20} 
                                 color="black" 
-                            />
-                        </TouchableOpacity>
-                    </View>
+                                />
+                        </Pressable>
+                    </Pressable>
                 );
             })}
-        </View>
+        </Pressable>
+    </ScrollView>
     );
 };
 
@@ -123,7 +146,6 @@ const HomeVisitDetails = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: height,
         backgroundColor: '#F6F5F5',
         padding: 20,
     },
@@ -157,7 +179,7 @@ const styles = StyleSheet.create({
     moreContent: {
         flexDirection:'column',
         gap:5,
-        marginTop: 2,
+        marginTop: 10,
     },
     email:{
         fontSize: 0,

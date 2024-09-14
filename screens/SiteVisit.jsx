@@ -26,8 +26,7 @@ const SiteVisit = () => {
     )
 
 
-    useEffect(() => {
-        
+    useEffect(() => {    
         console.log('');
         return () => {
             setShowPopup(true);

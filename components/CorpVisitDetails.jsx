@@ -1,102 +1,63 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import Loader from '../components/Loading';
 import { Ionicons } from '@expo/vector-icons';
 import { blue } from '../constants';
+import TabSelection from './TabSelection';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
 const CorpVisitDetails = ({ route }) => {
-    // const { data } = route.params;
+    const { data } = route.params;
     const { user } = useSelector((state) => state.user);
     const [loading, setLoading] = useState(true);
+    const [todaysDone,setTodaysDone] = useState(0);
     const [selection , setSelection] = useState('today');
     const [showMoreMap, setShowMoreMap] = useState({}); // State to store visibility for each item
-    const [filledData, setFilledData] = useState([{
-        "cofel_name": null, 
-        "corp_name": "108 EMERGENCY SERVICES", 
-        "corp_type": "Political Organization", 
-        "data_collect": "0", 
-        "id": 431, 
-        "images": "CorpoVisit/anjali-saxena_2024-09-09_108-emergency-services_17-22-58.jpg", 
-        "key_person": "Hm", 
-        "key_person2": "", 
-        "key_person_contact": "6261590239", 
-        "key_person_contact2": "", 
-        "lat_long": null, 
-        "location": "Hm", 
-        "meet_person": 0, 
-        "name": "Anjali Saxena", 
-        "num_attend": null, 
-        "nxt_pre_date": null, 
-        "presentation": "done", 
-        "reason": "", 
-        "visit_date": "2024-09-09", 
-        "visit_type": "solo"
-    },{
-        "cofel_name": null, 
-        "corp_name": "108 EMERGENCY SERVICES", 
-        "corp_type": "Political Organization", 
-        "data_collect": "0", 
-        "id": 432, 
-        "images": "CorpoVisit/anjali-saxena_2024-09-09_108-emergency-services_17-22-58.jpg", 
-        "key_person": "Hm", 
-        "key_person2": "", 
-        "key_person_contact": "6261590239", 
-        "key_person_contact2": "", 
-        "lat_long": null, 
-        "location": "Hm", 
-        "meet_person": 0, 
-        "name": "Anjali Saxena", 
-        "num_attend": null, 
-        "nxt_pre_date": null, 
-        "presentation": "done", 
-        "reason": "", 
-        "visit_date": "2024-09-09", 
-        "visit_type": "solo"
-    },{
-        "cofel_name": null, 
-        "corp_name": "108 EMERGENCY SERVICES", 
-        "corp_type": "Political Organization", 
-        "data_collect": "0", 
-        "id": 433, 
-        "images": "CorpoVisit/anjali-saxena_2024-09-09_108-emergency-services_17-22-58.jpg", 
-        "key_person": "Hm", 
-        "key_person2": "", 
-        "key_person_contact": "6261590239", 
-        "key_person_contact2": "", 
-        "lat_long": null, 
-        "location": "Hm", 
-        "meet_person": 0, 
-        "name": "Anjali Saxena", 
-        "num_attend": null, 
-        "nxt_pre_date": null, 
-        "presentation": "done", 
-        "reason": "", 
-        "visit_date": "2024-09-09", 
-        "visit_type": "solo"
-    }]);
+    const [filledData, setFilledData] = useState([]);
+
+    useFocusEffect(useCallback(() => {
+        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/corporate`;
+        try{
+            axios.get(url).then((res) => setTodaysDone(res?.data?.count)).catch(err => console.log(err));
+        }catch(err){
+            console.log(err);
+        }
+        setSelection('today');
+        setShowMoreMap({});
+      },[data]))
 
     useEffect(() => {
+        setFilledData([]);
         const fetchData = async () => {
-            setLoading(true);
-            console.log(user.access);
-            try {
-                const res = await axios.get(`http://10.22.130.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`);
-                console.log('rekjafnk ojkf ',res);
-                // setFilledData(res.data.data);
-                // console.log(res.data);
-            } catch (err) {
-                console.log(err);
-            } finally {
-                setLoading(false);
+          setLoading(true);
+          try {
+            let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/corporate`;
+            if (selection === "all") {
+              url += `?date=${selection}`;
             }
+            const res = await axios.get(url);
+            // const data = JSON.parse(res.data);
+            setFilledData(res.data.data);
+            console.log("========", res.data);
+            // setFilledData(res.data);
+          } catch (err) {
+            console.log(err);
+            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
+            setFilledData([]);
+          } finally {
+            setTimeout(() => {
+                setLoading(false);
+                setShowMoreMap({});
+            },500)
+          }
         };
-
+    
         fetchData();
-    }, []);
+      }, [data,selection]);
 
     // Function to toggle the visibility of each item
     const toggleShowMore = (id) => {
@@ -110,43 +71,26 @@ const CorpVisitDetails = ({ route }) => {
         setSelection(event);
     }
 
-    return (
-        <View style={styles.container}>
-            <View style={{
+    return loading ? <Loader/> : (
+        <ScrollView style={{
+            paddingBottom:20,
+            marginBottom:30,
+            backgroundColor: '#F6F5F5',
+        }} nestedScrollEnabled={true}>
+            <Text style={{
                 width:'100%',
-                height:50,
-                display:'flex',
-                flexDirection:'row',
-                alignItems:'center',
-                justifyContent:'space-around',
-                marginBottom:10
-            }}>
-                <Pressable style={{
-                    backgroundColor:'white',
-                    paddingHorizontal:10,
-                    paddingVertical:5,
-                    borderRadius:5,
-                    borderColor: selection === 'today' ? 'blue' : 'black',
-                    borderWidth: 1 ,
-                }} onPress={() => handleSetSelection('today')}>
-                    <Text>Today</Text>
-                </Pressable>
-                <Pressable style={{
-                    backgroundColor:'white',
-                    paddingHorizontal:10,
-                    paddingVertical:5,
-                    borderRadius:5,
-                    borderColor:selection === 'all' ? 'blue' : 'black',
-                    borderWidth:1,
-                }} onPress={() => handleSetSelection('all')}>
-                    <Text>All</Text>
-                </Pressable>
-            </View>
-            {loading && <Loader />}
+                textAlign:'center',
+                paddingVertical:5,
+                fontSize:20,
+                marginTop:10
+            }}>{data?.text}'s Details</Text>
+        <View style={styles.container}>
+        <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
+        {loading && <Loader />}
             {filledData && filledData.map((item) => {
                 const isExpanded = showMoreMap[item.id];
                 return (
-                    <View key={item.id} style={styles.card}>
+                    <Pressable key={item.id} style={styles.card}>
                         <View style={styles.header}>
                             <Text style={[styles.textStyle , styles.textHeadings]}>{item.key_person}</Text>
                             <Text style={styles.textStyle}>{item.visit_date}</Text>
@@ -164,18 +108,19 @@ const CorpVisitDetails = ({ route }) => {
                             </View>
                         )}
 
-                        <TouchableOpacity style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
+                        <Pressable style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
                             <Text style={styles.toggleText}>{isExpanded ? 'Less' : 'More'}</Text>
                             <Ionicons 
                                 name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'} 
                                 size={20} 
                                 color="black" 
                             />
-                        </TouchableOpacity>
-                    </View>
+                        </Pressable>
+                    </Pressable>
                 );
             })}
         </View>
+    </ScrollView>
     );
 };
 
@@ -184,7 +129,6 @@ export default CorpVisitDetails;
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: height,
         backgroundColor: '#F6F5F5',
         padding: 20,
     },

@@ -318,29 +318,29 @@ const HomeVisit = () => {
       return;
     }
 
+    let lat_long = [
+      location?.coords?.latitude,
+      location?.coords?.longitude,
+    ];
+
     try {
       if (!location) {
         const userLocation = await getLocation();
-        // console.log({ userLocation });
-        if (!userLocation) {
-          dispatch(logout());
-          dispatch(setIsMenuOpen(false));
-          dispatch(toggleAdd(false));
-          navigate("Dashboard");
-          return;
-        }
         dispatch(setUserLocation(userLocation));
-        return;
+        lat_long = [
+          userLocation?.coords?.latitude,
+          userLocation?.coords?.longitude,
+        ]
+        // return;
       }
 
-      const lat_long = [
-        location?.coords?.latitude,
-        location?.coords?.longitude,
-      ];
+      
+      
       setIsLoading(true);
       const teamMembers = formData.teamMembers.filter(
         (member) => member !== ""
       );
+
       setFormData({ ...formData, teamMembers });
       const data = {
         username: formData.name,
@@ -354,6 +354,8 @@ const HomeVisit = () => {
         co_name: formData.teamMembers,
         lat_long: lat_long,
       };
+
+      console.log(data);
       await submitForm(
         "Home-Visit",
         data,
@@ -485,7 +487,7 @@ const HomeVisit = () => {
                 justifyContent:'space-between',
                 alignItems:'center',
               }}>
-                <Text style={styles.label}>Remark</Text>
+                <Text style={styles.label}>Dicussion</Text>
                 <Text style={{
                   color: formData.remark.length > 100 ? 'green' : 'red'
                 }}>{formData.remark.length}/100</Text>
@@ -540,7 +542,9 @@ const HomeVisit = () => {
             </TouchableOpacity>
           </Pressable>
           {formData.image && (
-            <Image source={{ uri: formData.image.uri }} style={styles.image} />
+            <Pressable>
+              <Image source={{ uri: formData.image.uri }} style={styles.image} />
+            </Pressable>
           )}
 
           <View style={styles.inputGroup}>

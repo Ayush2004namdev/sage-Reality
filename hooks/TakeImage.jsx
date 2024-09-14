@@ -8,9 +8,10 @@ const takeImage = async (setterFucntion) => {
     }
 
     let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
+      aspect: [4,3],
+      allowsEditing: true,
       base64: true,
-      quality: 1,
+      quality: 0,
     });
 
     if (!result.canceled) {

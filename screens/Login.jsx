@@ -18,6 +18,7 @@ import { blue } from "../constants";
 import { login } from "../redux/slices/user";
 import { current } from "@reduxjs/toolkit";
 import Loader from "../components/Loading";
+import { Ionicons } from "@expo/vector-icons";
 
 const { height, width } = Dimensions.get("window");
 
@@ -31,6 +32,7 @@ const Login = ({ user }) => {
   const [access, setAccess] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showEye , setShowEye] = useState(true);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -185,15 +187,19 @@ const Login = ({ user }) => {
                 value={username}
                 onChangeText={setUsername}
               />
-
+              <View style={[styles.input , {display:'flex' , flexDirection:"row",alignItems:'center'}]}>
               <TextInput
-                style={styles.input}
+                style={{
+                  flexGrow:1
+                }}
                 placeholder="Password"
                 placeholderTextColor="#aaa"
-                secureTextEntry
+                secureTextEntry={showEye}
                 value={password}
                 onChangeText={setPassword}
-              />
+                />
+                <Ionicons onPress={() => setShowEye(prev => !prev)} name={showEye? "eye-outline" : 'eye-off-outline'}  size={20}/>
+              </View>
 
               <TouchableOpacity
                 onPress={handleLogin}
@@ -218,6 +224,7 @@ const Login = ({ user }) => {
                 setShowForgetPassword(false);
                 setPassword("");
                 setUsername("");
+                setShowEye(true);
               }}
               style={{
                 width: width,
@@ -233,7 +240,7 @@ const Login = ({ user }) => {
                   minWidth: width - 40,
                   // minHeight: height / 2.2,
                   marginHorizontal: 20,
-                  marginVertical: height / 4,
+                  marginVertical: height / 3,
                   borderRadius: 10,
                   padding: 20,
                   alignItems: "center",
@@ -259,14 +266,19 @@ const Login = ({ user }) => {
                   value={username}
                   onChangeText={(val) => setUsername(val)}
                 />
+              <View style={[styles.input , {display:'flex' , flexDirection:"row",alignItems:'center'}]}>
                 <TextInput
-                  style={styles.input}
+                  style={{
+                    flexGrow:1
+                  }}
                   placeholder="Enter password"
                   placeholderTextColor="#aaa"
-                  secureTextEntry
+                  secureTextEntry={showEye}
                   value={password}
                   onChangeText={(val) => setPassword(val)}
                 />
+                 <Ionicons onPress={() => setShowEye(prev => !prev)} name={showEye? "eye-outline" : 'eye-off-outline'}  size={20}/>
+                 </View>
 
                 <TouchableOpacity
                   onPress={handleForgotPasswordSubmit}
@@ -284,6 +296,7 @@ const Login = ({ user }) => {
                 setShowResetPassword(false);
                 setPassword("");
                 setUsername("");
+                setShowEye(true);
               }}
               style={{
                 width: width,
@@ -329,19 +342,23 @@ const Login = ({ user }) => {
                   style={styles.input}
                   placeholder="Enter password"
                   placeholderTextColor="#aaa"
-                  secureTextEntry
+                  // secureTextEntry={showEye}
                   value={oldPassword}
                   onChangeText={(val) => setOldPassword(val)}
                 />
-
+              <View style={[styles.input , {display:'flex' , flexDirection:"row",alignItems:'center'}]}>
 <TextInput
-                  style={styles.input}
+                  style={{
+                    flexGrow:1
+                  }}
                   placeholder="Confirm password"
                   placeholderTextColor="#aaa"
-                  secureTextEntry
+                  secureTextEntry={showEye}
                   value={newPassword}
                   onChangeText={(val) => setNewPassword(val)}
                 />
+                 <Ionicons onPress={() => setShowEye(prev => !prev)} name={showEye? "eye-outline" : 'eye-off-outline'}  size={20}/>
+                 </View>
 
                 <TouchableOpacity
                   onPress={handleResetPassword}

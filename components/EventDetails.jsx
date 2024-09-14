@@ -10,23 +10,26 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
-const SageMitraFollowUpDetails = ({ route }) => {
+const EventDetails = ({ route }) => {
     const { data } = route.params;
     const { user } = useSelector((state) => state.user);
     const [loading, setLoading] = useState(true);
+    const [todaysDone,setTodaysDone] = useState(0);
     const [selection , setSelection] = useState('today');
-    const [todaysDone , setTodaysDone] = useState(0);
     const [showMoreMap, setShowMoreMap] = useState({}); // State to store visibility for each item
     const [filledData, setFilledData] = useState([]);
 
     useFocusEffect(useCallback(() => {
-        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`;
+        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/event`;
         try{
             axios.get(url).then((res) => setTodaysDone(res?.data?.count)).catch(err => console.log(err));
         }catch(err){
             console.log(err);
+            setFilledData([]);
+            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
         }
         setSelection('today');
+        setShowMoreMap({});
       },[data]))
 
     useEffect(() => {
@@ -34,7 +37,7 @@ const SageMitraFollowUpDetails = ({ route }) => {
         const fetchData = async () => {
           setLoading(true);
           try {
-            let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`;
+            let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/event`;
             if (selection === "all") {
               url += `?date=${selection}`;
             }
@@ -45,12 +48,10 @@ const SageMitraFollowUpDetails = ({ route }) => {
             // setFilledData(res.data);
           } catch (err) {
             console.log(err);
-            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
-            setFilledData([]);
           } finally {
             setTimeout(() => {
                 setLoading(false);
-                setShowMoreMap({});
+                setShowMoreMap({})
             },500)
           }
         };
@@ -66,64 +67,61 @@ const SageMitraFollowUpDetails = ({ route }) => {
         }));
     };
 
-    const handleSetSelection = (event) => {
-        setSelection(event);
-    }
-
     return loading ? <Loader/> : (
         <ScrollView style={{
             paddingBottom:20,
             marginBottom:30,
             backgroundColor: '#F6F5F5',
         }} nestedScrollEnabled={true}>
-            <Text style={{
+             <Text style={{
                 width:'100%',
                 textAlign:'center',
                 paddingVertical:5,
                 fontSize:20,
                 marginTop:10
             }}>{data?.text}'s Details</Text>
-      <Pressable style={styles.container}>
-      <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
-            {loading && <Loader />}
+        <View style={styles.container}>
+        <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
+        {loading && <Loader />}
             {filledData && filledData.map((item) => {
                 const isExpanded = showMoreMap[item.id];
                 return (
-                    <Pressable key={item.id} style={styles.card}>
+                    <View key={item.id} style={styles.card}>
                         <View style={styles.header}>
-                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.SM_name}</Text>
-                            <Text style={styles.textStyle}>{item.followUp_date}</Text>
+                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.Event_name}</Text>
+                            {/* <Text style={styles.textStyle}>{item.followUp_date}</Text> */}
                         </View>
                         <View style={styles.infoRow}>
-                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.sm_contact}</Text>
+                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.start_date} to {item.end_date}</Text>
                         </View>
                         {/* <Text style={[styles.textStyle , styles.textHeadings]}>Corporate Details</Text> */}
-                        <Text style={[styles.textStyle]}>No. of leads: {item.No_leads}</Text>
+                        <Text style={[styles.textStyle]}>Number of leads: {item.num_lead}</Text>
+                        <Text style={styles.textStyle}>Number of Attendees: {item.num_attendees}</Text>
 
                         {isExpanded && (
                             <View style={styles.moreContent}>
-                                <Text style={styles.textStyle}>Conversation: {item.lead_detail}</Text>
-                                {/* <Text style={styles.textStyle}>Presentation: {item.presentation}</Text> */}
+                                <Text style={styles.textStyle}>Event Type: {item.type}</Text>
+                                <Text style={styles.textStyle}>Event Details: {item.event_details}</Text>
                             </View>
                         )}
 
-                        <Pressable style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
+                        <TouchableOpacity style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
                             <Text style={styles.toggleText}>{isExpanded ? 'Less' : 'More'}</Text>
                             <Ionicons 
                                 name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'} 
                                 size={20} 
                                 color="black" 
                             />
-                        </Pressable>
-                    </Pressable>
+                        </TouchableOpacity>
+                    </View>
                 );
             })}
-        </Pressable>
+        </View>
     </ScrollView>
     );
 };
 
-export default SageMitraFollowUpDetails;
+export default EventDetails;
 
 const styles = StyleSheet.create({
     container: {

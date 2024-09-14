@@ -17,6 +17,11 @@ import SiteVisit from './screens/SiteVisit';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SageMitraFollowUpDetails from './components/SageMitraFollowUpDetails';
 import CorpVisitDetails from './components/CorpVisitDetails';
+import HomeVisitDetails from './components/HomeVisitDetails';
+import SiteVisitDetails from './components/SiteVisitDetails';
+import EventDetails from './components/EventDetails';
+import AdmissionDetails from './components/AdmissionDetails';
+import IpDetails from './components/IpDetails';
 
 const Tab = createBottomTabNavigator();
 
@@ -88,6 +93,46 @@ const TabNavigator = () => (
           tabBarVisible: false,
         }}
         component={CorpVisitDetails}
+      />
+      <Tab.Screen
+        name='HomeVisitDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={HomeVisitDetails}
+      />
+      <Tab.Screen
+        name='EventsDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={EventDetails}
+      />
+      <Tab.Screen
+        name='AdmissionDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={AdmissionDetails}
+      />
+      <Tab.Screen
+        name='IpDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={IpDetails}
+      />
+      <Tab.Screen
+        name='SiteVisitDetails'
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        component={SiteVisitDetails}
       />
       <Tab.Screen
         name='Details'

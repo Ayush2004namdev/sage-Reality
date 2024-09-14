@@ -97,7 +97,7 @@ const Admission = () => {
 
 
     if (emptyField && alertFieldName) {
-      if(!formatDate(formData.date)) return  Alert.alert(
+      if(!formatDate(formData.date)) return Alert.alert(
         "🔴 OOPS!",
         `Please Enter a Valid Date.`,
         [

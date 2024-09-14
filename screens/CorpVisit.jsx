@@ -313,20 +313,20 @@ const CorpVisit = () => {
     }
     try {
 
-      if(!location) {
-        const userLocation = await getLocation();
-        if(!userLocation) {
-          dispatch(logout());
-          dispatch(setIsMenuOpen(false));
-          dispatch(toggleAdd(false));
-          navigate('Dashboard');
-          return;
+      let lat_long = [
+        location?.coords?.latitude,
+        location?.coords?.longitude,
+      ];
+  
+        if (!location) {
+          const userLocation = await getLocation();
+          dispatch(setUserLocation(userLocation));
+          lat_long = [
+            userLocation?.coords?.latitude,
+            userLocation?.coords?.longitude,
+          ]
+          // return;
         }
-        dispatch(setUserLocation(userLocation));
-        return;
-      }
-
-      const lat_long = [location?.coords?.latitude , location?.coords?.longitude];
 
       setLoading(true);
       const data = {

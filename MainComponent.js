@@ -38,10 +38,10 @@ const MainComp = () => {
         if (Date.now() > parsedData.sessionExpiry) {
           dispatch(logout()); 
         } else {
-          dispatch(logout()); 
-          // dispatch(login(parsedData))
-          // setUserLoggedIn(parsedData);
-          // resetInactivityTimer(); 
+          // dispatch(logout()); 
+          dispatch(login(parsedData))
+          setUserLoggedIn(parsedData);
+          resetInactivityTimer(); 
         }
       }
     } catch (error) {

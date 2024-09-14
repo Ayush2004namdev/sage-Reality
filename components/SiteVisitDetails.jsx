@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useSelector } from "react-redux";
 import Loader from "../components/Loading";
@@ -16,38 +17,51 @@ import { blue } from "../constants";
 import TabSelection from "../components/TabSelection";
 import { useFocusEffect } from "@react-navigation/native";
 
-const { height } = Dimensions.get("window");
+const { height } = Dimensions.get("screen");
 
-const Details = ({ route }) => {
+const SiteVisitDetails = ({ route }) => {
   const { data } = route.params;
   const { user } = useSelector((state) => state.user);
-  const [loading, setLoading] = useState(true);
+    const [todaysDone,setTodaysDone] = useState(0);
+    const [loading, setLoading] = useState(true);
   const [selection, setSelection] = useState("today");
   const [showMoreMap, setShowMoreMap] = useState({}); // State to store visibility for each item
   const [filledData, setFilledData] = useState([]);
 
   useFocusEffect(useCallback(() => {
-    setSelection('today')
-},[]))
+    let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/site`;
+    try{
+        axios.get(url).then((res) => setTodaysDone(res?.data?.count)).catch(err => console.log(err));
+    }catch(err){
+        console.log(err);
+    }
+    setSelection('today');
+    setShowMoreMap({});
+  },[data]))
 
 
   useEffect(() => {
     const fetchData = async () => {
-      // setLoading(true);
+      setLoading(true);
       try {
-        let url = `http://10.22.130.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`;
+        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/site`;
         if (selection === "all") {
           url += `?date=${selection}`;
         }
         const res = await axios.get(url);
         // const data = JSON.parse(res.data);
         setFilledData(res.data.data);
-        console.log("========", res.data);
+        // console.log("========", res.data);
         // setFilledData(res.data);
       } catch (err) {
+        Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
         console.log(err);
+        setFilledData([]);
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+          setShowMoreMap({});
+      },500)
       }
     };
 
@@ -72,10 +86,18 @@ const Details = ({ route }) => {
     <>
     <ScrollView style={{
         paddingBottom:20,
-        marginBottom:30
+        marginBottom:30,
+        backgroundColor: '#F6F5F5',
     }} nestedScrollEnabled={true}>
+       <Text style={{
+                width:'100%',
+                textAlign:'center',
+                paddingVertical:5,
+                fontSize:20,
+                marginTop:10
+            }}>{data?.text}'s Details</Text>
       <View style={styles.container}>
-      <TabSelection selection={selection} handleSetSelection={setSelection} />
+      <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
       {filledData &&
         filledData.map((item) => {
             const isExpanded = showMoreMap[item.id];
@@ -242,4 +264,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Details;
+export default SiteVisitDetails;

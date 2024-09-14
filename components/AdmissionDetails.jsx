@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { Text, View, Dimensions, TouchableOpacity, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import Loader from '../components/Loading';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
-const SageMitraFollowUpDetails = ({ route }) => {
+const AdmissionDetails = ({ route }) => {
     const { data } = route.params;
     const { user } = useSelector((state) => state.user);
     const [loading, setLoading] = useState(true);
@@ -20,21 +20,22 @@ const SageMitraFollowUpDetails = ({ route }) => {
     const [filledData, setFilledData] = useState([]);
 
     useFocusEffect(useCallback(() => {
-        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`;
+        let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/admission`;
         try{
             axios.get(url).then((res) => setTodaysDone(res?.data?.count)).catch(err => console.log(err));
         }catch(err){
             console.log(err);
         }
         setSelection('today');
-      },[data]))
+        setShowMoreMap({})
+    },[]))
 
     useEffect(() => {
         setFilledData([]);
         const fetchData = async () => {
           setLoading(true);
           try {
-            let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/sagemitra`;
+            let url = `http://182.70.253.15:8000/api/Forms-Data/${user.user.first_name}/admission`;
             if (selection === "all") {
               url += `?date=${selection}`;
             }
@@ -45,12 +46,12 @@ const SageMitraFollowUpDetails = ({ route }) => {
             // setFilledData(res.data);
           } catch (err) {
             console.log(err);
-            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
             setFilledData([]);
+            Alert.alert('🔴OOPS' , 'Something Went Wrong', [{text:'Ok'}])
           } finally {
             setTimeout(() => {
                 setLoading(false);
-                setShowMoreMap({});
+                setShowMoreMap({})
             },500)
           }
         };
@@ -58,76 +59,49 @@ const SageMitraFollowUpDetails = ({ route }) => {
         fetchData();
       }, [data,selection]);
 
-    // Function to toggle the visibility of each item
-    const toggleShowMore = (id) => {
-        setShowMoreMap((prevMap) => ({
-            ...prevMap,
-            [id]: !prevMap[id]
-        }));
-    };
-
-    const handleSetSelection = (event) => {
-        setSelection(event);
-    }
-
     return loading ? <Loader/> : (
         <ScrollView style={{
             paddingBottom:20,
             marginBottom:30,
-            backgroundColor: '#F6F5F5',
+             backgroundColor: '#F6F5F5',
         }} nestedScrollEnabled={true}>
-            <Text style={{
+             <Text style={{
                 width:'100%',
                 textAlign:'center',
                 paddingVertical:5,
                 fontSize:20,
                 marginTop:10
             }}>{data?.text}'s Details</Text>
-      <Pressable style={styles.container}>
-      <TabSelection selection={selection} handleSetSelection={setSelection} todayCount={todaysDone} totalCount={data?.number} />
+        <View style={styles.container}>
+            <TabSelection selection={selection} handleSetSelection={setSelection} totalCount={data?.number} todayCount={todaysDone} />
             {loading && <Loader />}
             {filledData && filledData.map((item) => {
                 const isExpanded = showMoreMap[item.id];
                 return (
-                    <Pressable key={item.id} style={styles.card}>
+                    <View key={item.id} style={styles.card}>
                         <View style={styles.header}>
-                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.SM_name}</Text>
-                            <Text style={styles.textStyle}>{item.followUp_date}</Text>
+                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.s_name}</Text>
+                            <Text style={styles.textStyle}>{item.date}</Text>
                         </View>
                         <View style={styles.infoRow}>
-                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.sm_contact}</Text>
+                            <Text style={[styles.textStyle , styles.textHeadings]}>{item.vertical}</Text>
                         </View>
-                        {/* <Text style={[styles.textStyle , styles.textHeadings]}>Corporate Details</Text> */}
-                        <Text style={[styles.textStyle]}>No. of leads: {item.No_leads}</Text>
-
-                        {isExpanded && (
-                            <View style={styles.moreContent}>
-                                <Text style={styles.textStyle}>Conversation: {item.lead_detail}</Text>
-                                {/* <Text style={styles.textStyle}>Presentation: {item.presentation}</Text> */}
-                            </View>
-                        )}
-
-                        <Pressable style={styles.toggleButton} onPress={() => toggleShowMore(item.id)}>
-                            <Text style={styles.toggleText}>{isExpanded ? 'Less' : 'More'}</Text>
-                            <Ionicons 
-                                name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'} 
-                                size={20} 
-                                color="black" 
-                            />
-                        </Pressable>
-                    </Pressable>
+                        <Text style={[styles.textStyle]}><Text style={[styles.textStyle , styles.textHeadings]}>Branch:</Text> {item.branch_class}</Text>
+                        <Text style={styles.textStyle}><Text style={[styles.textStyle , styles.textHeadings]}>Father's Name:</Text> {item.f_name}</Text>
+                    </View>
                 );
             })}
-        </Pressable>
+        </View>
     </ScrollView>
     );
 };
 
-export default SageMitraFollowUpDetails;
+export default AdmissionDetails;
 
 const styles = StyleSheet.create({
     container: {
         width: '100%',
+        // height: height,
         backgroundColor: '#F6F5F5',
         padding: 20,
     },
